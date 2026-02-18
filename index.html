@@ -147,17 +147,19 @@
       cursor: pointer; text-decoration: none;
     }
 
-    .logo-hex {
+    .nav-logo-img-wrap {
       width: 46px; height: 46px;
-      background: linear-gradient(135deg, var(--red), #8b0014);
-      clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Orbitron', monospace;
-      font-size: 16px; font-weight: 900;
-      color: white;
-      box-shadow: 0 0 20px var(--red-glow), inset 0 0 15px rgba(255,255,255,0.1);
-      position: relative;
+      border-radius: 50%;
+      border: 2px solid var(--red);
+      overflow: hidden; flex-shrink: 0;
+      box-shadow: 0 0 18px var(--red-glow);
       animation: logoGlow 3s ease-in-out infinite alternate;
+    }
+
+    .nav-logo-img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: top center;
+      display: block;
     }
 
     @keyframes logoGlow {
@@ -167,12 +169,12 @@
 
     .logo-text { display: flex; flex-direction: column; line-height: 1; }
     .logo-text span:first-child {
-      font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 900;
-      color: var(--white); letter-spacing: 0.1em;
+      font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 900;
+      color: var(--white); letter-spacing: 0.08em;
     }
     .logo-text span:last-child {
-      font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 400;
-      color: var(--red); letter-spacing: 0.25em; text-transform: uppercase;
+      font-family: 'Rajdhani', sans-serif; font-size: 9px; font-weight: 400;
+      color: var(--red); letter-spacing: 0.2em; text-transform: uppercase;
     }
 
     .nav-links {
@@ -1157,10 +1159,18 @@
   <!-- ─── NAV ─── -->
   <nav>
     <a class="nav-logo" onclick="showPage('inicio')">
-      <div class="logo-hex">T</div>
+      <div class="nav-logo-img-wrap">
+        <img
+          src="https://entrenadorfitnessbcn.com/wp-content/uploads/2025/11/cropped-photo_2025-11-30_22-41-47.jpg"
+          alt="Fitness y Hábitos – Entrenador Personal Barcelona"
+          class="nav-logo-img"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+        />
+        <div class="logo-hex" style="display:none;">T</div>
+      </div>
       <div class="logo-text">
-        <span>FITNESS BCN</span>
-        <span>ENTRENADOR PERSONAL</span>
+        <span>FITNESS Y HÁBITOS</span>
+        <span>ENTRENADOR PERSONAL BARCELONA</span>
       </div>
     </a>
 
@@ -1212,15 +1222,12 @@
 
       <div class="hero-visual">
         <div class="hero-img-container">
-          <div class="hero-img-placeholder">
-            <!-- Replace src with: https://entrenadorfitnessbcn.com/wp-content/uploads/2025/11/cropped-photo_2025-11-30_22-41-47.jpg -->
-            <img
-              src="https://entrenadorfitnessbcn.com/wp-content/uploads/2025/11/cropped-photo_2025-11-30_22-41-47.jpg"
-              alt="Toni, Entrenador Personal en Barcelona – Eixample y Fort Pienc"
-              class="hero-img"
-              onerror="this.style.display='none'"
-            />
-          </div>
+          <img
+            src="https://entrenadorfitnessbcn.com/wp-content/uploads/2025/11/cropped-photo_2025-11-30_22-41-47.jpg"
+            alt="Toni, Entrenador Personal en Barcelona – Eixample y Fort Pienc"
+            class="hero-img"
+            style="aspect-ratio:4/5;width:100%;object-fit:cover;object-position:top center;border-radius:12px;display:block;filter:grayscale(10%) contrast(1.1);"
+          />
           <div class="hero-corner">DISPONIBLE</div>
         </div>
         <div class="hero-stats">
@@ -1359,9 +1366,9 @@
     <div class="cta-banner">
       <div class="section-tag" style="justify-content:center">Primera sesión</div>
       <h2 class="section-title">¿Listo para tu <span>transformación</span>?</h2>
-      <p class="section-sub" style="margin:0 auto 36px;text-align:center">Empieza con una sesión de prueba sin compromiso. Solo 50€ para descubrir el método.</p>
+      <p class="section-sub" style="margin:0 auto 36px;text-align:center">Empieza con una sesión de prueba sin compromiso. <strong style="color:var(--red)">Oferta temporal: solo 40€</strong> (antes 50€).</p>
       <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
-        <a href="https://wa.me/34614056363?text=Hola%20Toni,%20quiero%20la%20sesión%20de%20prueba" target="_blank" class="btn-primary">💬 WhatsApp</a>
+        <a href="https://wa.me/34614056363?text=Hola%20Toni,%20quiero%20la%20sesión%20de%20prueba%20a%2040€" target="_blank" class="btn-primary">💬 WhatsApp</a>
         <button class="btn-secondary" onclick="showPage('planes')">Ver todos los planes</button>
       </div>
     </div>
@@ -1375,15 +1382,12 @@
 
     <div class="conocenos-hero">
       <div class="trainer-photo-wrap">
-        <div class="trainer-photo-placeholder">
-          <img
-            src="https://entrenadorfitnessbcn.com/wp-content/uploads/2025/11/cropped-photo_2025-11-30_22-41-47.jpg"
-            alt="Toni, entrenador personal en Barcelona, Eixample y Fort Pienc"
-            class="trainer-photo"
-            onerror="this.style.display='none'"
-          />
-          👤
-        </div>
+        <img
+          src="https://entrenadorfitnessbcn.com/wp-content/uploads/2025/11/cropped-photo_2025-11-30_22-41-47.jpg"
+          alt="Toni, entrenador personal en Barcelona, Eixample y Fort Pienc"
+          class="trainer-photo"
+          style="width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top center;border-radius:12px;display:block;filter:grayscale(15%) contrast(1.1);"
+        />
         <div class="photo-frame"></div>
         <div class="photo-badge glass-red">
           <span class="num">8+</span>
@@ -1483,9 +1487,16 @@
       <!-- SESIÓN PRUEBA -->
       <div class="plan-card glass">
         <div class="plan-name">Sesión de Prueba</div>
-        <div class="plan-price">
-          <span class="currency">€</span>
-          <span class="amount">50</span>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <div class="plan-price" style="margin-bottom:0;">
+            <span class="currency">€</span>
+            <span class="amount">40</span>
+          </div>
+          <span style="font-size:18px;color:var(--grey-mid);text-decoration:line-through;font-family:'Orbitron',monospace;font-weight:700;margin-top:6px;">50€</span>
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,0,30,0.15);border:1px solid var(--glass-border-red);border-radius:100px;padding:4px 12px;margin-bottom:10px;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red-glow);animation:pulse 1.5s ease-in-out infinite;flex-shrink:0;"></span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--red);letter-spacing:0.15em;">OFERTA TEMPORAL</span>
         </div>
         <div class="plan-tag">Pago único · Sin compromiso</div>
         <div class="plan-divider"></div>
@@ -1496,16 +1507,23 @@
           <li>Evaluación física básica</li>
         </ul>
         <div class="plan-ideal">Ideal para conocer el método y al entrenador sin compromiso previo.</div>
-        <a href="https://wa.me/34614056363?text=Hola%20Toni,%20quiero%20probar%20la%20Sesión%20de%20Prueba" target="_blank" class="plan-btn">Probar ahora</a>
+        <a href="https://wa.me/34614056363?text=Hola%20Toni,%20quiero%20probar%20la%20Sesión%20de%20Prueba%20a%2040€" target="_blank" class="plan-btn">Probar ahora</a>
       </div>
 
       <!-- ONLINE -->
-      <div class="plan-card glass">
+      <div class="plan-card glass featured">
         <div class="plan-name">Plan Online</div>
-        <div class="plan-price">
-          <span class="currency">€</span>
-          <span class="amount">95</span>
-          <span class="period">/ mes</span>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <div class="plan-price" style="margin-bottom:0;">
+            <span class="currency">€</span>
+            <span class="amount">70</span>
+            <span class="period">/ mes</span>
+          </div>
+          <span style="font-size:16px;color:var(--grey-mid);text-decoration:line-through;font-family:'Orbitron',monospace;font-weight:700;margin-top:8px;">95€</span>
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,0,30,0.15);border:1px solid var(--glass-border-red);border-radius:100px;padding:4px 12px;margin-bottom:10px;">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red-glow);animation:pulse 1.5s ease-in-out infinite;flex-shrink:0;"></span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--red);letter-spacing:0.15em;">OFERTA TEMPORAL</span>
         </div>
         <div class="plan-tag">Facturación mensual</div>
         <div class="plan-divider"></div>
@@ -1517,11 +1535,11 @@
           <li>Soporte por WhatsApp</li>
         </ul>
         <div class="plan-ideal">Ideal para quienes buscan flexibilidad total, viven fuera de Barcelona o ya tienen experiencia entrenando.</div>
-        <a href="https://wa.me/34614056363?text=Hola%20Toni,%20me%20interesa%20el%20Plan%20Online" target="_blank" class="plan-btn">Empezar</a>
+        <a href="https://wa.me/34614056363?text=Hola%20Toni,%20me%20interesa%20el%20Plan%20Online%20a%2070€" target="_blank" class="plan-btn">Empezar</a>
       </div>
 
       <!-- 2 SESIONES -->
-      <div class="plan-card glass featured">
+      <div class="plan-card glass">
         <div class="plan-name">Plan 2 Sesiones</div>
         <div class="plan-price">
           <span class="currency">€</span>
@@ -1712,11 +1730,11 @@
             </div>
             <div class="arrow">›</div>
           </a>
-          <a href="mailto:info@entrenadorfitnessbcn.com" class="contact-method glass">
+          <a href="/cdn-cgi/l/email-protection#c4adaaa2ab84a1aab0b6a1aaa5a0abb6a2adb0aaa1b7b7a6a7aaeaa7aba9" class="contact-method glass">
             <div class="icon">📧</div>
             <div class="details">
               <div class="type">Email</div>
-              <div class="value">info@entrenadorfitnessbcn.com</div>
+              <div class="value"><span class="__cf_email__" data-cfemail="c6afa8a0a986a3a8b2b4a3a8a7a2a9b4a0afb2a8a3b5b5a4a5a8e8a5a9ab">[email&#160;protected]</span></div>
             </div>
             <div class="arrow">›</div>
           </a>
@@ -1790,16 +1808,20 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-          <div class="logo-hex" style="width:38px;height:38px;font-size:13px;">T</div>
+          <div class="nav-logo-img-wrap" style="width:38px;height:38px;">
+            <img src="https://entrenadorfitnessbcn.com/wp-content/uploads/2025/11/cropped-photo_2025-11-30_22-41-47.jpg"
+              alt="Fitness y Hábitos logo" class="nav-logo-img"
+              onerror="this.style.display='none';" />
+          </div>
           <div class="logo-text">
-            <span style="font-family:'Orbitron',monospace;font-size:12px;font-weight:900;color:var(--white);">FITNESS BCN</span>
-            <span style="font-family:'Rajdhani';font-size:10px;color:var(--red);letter-spacing:0.2em;">ENTRENADOR PERSONAL</span>
+            <span style="font-family:'Orbitron',monospace;font-size:11px;font-weight:900;color:var(--white);">FITNESS Y HÁBITOS</span>
+            <span style="font-family:'Rajdhani';font-size:9px;color:var(--red);letter-spacing:0.2em;">ENTRENADOR PERSONAL</span>
           </div>
         </div>
         <p>Entrenador personal en Barcelona, Eixample y Fort Pienc. Transformaciones reales con método, constancia y apoyo constante.</p>
         <div class="footer-social">
           <a href="https://wa.me/34614056363" target="_blank" class="social-btn" title="WhatsApp">💬</a>
-          <a href="mailto:info@entrenadorfitnessbcn.com" class="social-btn" title="Email">📧</a>
+          <a href="/cdn-cgi/l/email-protection#1b72757d745b7e756f697e757a7f74697d726f757e686879787535787476" class="social-btn" title="Email">📧</a>
           <a href="tel:+34614056363" class="social-btn" title="Llamar">📞</a>
         </div>
       </div>
@@ -1829,7 +1851,7 @@
         <h5>Contacto</h5>
         <ul>
           <li><a href="tel:+34614056363">+34 614 056 363</a></li>
-          <li><a href="mailto:info@entrenadorfitnessbcn.com">info@entrenadorfitnessbcn.com</a></li>
+          <li><a href="/cdn-cgi/l/email-protection#20494e464f60454e5452454e41444f524649544e45535342434e0e434f4d"><span class="__cf_email__" data-cfemail="573e3931381732392325323936333825313e23393224243534397934383a">[email&#160;protected]</span></a></li>
           <li><span style="color:var(--grey-light);font-size:14px;">Carrer d'Aragó 366</span></li>
           <li><span style="color:var(--grey-light);font-size:14px;">08013 Barcelona</span></li>
           <li><span style="color:var(--grey-light);font-size:14px;">Eixample · Fort Pienc</span></li>
@@ -1848,7 +1870,7 @@
   </footer>
 
   <!-- ─── JS ROUTING ─── -->
-  <script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     function showPage(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + id).classList.add('active');
@@ -1870,19 +1892,4 @@
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting) {
-          e.target.style.opacity = '1';
-          e.target.style.transform = 'translateY(0)';
-        }
-      });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.method-card, .review-card, .plan-card, .consejo-card, .commit-item, .zona-card, .how-card').forEach(el => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(20px)';
-      el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-      observer.observe(el);
-    });
-  </script>
-
-</body>
-</html>
+          e.target.style.
