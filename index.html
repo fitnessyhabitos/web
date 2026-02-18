@@ -147,32 +147,36 @@
       cursor: pointer; text-decoration: none;
     }
 
-    .logo-hex {
-      width: 46px; height: 46px;
-      background: linear-gradient(135deg, var(--red), #8b0014);
-      clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Orbitron', monospace;
-      font-size: 16px; font-weight: 900;
-      color: white;
-      box-shadow: 0 0 20px var(--red-glow), inset 0 0 15px rgba(255,255,255,0.1);
-      position: relative;
+    /* ─── LOGO CIRCULAR ─── */
+    .nav-logo-circle {
+      width: 54px; height: 54px; flex-shrink: 0;
+      border-radius: 50%;
+      border: 2.5px solid var(--red);
+      box-shadow: 0 0 0 1px rgba(232,0,30,0.3), 0 0 18px rgba(232,0,30,0.55), inset 0 0 12px rgba(0,0,0,0.6);
+      overflow: hidden;
+      background: #0a0a0a;
       animation: logoGlow 3s ease-in-out infinite alternate;
     }
 
-    @keyframes logoGlow {
-      from { box-shadow: 0 0 20px var(--red-glow), inset 0 0 15px rgba(255,255,255,0.1); }
-      to { box-shadow: 0 0 40px var(--red-glow), 0 0 60px rgba(232,0,30,0.3), inset 0 0 15px rgba(255,255,255,0.15); }
+    .nav-logo-circle img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center;
+      display: block;
     }
 
-    .logo-text { display: flex; flex-direction: column; line-height: 1; }
-    .logo-text span:first-child {
-      font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 900;
-      color: var(--white); letter-spacing: 0.1em;
+    @keyframes logoGlow {
+      from { box-shadow: 0 0 0 1px rgba(232,0,30,0.3), 0 0 14px rgba(232,0,30,0.5); }
+      to   { box-shadow: 0 0 0 1px rgba(232,0,30,0.5), 0 0 30px rgba(232,0,30,0.75), 0 0 50px rgba(232,0,30,0.2); }
     }
-    .logo-text span:last-child {
-      font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 400;
-      color: var(--red); letter-spacing: 0.25em; text-transform: uppercase;
+
+    .logo-text { display: flex; flex-direction: column; line-height: 1.2; gap: 3px; }
+    .logo-text .logo-name {
+      font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 900;
+      color: var(--white); letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .logo-text .logo-sub {
+      font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 500;
+      color: var(--red); letter-spacing: 0.28em; text-transform: uppercase;
     }
 
     .nav-links {
@@ -227,7 +231,6 @@
 
     /* ─── PAGES ─── */
     .page { display: none; min-height: 100vh; padding-top: 72px; position: relative; z-index: 1; }
-    .page.active { display: block; }
 
     /* ─── GLASS CARD ─── */
     .glass {
@@ -1157,19 +1160,24 @@
   <!-- ─── NAV ─── -->
   <nav>
     <a class="nav-logo" onclick="showPage('inicio')">
-      <div class="logo-hex">T</div>
+      <div class="nav-logo-circle">
+        <img
+          src="https://entrenadorfitnessbcn.com/wp-content/uploads/2025/12/miniicono.jpg"
+          alt="Fitness y Hábitos Logo"
+        />
+      </div>
       <div class="logo-text">
-        <span>FITNESS Y HÁBITOS</span>
-        <span>ENTRENADOR PERSONAL</span>
+        <span class="logo-name">FITNESS Y HÁBITOS</span>
+        <span class="logo-sub">ENTRENADOR PERSONAL BARCELONA</span>
       </div>
     </a>
 
     <ul class="nav-links" id="navLinks">
-      <li><button class="active" onclick="showPage('inicio')">Inicio</button></li>
-      <li><button onclick="showPage('conocenos')">Conócenos</button></li>
-      <li><button onclick="showPage('planes')">Planes</button></li>
-      <li><button onclick="showPage('consejos')">Consejos</button></li>
-      <li><button onclick="showPage('contacto')" class="nav-cta">Contactar</button></li>
+      <li><button id="navbtn-inicio" class="active" onclick="showPage('inicio')">Inicio</button></li>
+      <li><button id="navbtn-conocenos" onclick="showPage('conocenos')">Conócenos</button></li>
+      <li><button id="navbtn-planes" onclick="showPage('planes')">Planes</button></li>
+      <li><button id="navbtn-consejos" onclick="showPage('consejos')">Consejos</button></li>
+      <li><button id="navbtn-contacto" onclick="showPage('contacto')" class="nav-cta">Contactar</button></li>
     </ul>
 
     <div class="hamburger" onclick="toggleMenu()" aria-label="Menú">
@@ -1789,10 +1797,12 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-          <div class="logo-hex" style="width:38px;height:38px;font-size:13px;">T</div>
+          <div class="nav-logo-circle" style="width:46px;height:46px">
+            <img src="https://entrenadorfitnessbcn.com/wp-content/uploads/2025/12/miniicono.jpg" alt="Fitness y Hábitos Logo"/>
+          </div>
           <div class="logo-text">
-            <span style="font-family:'Orbitron',monospace;font-size:12px;font-weight:900;color:var(--white);">FITNESS BCN</span>
-            <span style="font-family:'Rajdhani';font-size:10px;color:var(--red);letter-spacing:0.2em;">ENTRENADOR PERSONAL</span>
+            <span class="logo-name" style="font-size:13px">FITNESS Y HÁBITOS</span>
+            <span class="logo-sub">ENTRENADOR PERSONAL</span>
           </div>
         </div>
         <p>Entrenador personal en Barcelona, Eixample y Fort Pienc. Transformaciones reales con método, constancia y apoyo constante.</p>
@@ -1807,9 +1817,9 @@
         <h5>Páginas</h5>
         <ul>
           <li><button onclick="showPage('inicio')">Inicio</button></li>
-          <li><button onclick="showPage('conocenos')">Conócenos</button></li>
+          <li><button id="navbtn-conocenos" onclick="showPage('conocenos')">Conócenos</button></li>
           <li><button onclick="showPage('planes')">Planes y precios</button></li>
-          <li><button onclick="showPage('consejos')">Consejos</button></li>
+          <li><button id="navbtn-consejos" onclick="showPage('consejos')">Consejos</button></li>
           <li><button onclick="showPage('contacto')">Contacto</button></li>
         </ul>
       </div>
@@ -1828,7 +1838,7 @@
         <h5>Contacto</h5>
         <ul>
           <li><a href="tel:+34614056363">+34 614 056 363</a></li>
-          <li><a href="mailto:info@entrenadorfitnessbcn.com" style="color:var(--grey-light);text-decoration:none;font-size:14px;font-family:'Rajdhani',sans-serif">info@entrenadorfitnessbcn.com</a></li>
+          <li><a href="/cdn-cgi/l/email-protection#523b3c343d12373c2620373c33363d20343b263c37212130313c7c313d3f" style="color:var(--grey-light);text-decoration:none;font-size:14px;font-family:'Rajdhani',sans-serif"><span class="__cf_email__" data-cfemail="b1d8dfd7def1d4dfc5c3d4dfd0d5dec3d7d8c5dfd4c2c2d3d2df9fd2dedc">[email&#160;protected]</span></a></li>
           <li><span style="color:var(--grey-light);font-size:14px;">En el corazón de l'Eixample</span></li>
           <li><span style="color:var(--grey-light);font-size:14px;">08013 Barcelona</span></li>
           <li><span style="color:var(--grey-light);font-size:14px;">Eixample · Fort Pienc</span></li>
@@ -1848,39 +1858,63 @@
 
   <!-- ─── JS ROUTING ─── -->
   <script>
+    var PAGES = ['inicio','conocenos','planes','consejos','contacto'];
+
     function showPage(id) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById('page-' + id).classList.add('active');
-      document.querySelectorAll('.nav-links button, .nav-links a').forEach(btn => {
-        btn.classList.remove('active');
-        const t = btn.getAttribute('onclick') || '';
-        if (t.includes("'" + id + "'")) btn.classList.add('active');
+      // Hide all pages
+      PAGES.forEach(function(p) {
+        var el = document.getElementById('page-' + p);
+        if (el) el.style.display = 'none';
       });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      // Close mobile menu
-      document.getElementById('navLinks').classList.remove('open');
+
+      // Show target page
+      var target = document.getElementById('page-' + id);
+      if (target) target.style.display = 'block';
+
+      // Update active nav button
+      var allBtns = document.querySelectorAll('.nav-links li button');
+      allBtns.forEach(function(btn) {
+        btn.classList.remove('active');
+      });
+      var activeBtn = document.getElementById('navbtn-' + id);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      // Scroll to top & close mobile menu
+      window.scrollTo(0, 0);
+      var nl = document.getElementById('navLinks');
+      if (nl) nl.classList.remove('open');
     }
 
     function toggleMenu() {
-      document.getElementById('navLinks').classList.toggle('open');
+      var nl = document.getElementById('navLinks');
+      if (nl) nl.classList.toggle('open');
     }
 
-    // Animate elements on scroll / intersection
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.style.opacity = '1';
-          e.target.style.transform = 'translateY(0)';
-          observer.unobserve(e.target);
-        }
+    // Init: show only inicio, hide rest
+    window.addEventListener('DOMContentLoaded', function() {
+      PAGES.forEach(function(p) {
+        var el = document.getElementById('page-' + p);
+        if (el) el.style.display = (p === 'inicio') ? 'block' : 'none';
       });
-    }, { threshold: 0.1 });
 
-    document.querySelectorAll('.method-card, .review-card, .plan-card, .consejo-card, .commit-item, .zona-card, .how-card').forEach((el, i) => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(20px)';
-      el.style.transition = 'opacity 0.5s ease ' + (i * 0.04) + 's, transform 0.5s ease ' + (i * 0.04) + 's';
-      observer.observe(el);
+      // Scroll animations
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+          if (e.isIntersecting) {
+            e.target.style.opacity = '1';
+            e.target.style.transform = 'translateY(0)';
+            observer.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.08 });
+
+      var animated = document.querySelectorAll('.method-card,.review-card,.plan-card,.consejo-card,.commit-item,.zona-card,.how-card,.stat-card');
+      animated.forEach(function(el, i) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.5s ease ' + (i * 0.04) + 's, transform 0.5s ease ' + (i * 0.04) + 's';
+        observer.observe(el);
+      });
     });
   </script>
 
