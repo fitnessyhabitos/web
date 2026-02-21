@@ -3,13 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Fitness - Dashboard</title>
+    <title>App Fitness - Cyberpunk Glass</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;1,900&display=swap');
+        /* Importamos fuentes futuristas y limpias */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Orbitron:wght@700;900&display=swap');
+
+        :root {
+            --neon-red: #FF003C;
+            --dark-bg: #050505;
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-grey: #a0aabf;
+        }
 
         body {
-            background-color: #2c2c2c; /* Fondo para que destaque el móvil */
+            background-color: var(--dark-bg);
+            /* Fondo sutil estilo matriz/circuito */
+            background-image: 
+                linear-gradient(rgba(255, 0, 60, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 60, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
             font-family: 'Montserrat', sans-serif;
             display: flex;
             justify-content: center;
@@ -18,57 +31,80 @@
             margin: 0;
         }
 
-        /* Contenedor que simula la pantalla del móvil */
+        /* Contenedor del móvil con borde resplandeciente */
         .mobile-screen {
             width: 375px;
             height: 812px;
-            background: linear-gradient(180deg, #1e2430 0%, #11141b 100%);
+            background: linear-gradient(180deg, #1a1a2e 0%, #000000 100%);
             border-radius: 40px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 0 40px rgba(255, 0, 60, 0.2); /* Resplandor rojo exterior */
             overflow: hidden;
             position: relative;
             padding: 20px;
             box-sizing: border-box;
-            border: 8px solid #000;
+            border: 4px solid #222; /* Marco metálico oscuro */
         }
 
-        /* Cabecera */
+        /* Efecto de luz ambiental en la parte superior */
+        .mobile-screen::before {
+            content: '';
+            position: absolute;
+            top: -150px;
+            left: -50px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,0,60,0.3) 0%, rgba(0,0,0,0) 70%);
+            filter: blur(40px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Cabecera Cyberpunk */
         .header {
             text-align: center;
             margin-top: 60px;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
         }
 
         .title {
+            font-family: 'Orbitron', sans-serif; /* Fuente tecnológica */
             color: white;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 900;
-            font-style: italic;
-            letter-spacing: 1px;
+            letter-spacing: 3px;
             margin: 0;
+            /* Efecto de texto de neón */
+            text-shadow: 0 0 10px rgba(255, 0, 60, 0.7), 0 0 20px rgba(255, 0, 60, 0.4);
         }
 
         .underline {
-            width: 60%;
-            height: 4px;
-            background-color: #fbd334; /* Amarillo estilo Fitness Park */
-            margin: 5px auto;
+            width: 50%;
+            height: 3px;
+            background-color: var(--neon-red);
+            margin: 10px auto;
+            /* Barra brillante */
+            box-shadow: 0 0 15px var(--neon-red);
         }
 
         .subtitle {
-            font-size: 11px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
             letter-spacing: 2px;
-            color: #a0aabf;
+            color: var(--text-grey);
             text-transform: uppercase;
-            margin-top: 8px;
-            font-weight: 700;
+            margin-top: 12px;
         }
 
-        /* Cuadrícula de botones */
+        /* Cuadrícula */
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 25px 15px;
+            gap: 30px 15px;
             padding: 0 10px;
         }
 
@@ -77,38 +113,72 @@
             flex-direction: column;
             align-items: center;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .grid-item:hover {
-            transform: scale(1.05);
+            transform: translateY(-5px);
         }
 
+        /* ESTILO CLAVE: LIQUID GLASS CYBERPUNK */
         .icon-box {
             width: 75px;
             height: 75px;
-            background-color: white;
-            border-radius: 20px;
+            border-radius: 24px;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            font-size: 28px;
-            color: #11141b;
+            margin-bottom: 12px;
+            font-size: 26px;
+            
+            /* Glassmorphism: Fondo translúcido + Desenfoque */
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px); /* El efecto de cristal esmerilado */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); /* Borde de cristal sutil */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+            color: #e0e0e0; /* Icono gris claro por defecto */
+            transition: all 0.3s ease;
         }
 
-        /* El botón central amarillo */
-        .icon-box.yellow {
-            background-color: #fbd334;
+        /* Efecto Hover en los botones normales */
+        .grid-item:hover .icon-box {
+            border-color: var(--neon-red);
+            color: var(--neon-red);
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.5), inset 0 0 10px rgba(255, 0, 60, 0.2);
+        }
+        .grid-item:hover .icon-box i {
+             text-shadow: 0 0 10px var(--neon-red);
+        }
+
+        /* El botón central ROJO NEÓN ACTIVO */
+        .icon-box.red-neon {
+            background: rgba(255, 0, 60, 0.15); /* Cristal tintado de rojo */
+            border: 2px solid var(--neon-red);
+            color: white;
+             /* Resplandor intenso */
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.6), inset 0 0 20px rgba(255, 0, 60, 0.3);
+        }
+        
+        .icon-box.red-neon i {
+            font-size: 32px;
+            /* El icono brilla intensamente */
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px var(--neon-red);
         }
 
         .label {
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
-            line-height: 1.2;
-            color: #d1d8e0;
-            font-weight: 500;
+            color: var(--text-grey);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: color 0.3s;
+        }
+        
+        .grid-item:hover .label {
+            color: white;
+            text-shadow: 0 0 5px var(--neon-red);
         }
 
     </style>
@@ -116,50 +186,52 @@
 <body>
 
     <div class="mobile-screen">
-        <div class="header">
-            <h1 class="title">NUESTRA APP</h1>
-            <div class="underline"></div>
-            <p class="subtitle">Entrena • Supera • Repite</p>
-        </div>
-
-        <div class="grid">
-            <div class="grid-item">
-                <div class="icon-box"><i class="fa-solid fa-dumbbell"></i></div>
-                <span class="label">Entrenos</span>
-            </div>
-            <div class="grid-item">
-                <div class="icon-box"><i class="fa-solid fa-chart-line"></i></div>
-                <span class="label">Progreso</span>
-            </div>
-            <div class="grid-item">
-                <div class="icon-box"><i class="fa-solid fa-bowl-food"></i></div>
-                <span class="label">Nutrición</span>
+        <div class="content-wrapper">
+            <div class="header">
+                <h1 class="title">CYBER GYM</h1>
+                <div class="underline"></div>
+                <p class="subtitle">Actualiza tu Sistema // V.2.049</p>
             </div>
 
-            <div class="grid-item">
-                <div class="icon-box"><i class="fa-solid fa-user-shield"></i></div>
-                <span class="label">Mi Perfil</span>
-            </div>
-            <div class="grid-item">
-                <div class="icon-box yellow"><i class="fa-solid fa-qrcode"></i></div>
-                <span class="label">Acceso</span>
-            </div>
-            <div class="grid-item">
-                <div class="icon-box"><i class="fa-regular fa-calendar-check"></i></div>
-                <span class="label">Reservas</span>
-            </div>
+            <div class="grid">
+                <div class="grid-item">
+                    <div class="icon-box"><i class="fa-solid fa-dumbbell"></i></div>
+                    <span class="label">Entrenos</span>
+                </div>
+                <div class="grid-item">
+                    <div class="icon-box"><i class="fa-solid fa-chart-line"></i></div>
+                    <span class="label">Datos Bio</span>
+                </div>
+                <div class="grid-item">
+                    <div class="icon-box"><i class="fa-solid fa-capsules"></i></div>
+                    <span class="label">Fuel/Nutri</span>
+                </div>
 
-            <div class="grid-item">
-                <div class="icon-box"><i class="fa-regular fa-comments"></i></div>
-                <span class="label">Soporte</span>
-            </div>
-            <div class="grid-item">
-                <div class="icon-box"><i class="fa-solid fa-play"></i></div>
-                <span class="label">Videos</span>
-            </div>
-            <div class="grid-item">
-                <div class="icon-box"><i class="fa-solid fa-handshake"></i></div>
-                <span class="label">Comunidad</span>
+                <div class="grid-item">
+                    <div class="icon-box"><i class="fa-solid fa-user-astronaut"></i></div>
+                    <span class="label">Avatar</span>
+                </div>
+                <div class="grid-item">
+                    <div class="icon-box red-neon"><i class="fa-solid fa-qrcode"></i></div>
+                    <span class="label" style="color: var(--neon-red); text-shadow: 0 0 10px rgba(255,0,60,0.5);">ACCESO NET</span>
+                </div>
+                <div class="grid-item">
+                    <div class="icon-box"><i class="fa-regular fa-calendar-check"></i></div>
+                    <span class="label">Reservas</span>
+                </div>
+
+                <div class="grid-item">
+                    <div class="icon-box"><i class="fa-solid fa-headset"></i></div>
+                    <span class="label">Soporte IT</span>
+                </div>
+                <div class="grid-item">
+                    <div class="icon-box"><i class="fa-solid fa-play"></i></div>
+                    <span class="label">Streaming</span>
+                </div>
+                <div class="grid-item">
+                    <div class="icon-box"><i class="fa-solid fa-users-rays"></i></div>
+                    <span class="label">Nexo</span>
+                </div>
             </div>
         </div>
     </div>
