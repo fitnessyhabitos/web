@@ -3,8 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kV Studio | Uñas y Pestañas Exclusivas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <title>kV Studio | Uñas, Pestañas y Estética Premium en Barcelona</title>
+    <meta name="description" content="kV Studio, tu centro de estética premium en Barcelona. Especialistas en manicura rusa, uñas acrílicas, lifting y extensiones de pestañas. Realza tu belleza natural con nosotros.">
+    <meta name="keywords" content="uñas Barcelona, extensiones de pestañas Barcelona, manicura rusa, uñas esculpidas, lifting pestañas, estética Barcelona, kV Studio, salón de belleza">
+    <meta name="author" content="kV Studio">
+    <meta name="robots" content="index, follow">
+    
+    <meta property="og:title" content="kV Studio | Centro de Estética Premium">
+    <meta property="og:description" content="Especialistas en diseño de mirada y uñas esculpidas en Barcelona. ¡Descubre nuestros servicios!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.tusitioweb.com"> <meta property="og:image" content="https://www.tusitioweb.com/logo.png"> <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
     
     <style>
         /* --- PALETA Y VARIABLES --- */
@@ -16,8 +25,15 @@
             --gris-texto: #555555;
             --blanco: #FFFFFF;
             --verde-claro: #E2F0E6;
-            --verde-acento: #caddd0;
+            
+            /* Nuevos detalles Premium Plateados */
+            --plata-solido: #C0C0C0;
+            --plata-metalico: linear-gradient(135deg, #e6e6e6 0%, #ffffff 40%, #a6a6a6 60%, #e6e6e6 100%);
+            --plata-hover: linear-gradient(135deg, #ffffff 0%, #e6e6e6 50%, #8c8c8c 100%);
+            
             --sombra-suave: 0 10px 30px rgba(0,0,0,0.08);
+            --sombra-plata: 0 5px 20px rgba(192, 192, 192, 0.4);
+            
             --font-titulo: 'Playfair Display', serif;
             --font-texto: 'Montserrat', sans-serif;
         }
@@ -35,10 +51,10 @@
             color: var(--negro);
             font-family: var(--font-texto);
             line-height: 1.7;
-            overflow-x: hidden; /* Evita scroll horizontal no deseado */
+            overflow-x: hidden;
         }
 
-        h1, h2, h3 {
+        h1, h2, h3, h4 {
             font-family: var(--font-titulo);
             color: var(--negro);
         }
@@ -50,27 +66,25 @@
             display: inline-block;
         }
 
-        /* Pequeño subrayado decorativo rosa para los títulos H2 */
+        /* Subrayado plateado premium para los H2 */
         h2::after {
             content: '';
             position: absolute;
             bottom: -10px;
             left: 0;
-            width: 60px;
+            width: 80px;
             height: 3px;
-            background-color: var(--rosa);
+            background: var(--plata-metalico);
         }
 
         section {
             padding: 100px 10%;
-            min-height: 80vh; /* Secciones más altas */
             position: relative;
         }
 
-        /* --- NAVEGACIÓN MODERNA --- */
+        /* --- NAVEGACIÓN --- */
         nav {
-            background-color: rgba(26, 26, 26, 0.95); /* Negro con ligera transparencia */
-            backdrop-filter: blur(10px); /* Efecto de desenfoque moderno */
+            background-color: rgba(26, 26, 26, 0.98);
             padding: 0.8rem 5%;
             display: flex;
             justify-content: space-between;
@@ -78,15 +92,17 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            /* Borde inferior plateado para el toque premium */
+            border-bottom: 2px solid;
+            border-image: var(--plata-metalico) 1;
         }
 
         .logo-img {
             height: 55px;
             width: auto;
-            /* Opcional: si tu logo no es redondo, quita la siguiente línea */
             border-radius: 50%;
-            border: 2px solid var(--rosa);
+            border: 2px solid transparent;
+            background: var(--plata-metalico); /* Borde plateado en el logo */
             padding: 2px;
         }
 
@@ -109,7 +125,6 @@
             transition: 0.3s;
         }
 
-        /* Efecto hover elegante en el menú */
         nav ul li a::after {
             content: '';
             position: absolute;
@@ -117,57 +132,54 @@
             left: 0;
             width: 0%;
             height: 2px;
-            background-color: var(--rosa);
+            background: var(--plata-metalico);
             transition: width 0.3s ease;
         }
 
-        nav ul li a:hover::after {
-            width: 100%;
-        }
+        nav ul li a:hover::after { width: 100%; }
 
-        /* --- SECCIÓN INICIO (HERO) --- */
+        /* --- SECCIÓN INICIO (HERO optimizado para SEO) --- */
         #inicio {
-            /* IMAGEN DE FONDO: Cambia la URL por una foto tuya de alta calidad */
-            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(26, 4, 10, 0.7)), url('https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1920&auto=format&fit=crop');
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(26, 4, 10, 0.8)), url('https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1920&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
-            background-attachment: fixed; /* Efecto parallax moderno */
+            background-attachment: fixed;
             display: flex;
             align-items: center;
-            justify-content: flex-start; /* Alineado a la izquierda */
+            justify-content: flex-start;
             color: var(--blanco);
             min-height: 100vh;
         }
 
         .hero-content {
-            max-width: 600px;
+            max-width: 650px;
             z-index: 2;
         }
 
+        /* H1 ultra optimizado para SEO */
         #inicio h1 {
-            font-size: 4rem;
+            font-size: 3.8rem;
             line-height: 1.1;
             margin-bottom: 20px;
             color: var(--blanco);
         }
 
-        .texto-destacado-rosa {
-            color: var(--rosa);
-            font-style: italic;
+        .texto-destacado-rosa { color: var(--rosa); font-style: italic; }
+        .texto-destacado-plata { 
+            background: var(--plata-metalico);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
         }
 
         #inicio p {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             margin-bottom: 40px;
             opacity: 0.9;
+            font-weight: 300;
         }
 
-        /* Botones Modernos */
-        .botones-inicio {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
+        .botones-inicio { display: flex; gap: 20px; flex-wrap: wrap; }
 
         .btn {
             padding: 15px 35px;
@@ -181,44 +193,41 @@
             display: inline-block;
         }
 
-        .btn-primario {
-            background: linear-gradient(45deg, var(--rosa), var(--rosa-oscuro));
+        /* Botón plateado premium */
+        .btn-premium {
+            background: var(--plata-metalico);
             color: var(--negro);
-            box-shadow: 0 5px 15px rgba(242, 196, 206, 0.4);
+            box-shadow: var(--sombra-plata);
             border: none;
         }
 
-        .btn-primario:hover {
+        .btn-premium:hover {
+            background: var(--plata-hover);
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(242, 196, 206, 0.6);
+            box-shadow: 0 10px 25px rgba(192, 192, 192, 0.6);
         }
         
         .btn-ig {
             background-color: transparent;
-            border: 2px solid var(--blanco);
+            border: 2px solid var(--plata-solido);
             color: var(--blanco);
         }
 
         .btn-ig:hover {
-            background-color: var(--blanco);
+            background-color: var(--plata-solido);
             color: var(--negro);
             transform: translateY(-3px);
         }
 
-        /* --- SECCIÓN CONÓCENOS --- */
+        /* --- SECCIÓN CONÓCENOS (Textos ricos en palabras clave) --- */
         #conocenos {
             background-color: var(--blanco);
             display: flex;
             align-items: center;
             gap: 5%;
-            /* Decoración de fondo sutil */
-            background-image: radial-gradient(circle at top right, var(--verde-claro) 0%, transparent 40%);
         }
 
-        .about-text {
-            flex: 1;
-            padding-right: 20px;
-        }
+        .about-text { flex: 1; padding-right: 20px; }
 
         .about-text p {
             margin-bottom: 20px;
@@ -226,37 +235,30 @@
             font-size: 1.05rem;
         }
 
-        .about-image-container {
-            flex: 1;
-            position: relative;
-        }
+        .about-image-container { flex: 1; position: relative; }
 
-        /* Marco decorativo para la imagen de Conócenos */
         .about-image {
             width: 100%;
             height: auto;
-            border-radius: 20px;
+            border-radius: 5px; /* Bordes más rectos, más premium */
             box-shadow: var(--sombra-suave);
             position: relative;
             z-index: 2;
-            /* IMAGEN CONÓCENOS: Cambia la URL aquí */
             content: url('https://images.unsplash.com/photo-1512290923902-8a9284379427?q=80&w=1080&auto=format&fit=crop');
         }
         
-        /* Rectángulo decorativo rosa detrás de la foto */
+        /* Marco plateado decorativo */
         .about-image-container::before {
             content: '';
             position: absolute;
-            top: -20px;
-            left: -20px;
+            top: -15px;
+            left: -15px;
             width: 100%;
             height: 100%;
-            background-color: var(--rosa);
-            opacity: 0.3;
-            border-radius: 20px;
+            background: var(--plata-metalico);
+            border-radius: 5px;
             z-index: 1;
         }
-
 
         /* --- SECCIÓN PRECIOS --- */
         #precios {
@@ -275,78 +277,118 @@
             justify-content: center;
             gap: 40px;
             flex-wrap: wrap;
-            align-items: stretch; /* Hace que las tarjetas tengan la misma altura */
+            align-items: stretch;
         }
 
         .price-card {
             background-color: var(--blanco);
             padding: 40px;
-            border-radius: 25px;
+            border-radius: 10px; /* Bordes sutiles */
             width: 350px;
             box-shadow: var(--sombra-suave);
             transition: transform 0.3s, box-shadow 0.3s;
-            border: 1px solid rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.05);
             position: relative;
             overflow: hidden;
         }
 
-        /* Efecto al pasar el ratón sobre la tarjeta de precio */
         .price-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
-            border-color: var(--rosa);
+            box-shadow: var(--sombra-plata);
         }
 
-        /* Decoración superior de la tarjeta */
+        /* Líneas superiores con degradado plateado y color */
         .price-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 6px;
+            height: 5px;
         }
+        .card-unas::before { background: linear-gradient(90deg, var(--plata-solido), var(--rosa)); }
+        .card-pestanas::before { background: linear-gradient(90deg, var(--plata-solido), var(--verde-claro)); }
 
-        .card-unas::before { background: linear-gradient(90deg, var(--rosa), var(--rosa-oscuro)); }
-        .card-pestanas::before { background: linear-gradient(90deg, var(--verde-acento), var(--verde-claro)); }
-
-        .card-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            display: block;
-        }
+        .card-icon { font-size: 2.5rem; margin-bottom: 15px; display: block; }
 
         .price-card h3 {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             font-size: 1.8rem;
             color: var(--negro);
         }
 
-        .price-list {
-            text-align: left;
-        }
+        .price-list { text-align: left; }
 
         .price-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 18px;
-            padding-bottom: 15px;
-            border-bottom: 1px dashed rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eaeaea;
             color: var(--gris-texto);
+            font-size: 0.95rem;
         }
 
-        .price-item:last-child {
-            border-bottom: none;
-        }
+        .price-item:last-child { border-bottom: none; }
 
         .price-value {
-            font-weight: 700;
+            font-weight: 600;
             color: var(--negro);
-            font-size: 1.1rem;
-            background-color: var(--verde-claro); /* Toque sutil de verde */
-            padding: 2px 10px;
-            border-radius: 10px;
+        }
+
+        /* --- SECCIÓN FAQ (Acordeón) --- */
+        #faq {
+            background-color: var(--blanco);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 100px 5%;
+        }
+
+        #faq h2 { text-align: center; display: block; margin-bottom: 40px; }
+        #faq h2::after { left: 50%; transform: translateX(-50%); } /* Centrar la línea plateada */
+
+        .faq-item {
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .faq-item summary {
+            padding: 20px;
+            background: var(--gris-claro);
+            font-weight: 600;
+            cursor: pointer;
+            list-style: none; /* Quita la flecha por defecto */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .faq-item summary:hover {
+            background: #f0f0f0;
+        }
+
+        /* Flecha personalizada plateada */
+        .faq-item summary::after {
+            content: '+';
+            font-size: 1.5rem;
+            color: var(--plata-solido);
+            font-weight: bold;
+        }
+
+        .faq-item[open] summary::after {
+            content: '-';
+        }
+
+        .faq-item p {
+            padding: 20px;
+            color: var(--gris-texto);
+            font-size: 0.95rem;
+            border-top: 1px solid #ddd;
+            background: var(--blanco);
         }
 
         /* --- FOOTER --- */
@@ -356,34 +398,22 @@
             text-align: center;
             padding: 40px 20px;
             font-size: 0.9rem;
+            border-top: 3px solid transparent;
+            border-image: var(--plata-metalico) 1;
         }
 
-        footer a {
-            color: var(--rosa);
-            text-decoration: none;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-        
-        footer a:hover { color: var(--blanco); }
+        footer a { color: var(--rosa); text-decoration: none; transition: 0.3s; }
+        footer a:hover { color: var(--plata-solido); }
 
-        /* --- RESPONSIVE (MÓVIL) --- */
+        /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
-            nav { padding: 1rem 5%; flex-wrap: wrap; }
-            nav ul { display: none; /* Ocultamos menú en móvil por simplicidad en este ejemplo */ }
-            .logo-img { height: 45px; margin: 0 auto; }
-            
-            section { padding: 70px 5%; }
-            
-            #inicio h1 { font-size: 3rem; }
-            #inicio { justify-content: center; text-align: center; }
-            .hero-content { align-items: center; display: flex; flex-direction: column; }
-            
+            nav { flex-wrap: wrap; }
+            nav ul { display: none; }
+            #inicio h1 { font-size: 2.8rem; }
+            #inicio { text-align: center; justify-content: center; }
+            .botones-inicio { justify-content: center; }
             #conocenos { flex-direction: column; gap: 40px; }
             .about-image-container { width: 100%; }
-            
-            .pricing-container { flex-direction: column; align-items: center; }
-            .price-card { width: 100%; max-width: 350px; }
         }
     </style>
 </head>
@@ -391,74 +421,96 @@
 
     <nav>
         <a href="#inicio">
-            <img src="logo.png" alt="Logotipo kV Studio" class="logo-img">
+            <img src="logo.png" alt="Logotipo kV Studio Barcelona" class="logo-img">
         </a>
-        
         <ul>
             <li><a href="#inicio">Inicio</a></li>
             <li><a href="#conocenos">El Estudio</a></li>
-            <li><a href="#precios">Servicios y Tarifas</a></li>
+            <li><a href="#precios">Servicios</a></li>
+            <li><a href="#faq">FAQ</a></li>
         </ul>
     </nav>
 
     <section id="inicio">
         <div class="hero-content">
-            <h1>Realza tu belleza natural en <span class="texto-destacado-rosa">kV Studio</span></h1>
-            <p>Tu destino exclusivo para un diseño de mirada impactante y unas uñas impecables. Donde la precisión se encuentra con el arte.</p>
+            <h1>Centro premium de <span class="texto-destacado-rosa">uñas y pestañas</span> en Barcelona</h1>
+            <p>Descubre <span class="texto-destacado-plata">kV Studio</span>. Especialistas en diseño de mirada, manicura rusa y extensiones de alta calidad. Tu momento exclusivo de belleza te espera.</p>
             <div class="botones-inicio">
-                <a href="#precios" class="btn btn-primario">Explorar Servicios</a>
-                <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank" class="btn btn-ig">Ver Galería en Instagram</a>
+                <a href="#precios" class="btn btn-premium">Ver Tratamientos</a>
+                <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank" class="btn btn-ig">Seguir en Instagram</a>
             </div>
         </div>
     </section>
 
     <section id="conocenos">
         <div class="about-text">
-            <h2>La Experiencia kV Studio</h2>
-            <p>En <strong>kV Studio</strong>, redefinimos el concepto de salón de belleza. No se trata solo de un servicio, sino de una experiencia sensorial donde cada detalle está pensado para tu desconexión y bienestar.</p>
-            <p>Somos especialistas apasionadas por la perfección. Utilizamos técnicas vanguardistas y productos de la más alta gama para asegurar resultados duraderos que no solo se ven bien, sino que cuidan la salud de tus uñas y pestañas. Tu satisfacción y seguridad son nuestra prioridad absoluta.</p>
+            <h2>Especialistas en Belleza Integral</h2>
+            <p>Ubicados en el corazón de Barcelona, en <strong>kV Studio</strong> ofrecemos una experiencia de belleza de lujo. No somos un salón convencional; somos un estudio especializado donde el arte y el cuidado personal se fusionan.</p>
+            <p>Trabajamos exclusivamente con productos premium y dominamos las técnicas más avanzadas, desde el esculpido perfecto en acrílico y gel, hasta las técnicas de <em>Mega Volumen</em> en pestañas. Garantizamos acabados impecables, máxima durabilidad y un respeto absoluto por la salud de tu uña y pestaña natural.</p>
         </div>
         <div class="about-image-container">
-            <img class="about-image" alt="Especialista trabajando en uñas">
+            <img class="about-image" alt="Esteticista realizando manicura premium en kV Studio">
         </div>
     </section>
 
     <section id="precios">
-        <h2>Nuestras Tarifas</h2>
-        <p class="pricing-intro">Transparencia y calidad. Invierte en ti con nuestros servicios especializados.</p>
+        <h2>Tarifas de Estética y Manicura</h2>
+        <p class="pricing-intro">Tratamientos personalizados de alta gama. Utilizamos las mejores marcas del mercado para unos resultados inigualables.</p>
         
         <div class="pricing-container">
-            
             <div class="price-card card-unas">
                 <span class="card-icon">💅</span>
-                <h3>Nails Bar</h3>
+                <h3>Nails Studio</h3>
                 <div class="price-list">
-                    <div class="price-item"><span>Manicura Rusa + Semipermanente</span><span class="price-value">25€</span></div>
-                    <div class="price-item"><span>Uñas Esculpidas (Acrílico/Gel)</span><span class="price-value">45€</span></div>
+                    <div class="price-item"><span>Manicura Rusa + Esmaltado</span><span class="price-value">25€</span></div>
+                    <div class="price-item"><span>Uñas Esculpidas (Acrílico)</span><span class="price-value">45€</span></div>
                     <div class="price-item"><span>Relleno Esculpido</span><span class="price-value">35€</span></div>
-                    <div class="price-item"><span>Retirada de producto</span><span class="price-value">10€</span></div>
-                    <div class="price-item"><span>Nail Art Premium (por uña)</span><span class="price-value">desde 3€</span></div>
+                    <div class="price-item"><span>Retirada y Cuidado</span><span class="price-value">10€</span></div>
+                    <div class="price-item"><span>Nail Art Avanzado (por uña)</span><span class="price-value">+3€</span></div>
                 </div>
             </div>
 
             <div class="price-card card-pestanas">
                 <span class="card-icon">👁️</span>
-                <h3>Lash Bar</h3>
+                <h3>Lash Studio</h3>
                 <div class="price-list">
-                    <div class="price-item"><span>Lifting de Pestañas + Tinte + Botox</span><span class="price-value">40€</span></div>
-                    <div class="price-item"><span>Extensiones Clásicas (1D)</span><span class="price-value">55€</span></div>
-                    <div class="price-item"><span>Volumen Ruso (2D-5D)</span><span class="price-value">75€</span></div>
-                    <div class="price-item"><span>Mega Volumen</span><span class="price-value">90€</span></div>
-                    <div class="price-item"><span>Retirada de Extensiones</span><span class="price-value">15€</span></div>
+                    <div class="price-item"><span>Lifting de Pestañas + Tinte</span><span class="price-value">40€</span></div>
+                    <div class="price-item"><span>Extensiones Clásicas 1D</span><span class="price-value">55€</span></div>
+                    <div class="price-item"><span>Volumen Ruso 3D-5D</span><span class="price-value">75€</span></div>
+                    <div class="price-item"><span>Mega Volumen Premium</span><span class="price-value">90€</span></div>
+                    <div class="price-item"><span>Mantenimiento (3 semanas)</span><span class="price-value">40€</span></div>
                 </div>
             </div>
-
         </div>
     </section>
 
+    <section id="faq">
+        <h2>Preguntas Frecuentes</h2>
+        
+        <details class="faq-item">
+            <summary>¿Cuánto duran las extensiones de pestañas?</summary>
+            <p>Con el cuidado adecuado, las extensiones de pestañas pueden durar entre 3 y 4 semanas. Recomendamos realizar un mantenimiento a los 15-20 días para mantener el volumen perfecto y rellenar las pestañas que han caído en su ciclo natural.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>¿Qué diferencia hay entre manicura tradicional y rusa?</summary>
+            <p>La manicura rusa es una técnica en seco donde se utiliza el torno para limpiar la cutícula de forma profunda y precisa. Esto permite aplicar el esmalte mucho más cerca del nacimiento de la uña, logrando un acabado perfecto y retrasando visualmente el crecimiento.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>¿Dañan las uñas acrílicas mis uñas naturales?</summary>
+            <p>No, si el procedimiento lo realiza un profesional capacitado y se retiran correctamente. En kV Studio preparamos la uña natural con extrema suavidad y utilizamos productos de primera calidad que no son agresivos. ¡Nunca intentes arrancarte el producto en casa!</p>
+        </details>
+        
+        <details class="faq-item">
+            <summary>¿Cómo debo preparar mis ojos antes de la cita de pestañas?</summary>
+            <p>Te pedimos que acudas a tu cita sin maquillaje en los ojos y sin haber utilizado rizador de pestañas ni productos oleosos (aceites o cremas desmaquillantes) en la zona las 24 horas previas, para asegurar que el adhesivo funcione correctamente.</p>
+        </details>
+    </section>
+
     <footer>
-        <p>&copy; 2026 kV Studio. Todos los derechos reservados.</p>
-        <p style="margin-top: 10px;">Síguenos para inspiración diaria en <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank">@kv_studionails</a></p>
+        <p>&copy; 2026 kV Studio. Estética y belleza premium.</p>
+        <p style="margin-top: 10px;">Síguenos y descubre nuestros trabajos en <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank">@kv_studionails</a></p>
     </footer>
 
 </body>
