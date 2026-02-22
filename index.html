@@ -3,166 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kV Studio | Uñas y Pestañas</title>
+    <title>kV Studio | Uñas y Pestañas Exclusivas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
     <style>
-        /* Paleta de Colores */
+        /* --- PALETA Y VARIABLES --- */
         :root {
             --rosa: #F2C4CE;
+            --rosa-oscuro: #d9a7b1;
             --negro: #1A1A1A;
-            --gris: #F5F5F5;
-            --gris-oscuro: #555555;
+            --gris-claro: #F9F9F9;
+            --gris-texto: #555555;
             --blanco: #FFFFFF;
             --verde-claro: #E2F0E6;
+            --verde-acento: #caddd0;
+            --sombra-suave: 0 10px 30px rgba(0,0,0,0.08);
+            --font-titulo: 'Playfair Display', serif;
+            --font-texto: 'Montserrat', sans-serif;
         }
 
-        /* Estilos Generales */
+        /* --- ESTILOS GENERALES --- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             scroll-behavior: smooth;
         }
 
         body {
             background-color: var(--blanco);
             color: var(--negro);
-            line-height: 1.6;
+            font-family: var(--font-texto);
+            line-height: 1.7;
+            overflow-x: hidden; /* Evita scroll horizontal no deseado */
         }
 
-        /* Navegación */
+        h1, h2, h3 {
+            font-family: var(--font-titulo);
+            color: var(--negro);
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Pequeño subrayado decorativo rosa para los títulos H2 */
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: var(--rosa);
+        }
+
+        section {
+            padding: 100px 10%;
+            min-height: 80vh; /* Secciones más altas */
+            position: relative;
+        }
+
+        /* --- NAVEGACIÓN MODERNA --- */
         nav {
-            background-color: var(--negro);
-            color: var(--blanco);
-            padding: 1rem 5%;
+            background-color: rgba(26, 26, 26, 0.95); /* Negro con ligera transparencia */
+            backdrop-filter: blur(10px); /* Efecto de desenfoque moderno */
+            padding: 0.8rem 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* Estilo para el logotipo en imagen */
         .logo-img {
-            height: 50px; /* Puedes ajustar este tamaño para que tu logo se vea perfecto */
+            height: 55px;
             width: auto;
-            border-radius: 50%; /* Opcional: hace que el logo se vea redondo como en Instagram */
+            /* Opcional: si tu logo no es redondo, quita la siguiente línea */
+            border-radius: 50%;
+            border: 2px solid var(--rosa);
+            padding: 2px;
         }
 
         nav ul {
             list-style: none;
             display: flex;
-            gap: 20px;
+            gap: 30px;
             align-items: center;
         }
 
         nav ul li a {
             color: var(--blanco);
             text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        nav ul li a:hover {
-            color: var(--verde-claro);
-        }
-
-        /* Secciones Comunes */
-        section {
-            padding: 80px 10%;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        h1, h2 {
-            margin-bottom: 20px;
-            font-weight: 300;
+            font-weight: 400;
+            font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
+            position: relative;
+            padding-bottom: 5px;
+            transition: 0.3s;
         }
 
-        /* Sección: Inicio */
-        #inicio {
+        /* Efecto hover elegante en el menú */
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 2px;
             background-color: var(--rosa);
-            text-align: center;
+            transition: width 0.3s ease;
+        }
+
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        /* --- SECCIÓN INICIO (HERO) --- */
+        #inicio {
+            /* IMAGEN DE FONDO: Cambia la URL por una foto tuya de alta calidad */
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(26, 4, 10, 0.7)), url('https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Efecto parallax moderno */
+            display: flex;
             align-items: center;
+            justify-content: flex-start; /* Alineado a la izquierda */
+            color: var(--blanco);
+            min-height: 100vh;
+        }
+
+        .hero-content {
+            max-width: 600px;
+            z-index: 2;
         }
 
         #inicio h1 {
-            font-size: 3.5rem;
-            color: var(--negro);
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            color: var(--blanco);
+        }
+
+        .texto-destacado-rosa {
+            color: var(--rosa);
+            font-style: italic;
         }
 
         #inicio p {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin-bottom: 30px;
-            color: var(--negro);
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
         }
 
+        /* Botones Modernos */
         .botones-inicio {
             display: flex;
-            gap: 15px;
-            justify-content: center;
+            gap: 20px;
             flex-wrap: wrap;
         }
 
         .btn {
-            background-color: var(--negro);
-            color: var(--blanco);
-            padding: 12px 30px;
+            padding: 15px 35px;
             text-decoration: none;
-            border-radius: 25px;
-            font-weight: bold;
-            transition: 0.3s;
+            border-radius: 50px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-block;
         }
 
-        .btn:hover {
-            background-color: var(--verde-claro);
+        .btn-primario {
+            background: linear-gradient(45deg, var(--rosa), var(--rosa-oscuro));
             color: var(--negro);
+            box-shadow: 0 5px 15px rgba(242, 196, 206, 0.4);
+            border: none;
+        }
+
+        .btn-primario:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(242, 196, 206, 0.6);
         }
         
         .btn-ig {
             background-color: transparent;
-            border: 2px solid var(--negro);
-            color: var(--negro);
-        }
-
-        .btn-ig:hover {
-            background-color: var(--negro);
+            border: 2px solid var(--blanco);
             color: var(--blanco);
         }
 
-        /* Sección: Conócenos */
+        .btn-ig:hover {
+            background-color: var(--blanco);
+            color: var(--negro);
+            transform: translateY(-3px);
+        }
+
+        /* --- SECCIÓN CONÓCENOS --- */
         #conocenos {
             background-color: var(--blanco);
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 5%;
+            /* Decoración de fondo sutil */
+            background-image: radial-gradient(circle at top right, var(--verde-claro) 0%, transparent 40%);
         }
 
-        #conocenos h2 {
-            color: var(--rosa);
-            font-weight: bold;
+        .about-text {
+            flex: 1;
+            padding-right: 20px;
         }
 
-        #conocenos p {
-            color: var(--gris-oscuro);
-            max-width: 800px;
-            margin: 0 auto 20px auto;
-            font-size: 1.1rem;
+        .about-text p {
+            margin-bottom: 20px;
+            color: var(--gris-texto);
+            font-size: 1.05rem;
         }
 
-        /* Sección: Lista de Precios */
+        .about-image-container {
+            flex: 1;
+            position: relative;
+        }
+
+        /* Marco decorativo para la imagen de Conócenos */
+        .about-image {
+            width: 100%;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: var(--sombra-suave);
+            position: relative;
+            z-index: 2;
+            /* IMAGEN CONÓCENOS: Cambia la URL aquí */
+            content: url('https://images.unsplash.com/photo-1512290923902-8a9284379427?q=80&w=1080&auto=format&fit=crop');
+        }
+        
+        /* Rectángulo decorativo rosa detrás de la foto */
+        .about-image-container::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            width: 100%;
+            height: 100%;
+            background-color: var(--rosa);
+            opacity: 0.3;
+            border-radius: 20px;
+            z-index: 1;
+        }
+
+
+        /* --- SECCIÓN PRECIOS --- */
         #precios {
-            background-color: var(--verde-claro);
+            background-color: var(--gris-claro);
             text-align: center;
         }
 
-        #precios h2 {
-            color: var(--negro);
-            font-weight: bold;
+        .pricing-intro {
+            max-width: 700px;
+            margin: 30px auto 50px auto;
+            color: var(--gris-texto);
         }
 
         .pricing-container {
@@ -170,43 +275,86 @@
             justify-content: center;
             gap: 40px;
             flex-wrap: wrap;
-            margin-top: 30px;
+            align-items: stretch; /* Hace que las tarjetas tengan la misma altura */
         }
 
         .price-card {
             background-color: var(--blanco);
-            padding: 30px;
-            border-radius: 10px;
-            width: 300px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border-top: 5px solid var(--rosa);
+            padding: 40px;
+            border-radius: 25px;
+            width: 350px;
+            box-shadow: var(--sombra-suave);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(0,0,0,0.03);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Efecto al pasar el ratón sobre la tarjeta de precio */
+        .price-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+            border-color: var(--rosa);
+        }
+
+        /* Decoración superior de la tarjeta */
+        .price-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+        }
+
+        .card-unas::before { background: linear-gradient(90deg, var(--rosa), var(--rosa-oscuro)); }
+        .card-pestanas::before { background: linear-gradient(90deg, var(--verde-acento), var(--verde-claro)); }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
         }
 
         .price-card h3 {
-            margin-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
             color: var(--negro);
-            border-bottom: 2px solid var(--gris);
-            padding-bottom: 10px;
+        }
+
+        .price-list {
+            text-align: left;
         }
 
         .price-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            color: var(--gris-oscuro);
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
+            color: var(--gris-texto);
         }
 
-        .price-item span:last-child {
-            font-weight: bold;
+        .price-item:last-child {
+            border-bottom: none;
+        }
+
+        .price-value {
+            font-weight: 700;
             color: var(--negro);
+            font-size: 1.1rem;
+            background-color: var(--verde-claro); /* Toque sutil de verde */
+            padding: 2px 10px;
+            border-radius: 10px;
         }
 
-        /* Footer */
+        /* --- FOOTER --- */
         footer {
-            background-color: var(--gris);
-            color: var(--gris-oscuro);
+            background-color: var(--negro);
+            color: rgba(255,255,255,0.7);
             text-align: center;
-            padding: 20px;
+            padding: 40px 20px;
             font-size: 0.9rem;
         }
 
@@ -214,6 +362,28 @@
             color: var(--rosa);
             text-decoration: none;
             font-weight: bold;
+            transition: 0.3s;
+        }
+        
+        footer a:hover { color: var(--blanco); }
+
+        /* --- RESPONSIVE (MÓVIL) --- */
+        @media (max-width: 768px) {
+            nav { padding: 1rem 5%; flex-wrap: wrap; }
+            nav ul { display: none; /* Ocultamos menú en móvil por simplicidad en este ejemplo */ }
+            .logo-img { height: 45px; margin: 0 auto; }
+            
+            section { padding: 70px 5%; }
+            
+            #inicio h1 { font-size: 3rem; }
+            #inicio { justify-content: center; text-align: center; }
+            .hero-content { align-items: center; display: flex; flex-direction: column; }
+            
+            #conocenos { flex-direction: column; gap: 40px; }
+            .about-image-container { width: 100%; }
+            
+            .pricing-container { flex-direction: column; align-items: center; }
+            .price-card { width: 100%; max-width: 350px; }
         }
     </style>
 </head>
@@ -226,54 +396,69 @@
         
         <ul>
             <li><a href="#inicio">Inicio</a></li>
-            <li><a href="#conocenos">Conócenos</a></li>
-            <li><a href="#precios">Precios</a></li>
+            <li><a href="#conocenos">El Estudio</a></li>
+            <li><a href="#precios">Servicios y Tarifas</a></li>
         </ul>
     </nav>
 
     <section id="inicio">
-        <h1>Bienvenida a kV Studio</h1>
-        <p>Tu espacio exclusivo para resaltar tu mirada y lucir unas manos impecables. Somos especialistas en diseño de uñas y extensiones de pestañas.</p>
-        <div class="botones-inicio">
-            <a href="#precios" class="btn">Ver nuestros servicios</a>
-            <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank" class="btn btn-ig">Síguenos en Instagram</a>
+        <div class="hero-content">
+            <h1>Realza tu belleza natural en <span class="texto-destacado-rosa">kV Studio</span></h1>
+            <p>Tu destino exclusivo para un diseño de mirada impactante y unas uñas impecables. Donde la precisión se encuentra con el arte.</p>
+            <div class="botones-inicio">
+                <a href="#precios" class="btn btn-primario">Explorar Servicios</a>
+                <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank" class="btn btn-ig">Ver Galería en Instagram</a>
+            </div>
         </div>
     </section>
 
     <section id="conocenos">
-        <h2>Conócenos</h2>
-        <p>En <strong>kV Studio</strong> creemos que la belleza está en los detalles. Nuestro objetivo es brindarte un momento de relajación mientras nuestros especialistas realzan tu belleza natural con productos de la más alta calidad.</p>
-        <p>Ya sea que busques unas uñas acrílicas espectaculares, un esmaltado semipermanente elegante o unas pestañas con volumen que detengan el tráfico, aquí encontrarás la experiencia y la pasión para lograrlo.</p>
+        <div class="about-text">
+            <h2>La Experiencia kV Studio</h2>
+            <p>En <strong>kV Studio</strong>, redefinimos el concepto de salón de belleza. No se trata solo de un servicio, sino de una experiencia sensorial donde cada detalle está pensado para tu desconexión y bienestar.</p>
+            <p>Somos especialistas apasionadas por la perfección. Utilizamos técnicas vanguardistas y productos de la más alta gama para asegurar resultados duraderos que no solo se ven bien, sino que cuidan la salud de tus uñas y pestañas. Tu satisfacción y seguridad son nuestra prioridad absoluta.</p>
+        </div>
+        <div class="about-image-container">
+            <img class="about-image" alt="Especialista trabajando en uñas">
+        </div>
     </section>
 
     <section id="precios">
-        <h2>Lista de Precios</h2>
+        <h2>Nuestras Tarifas</h2>
+        <p class="pricing-intro">Transparencia y calidad. Invierte en ti con nuestros servicios especializados.</p>
+        
         <div class="pricing-container">
             
-            <div class="price-card">
-                <h3>💅 Servicios de Uñas</h3>
-                <div class="price-item"><span>Manicura Tradicional</span><span>15€</span></div>
-                <div class="price-item"><span>Esmaltado Semipermanente</span><span>20€</span></div>
-                <div class="price-item"><span>Uñas Acrílicas (Nuevas)</span><span>35€</span></div>
-                <div class="price-item"><span>Relleno de Acrílico</span><span>25€</span></div>
-                <div class="price-item"><span>Diseño/Nail Art (por uña)</span><span>2€</span></div>
+            <div class="price-card card-unas">
+                <span class="card-icon">💅</span>
+                <h3>Nails Bar</h3>
+                <div class="price-list">
+                    <div class="price-item"><span>Manicura Rusa + Semipermanente</span><span class="price-value">25€</span></div>
+                    <div class="price-item"><span>Uñas Esculpidas (Acrílico/Gel)</span><span class="price-value">45€</span></div>
+                    <div class="price-item"><span>Relleno Esculpido</span><span class="price-value">35€</span></div>
+                    <div class="price-item"><span>Retirada de producto</span><span class="price-value">10€</span></div>
+                    <div class="price-item"><span>Nail Art Premium (por uña)</span><span class="price-value">desde 3€</span></div>
+                </div>
             </div>
 
-            <div class="price-card">
-                <h3>👁️ Servicios de Pestañas</h3>
-                <div class="price-item"><span>Lifting + Tinte</span><span>30€</span></div>
-                <div class="price-item"><span>Extensiones (Pelo a Pelo)</span><span>45€</span></div>
-                <div class="price-item"><span>Extensiones (Volumen Ruso)</span><span>60€</span></div>
-                <div class="price-item"><span>Mantenimiento Pelo a Pelo</span><span>25€</span></div>
-                <div class="price-item"><span>Mantenimiento Volumen</span><span>35€</span></div>
+            <div class="price-card card-pestanas">
+                <span class="card-icon">👁️</span>
+                <h3>Lash Bar</h3>
+                <div class="price-list">
+                    <div class="price-item"><span>Lifting de Pestañas + Tinte + Botox</span><span class="price-value">40€</span></div>
+                    <div class="price-item"><span>Extensiones Clásicas (1D)</span><span class="price-value">55€</span></div>
+                    <div class="price-item"><span>Volumen Ruso (2D-5D)</span><span class="price-value">75€</span></div>
+                    <div class="price-item"><span>Mega Volumen</span><span class="price-value">90€</span></div>
+                    <div class="price-item"><span>Retirada de Extensiones</span><span class="price-value">15€</span></div>
+                </div>
             </div>
 
         </div>
     </section>
 
     <footer>
-        <p>&copy; 2026 kV Studio. Todos los derechos reservados. | Diseñado con amor para realzar tu belleza.</p>
-        <p>Visita nuestro <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank">Instagram (@kv_studionails)</a> para ver nuestros trabajos.</p>
+        <p>&copy; 2026 kV Studio. Todos los derechos reservados.</p>
+        <p style="margin-top: 10px;">Síguenos para inspiración diaria en <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank">@kv_studionails</a></p>
     </footer>
 
 </body>
