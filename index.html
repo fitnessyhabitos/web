@@ -6,9 +6,10 @@
     
     <title>kV Studio | Uñas, Pestañas y Estética Premium en Barcelona</title>
     <meta name="description" content="kV Studio, tu centro de estética premium en Eixample, Barcelona. Más de 18 años de experiencia. Especialistas en uñas acrílicas, manicura rusa y extensiones de pestañas.">
-    <meta name="keywords" content="uñas Eixample Barcelona, centro estética Carrer de la Marina, uñas acrílicas, manicura rusa, reseñas kV Studio, lifting pestañas, estética premium Barcelona">
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         /* --- PALETA Y VARIABLES --- */
@@ -66,43 +67,30 @@
         #inicio p { font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9; font-weight: 300; }
         
         .botones-inicio { display: flex; gap: 20px; flex-wrap: wrap; }
-        .btn { padding: 15px 35px; text-decoration: none; border-radius: 50px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; transition: all 0.3s ease; display: inline-block; cursor: pointer; text-align: center;}
+        .btn { padding: 15px 35px; text-decoration: none; border-radius: 50px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; text-align: center;}
         .btn-premium { background: var(--plata-metalico); color: var(--negro); box-shadow: var(--sombra-plata); border: none; }
         .btn-premium:hover { background: var(--plata-hover); transform: translateY(-3px); box-shadow: 0 10px 25px rgba(192, 192, 192, 0.6); }
         .btn-ig { background-color: transparent; border: 2px solid var(--plata-solido); color: var(--blanco); }
         .btn-ig:hover { background-color: var(--plata-solido); color: var(--negro); transform: translateY(-3px); }
 
-        /* --- CONÓCENOS (MÁS FOTOS) --- */
+        /* --- CONÓCENOS --- */
         #conocenos { background-color: var(--blanco); }
         .historia-container { display: flex; align-items: center; gap: 60px; margin-bottom: 60px; }
         .about-text { flex: 1; }
         .about-text h3 { font-size: 1.8rem; margin-bottom: 15px; color: var(--rosa-oscuro); }
         .about-text p { margin-bottom: 20px; color: var(--gris-texto); font-size: 1.05rem; }
-        
-        /* Grid para el par de fotos estáticas */
         .about-images-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; position: relative; }
         .about-img { width: 100%; height: 250px; object-fit: cover; border-radius: 5px; box-shadow: var(--sombra-suave); }
         .about-img:nth-child(1) { transform: translateY(-20px); }
         .about-img:nth-child(2) { transform: translateY(20px); }
         
-        .valores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 50px; }
-        .valor-card { background: var(--gris-claro); padding: 40px 30px; border-radius: 10px; text-align: center; transition: 0.3s; border-bottom: 4px solid var(--rosa); box-shadow: var(--sombra-suave); }
-        .valor-card:hover { transform: translateY(-5px); border-bottom-color: var(--plata-solido); }
-        .valor-icon { font-size: 2.5rem; margin-bottom: 20px; display: inline-block; background: var(--plata-metalico); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
         /* --- GALERÍA (CARRUSEL) --- */
         #galeria { background-color: var(--negro); color: var(--blanco); text-align: center; }
         #galeria h2 { color: var(--blanco); }
-        
-        .carrusel-contenedor {
-            position: relative; max-width: 900px; margin: 40px auto 0; overflow: hidden; border-radius: 10px; box-shadow: var(--sombra-plata); border: 2px solid var(--plata-solido);
-        }
+        .carrusel-contenedor { position: relative; max-width: 900px; margin: 40px auto 0; overflow: hidden; border-radius: 10px; box-shadow: var(--sombra-plata); border: 2px solid var(--plata-solido); }
         .carrusel-slide { display: flex; transition: transform 0.5s ease-in-out; }
         .carrusel-slide img { width: 100%; height: 500px; object-fit: cover; flex-shrink: 0; }
-        
-        .carrusel-btn {
-            position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: var(--blanco); border: 1px solid var(--plata-solido); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s;
-        }
+        .carrusel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: var(--blanco); border: 1px solid var(--plata-solido); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
         .carrusel-btn:hover { background: var(--plata-solido); color: var(--negro); }
         .btn-prev { left: 15px; }
         .btn-next { right: 15px; }
@@ -117,19 +105,17 @@
         .price-item { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eaeaea; color: var(--gris-texto); }
         .price-value { font-weight: 600; color: var(--negro); }
 
-        /* --- RESEÑAS DE GOOGLE --- */
+        /* --- RESEÑAS --- */
         #resenas { background-color: var(--blanco); text-align: center; }
         .google-rating { margin-bottom: 40px; display: inline-block; padding: 15px 40px; background: var(--gris-claro); border-radius: 50px; border: 1px solid #e0e0e0; box-shadow: var(--sombra-suave); }
         .google-rating h3 { font-size: 2.5rem; color: var(--negro); display: inline-block; margin-right: 15px; vertical-align: middle; }
         .estrellas { color: #fbbc04; font-size: 1.5rem; letter-spacing: 2px; }
-        
         .resenas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto; }
         .resena-card { background: var(--blanco); border: 1px solid #eee; padding: 30px; border-radius: 10px; box-shadow: var(--sombra-suave); text-align: left; transition: 0.3s; }
         .resena-card:hover { transform: translateY(-5px); border-color: var(--plata-solido); }
         .resena-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .resena-avatar { width: 45px; height: 45px; background: var(--rosa); color: var(--blanco); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; }
         .resena-nombre { font-weight: 600; color: var(--negro); }
-        .resena-fecha { font-size: 0.8rem; color: #999; }
         .resena-texto { color: var(--gris-texto); font-size: 0.95rem; font-style: italic; }
 
         /* --- INFO GOOGLE Y CONTACTO --- */
@@ -138,9 +124,18 @@
         
         .contacto-datos { flex: 1; min-width: 300px; }
         .info-item { margin-bottom: 25px; display: flex; align-items: flex-start; gap: 15px; }
-        .info-icon { font-size: 1.5rem; background: var(--plata-metalico); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Estilos de los iconos en la sección contacto */
+        .info-icon i { 
+            font-size: 1.8rem; 
+            background: var(--plata-metalico); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        
         .info-texto h4 { margin-bottom: 5px; font-size: 1.1rem; }
-        .info-texto p, .info-texto a { color: var(--gris-texto); text-decoration: none; font-size: 0.95rem; }
+        .info-texto p, .info-texto a { color: var(--gris-texto); text-decoration: none; font-size: 0.95rem; transition: 0.3s;}
+        .info-texto a:hover { color: var(--negro); }
         
         .horario-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .horario-tabla td { padding: 5px 0; border-bottom: 1px solid #eee; font-size: 0.95rem; color: var(--gris-texto); }
@@ -150,6 +145,49 @@
         .contacto-mapa { flex: 1.5; min-width: 300px; border-radius: 10px; overflow: hidden; border: 2px solid var(--plata-solido); }
         iframe { width: 100%; height: 100%; min-height: 350px; border: 0; }
 
+        /* --- BOTÓN WHATSAPP FLOTANTE --- */
+        .btn-whatsapp-flotante {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--negro); /* Fondo oscuro elegante */
+            color: var(--blanco);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            box-shadow: var(--sombra-plata);
+            z-index: 9999;
+            border: 2px solid var(--plata-solido); /* Borde plateado */
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        /* Al pasar el ratón, se vuelve del color oficial de WhatsApp */
+        .btn-whatsapp-flotante:hover {
+            transform: scale(1.1);
+            background-color: #25D366; 
+            border-color: #25D366;
+            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
+        }
+        
+        .btn-whatsapp-flotante i {
+            /* Hacemos el icono plateado inicialmente */
+            background: var(--plata-metalico);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-whatsapp-flotante:hover i {
+            /* Al pasar el ratón, el icono se vuelve blanco sobre el fondo verde */
+            background: none;
+            -webkit-text-fill-color: white;
+            color: white;
+        }
+
         /* --- FOOTER --- */
         footer { background-color: var(--negro); color: rgba(255,255,255,0.7); text-align: center; padding: 40px 20px; font-size: 0.9rem; border-top: 3px solid transparent; border-image: var(--plata-metalico) 1; }
         footer a { color: var(--rosa); text-decoration: none; transition: 0.3s; }
@@ -157,13 +195,14 @@
 
         /* --- RESPONSIVE --- */
         @media (max-width: 850px) {
-            nav ul { display: none; } /* Oculto en móvil por simplicidad */
+            nav ul { display: none; }
             #inicio h1 { font-size: 2.8rem; }
             .historia-container { flex-direction: column; }
             .about-images-grid { grid-template-columns: 1fr; }
             .about-img:nth-child(1), .about-img:nth-child(2) { transform: none; }
             .contacto-container { flex-direction: column; }
             .carrusel-slide img { height: 350px; }
+            .btn-whatsapp-flotante { bottom: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.8rem; }
         }
     </style>
 </head>
@@ -188,7 +227,9 @@
             <h1>Arte y belleza en <span class="texto-destacado-rosa">Carrer de la Marina</span></h1>
             <p>Descubre <span class="texto-destacado-plata">kV Studio Art & Nails</span>. Un centro de estética premium en el Eixample con valoración de 4.9⭐ en Google. Especialistas en diseño de mirada y uñas esculpidas.</p>
             <div class="botones-inicio">
-                <a href="#contacto" class="btn btn-premium">Reserva tu Cita</a>
+                <a href="https://wa.me/34635246641?text=Hola,%20me%20gustaría%20pedir%20información%20o%20cita%20en%20kV%20Studio." target="_blank" class="btn btn-premium">
+                    <i class="fa-brands fa-whatsapp"></i> Reserva por WhatsApp
+                </a>
                 <a href="#galeria" class="btn btn-ig">Ver Trabajos</a>
             </div>
         </div>
@@ -276,9 +317,8 @@
                         <span class="estrellas" style="font-size: 1rem;">★★★★★</span>
                     </div>
                 </div>
-                <p class="resena-texto">"Llevo haciéndome las uñas aquí meses y no las cambio por nada. La limpieza es de 10 y el trato inmejorable. Son unas artistas, siempre aciertan con mis diseños."</p>
+                <p class="resena-texto">"Llevo haciéndome las uñas aquí meses y no las cambio por nada. La limpieza es de 10 y el trato inmejorable."</p>
             </div>
-
             <div class="resena-card">
                 <div class="resena-header">
                     <div class="resena-avatar">L</div>
@@ -287,9 +327,8 @@
                         <span class="estrellas" style="font-size: 1rem;">★★★★★</span>
                     </div>
                 </div>
-                <p class="resena-texto">"Fui por primera vez para ponerme extensiones de pestañas volumen ruso y he salido encantada. El ambiente transmite muchísima paz y te aconsejan súper bien."</p>
+                <p class="resena-texto">"Fui por primera vez para ponerme extensiones de pestañas volumen ruso y he salido encantada."</p>
             </div>
-
             <div class="resena-card">
                 <div class="resena-header">
                     <div class="resena-avatar">C</div>
@@ -298,7 +337,7 @@
                         <span class="estrellas" style="font-size: 1rem;">★★★★★</span>
                     </div>
                 </div>
-                <p class="resena-texto">"Atención espectacular. Se nota que llevan muchos años en el sector porque cuidan la uña natural al máximo. No duele nada al quitar el acrílico. ¡100% recomendado!"</p>
+                <p class="resena-texto">"Atención espectacular. Se nota que llevan muchos años en el sector porque cuidan la uña natural al máximo."</p>
             </div>
         </div>
     </section>
@@ -313,7 +352,7 @@
             <div class="contacto-datos">
                 
                 <div class="info-item">
-                    <div class="info-icon">📍</div>
+                    <div class="info-icon"><i class="fa-solid fa-location-dot"></i></div>
                     <div class="info-texto">
                         <h4>Dirección</h4>
                         <p>Carrer de la Marina, 154, Entresuelo 1ª<br>Eixample, 08013 Barcelona</p>
@@ -321,25 +360,28 @@
                 </div>
 
                 <div class="info-item">
-                    <div class="info-icon">📞</div>
+                    <div class="info-icon"><i class="fa-solid fa-phone"></i></div>
                     <div class="info-texto">
-                        <h4>Teléfono y Citas</h4>
+                        <h4>Teléfono</h4>
                         <p><a href="tel:+34635246641">+34 635 24 66 41</a></p>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon"><i class="fa-brands fa-whatsapp"></i></div>
+                    <div class="info-texto">
+                        <h4>WhatsApp</h4>
+                        <p><a href="https://wa.me/34635246641" target="_blank">Escríbenos directamente</a></p>
                     </div>
                 </div>
 
                 <div class="info-item">
-                    <div class="info-icon">🕒</div>
+                    <div class="info-icon"><i class="fa-regular fa-clock"></i></div>
                     <div class="info-texto" style="width: 100%;">
                         <h4>Horario de Atención</h4>
                         <table class="horario-tabla">
-                            <tr><td>Lunes</td><td>10:00 – 18:00</td></tr>
-                            <tr><td>Martes</td><td>10:00 – 18:00</td></tr>
-                            <tr><td>Miércoles</td><td>10:00 – 18:00</td></tr>
-                            <tr><td>Jueves</td><td>10:00 – 18:00</td></tr>
-                            <tr><td>Viernes</td><td>10:00 – 18:00</td></tr>
-                            <tr><td>Sábado</td><td class="cerrado">Cerrado</td></tr>
-                            <tr><td>Domingo</td><td class="cerrado">Cerrado</td></tr>
+                            <tr><td>Lunes a Viernes</td><td>10:00 – 18:00</td></tr>
+                            <tr><td>Sábados y Domingos</td><td class="cerrado">Cerrado</td></tr>
                         </table>
                     </div>
                 </div>
@@ -356,9 +398,13 @@
     </section>
 
     <footer>
-        <p>&copy; 2026 kV Studio Art & Nails. Belleza y salud para tus uñas y pestañas.</p>
+        <p>© 2026 kV Studio Art & Nails. Belleza y salud para tus uñas y pestañas.</p>
         <p style="margin-top: 10px;">Síguenos en Instagram <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank">@kv_studionails</a></p>
     </footer>
+
+    <a href="https://wa.me/34635246641?text=Hola,%20me%20gustaría%20pedir%20información%20o%20cita%20en%20kV%20Studio." class="btn-whatsapp-flotante" target="_blank" aria-label="Contactar por WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
 
     <script>
         let slideIndex = 0;
@@ -368,25 +414,12 @@
 
         function moverCarrusel(direccion) {
             slideIndex += direccion;
-            
-            // Volver al principio si se pasa de la última foto
-            if (slideIndex >= totalSlides) {
-                slideIndex = 0;
-            } 
-            // Ir a la última foto si va hacia atrás desde la primera
-            else if (slideIndex < 0) {
-                slideIndex = totalSlides - 1;
-            }
-
-            // Calcular el desplazamiento en porcentaje
+            if (slideIndex >= totalSlides) { slideIndex = 0; } 
+            else if (slideIndex < 0) { slideIndex = totalSlides - 1; }
             const desplazamiento = -(slideIndex * 100);
             carruselContainer.style.transform = `translateX(${desplazamiento}%)`;
         }
-
-        // Cambio automático cada 4 segundos
-        setInterval(() => {
-            moverCarrusel(1);
-        }, 4000);
+        setInterval(() => { moverCarrusel(1); }, 4000);
     </script>
 
 </body>
