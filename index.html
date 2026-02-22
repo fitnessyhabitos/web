@@ -3,238 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Fitness - Cyberpunk Glass</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>kV Studio | Uñas y Pestañas</title>
     <style>
-        /* Importamos fuentes futuristas y limpias */
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Orbitron:wght@700;900&display=swap');
-
+        /* Paleta de Colores */
         :root {
-            --neon-red: #FF003C;
-            --dark-bg: #050505;
-            --glass-border: rgba(255, 255, 255, 0.15);
-            --text-grey: #a0aabf;
+            --rosa: #F2C4CE;
+            --negro: #1A1A1A;
+            --gris: #F5F5F5;
+            --gris-oscuro: #555555;
+            --blanco: #FFFFFF;
+            --verde-claro: #E2F0E6;
+        }
+
+        /* Estilos Generales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            scroll-behavior: smooth;
         }
 
         body {
-            background-color: var(--dark-bg);
-            /* Fondo sutil estilo matriz/circuito */
-            background-image: 
-                linear-gradient(rgba(255, 0, 60, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 0, 60, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
-            font-family: 'Montserrat', sans-serif;
+            background-color: var(--blanco);
+            color: var(--negro);
+            line-height: 1.6;
+        }
+
+        /* Navegación */
+        nav {
+            background-color: var(--negro);
+            color: var(--blanco);
+            padding: 1rem 5%;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
-        /* Contenedor del móvil con borde resplandeciente */
-        .mobile-screen {
-            width: 375px;
-            height: 812px;
-            background: linear-gradient(180deg, #1a1a2e 0%, #000000 100%);
-            border-radius: 40px;
-            box-shadow: 0 0 40px rgba(255, 0, 60, 0.2); /* Resplandor rojo exterior */
-            overflow: hidden;
-            position: relative;
-            padding: 20px;
-            box-sizing: border-box;
-            border: 4px solid #222; /* Marco metálico oscuro */
+        /* Estilo para el logotipo en imagen */
+        .logo-img {
+            height: 50px; /* Puedes ajustar este tamaño para que tu logo se vea perfecto */
+            width: auto;
+            border-radius: 50%; /* Opcional: hace que el logo se vea redondo como en Instagram */
         }
 
-        /* Efecto de luz ambiental en la parte superior */
-        .mobile-screen::before {
-            content: '';
-            position: absolute;
-            top: -150px;
-            left: -50px;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(255,0,60,0.3) 0%, rgba(0,0,0,0) 70%);
-            filter: blur(40px);
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .content-wrapper {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Cabecera Cyberpunk */
-        .header {
-            text-align: center;
-            margin-top: 60px;
-            margin-bottom: 50px;
-        }
-
-        .title {
-            font-family: 'Orbitron', sans-serif; /* Fuente tecnológica */
-            color: white;
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: 3px;
-            margin: 0;
-            /* Efecto de texto de neón */
-            text-shadow: 0 0 10px rgba(255, 0, 60, 0.7), 0 0 20px rgba(255, 0, 60, 0.4);
-        }
-
-        .underline {
-            width: 50%;
-            height: 3px;
-            background-color: var(--neon-red);
-            margin: 10px auto;
-            /* Barra brillante */
-            box-shadow: 0 0 15px var(--neon-red);
-        }
-
-        .subtitle {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 10px;
-            letter-spacing: 2px;
-            color: var(--text-grey);
-            text-transform: uppercase;
-            margin-top: 12px;
-        }
-
-        /* Cuadrícula */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px 15px;
-            padding: 0 10px;
-        }
-
-        .grid-item {
+        nav ul {
+            list-style: none;
             display: flex;
-            flex-direction: column;
+            gap: 20px;
             align-items: center;
-            cursor: pointer;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .grid-item:hover {
-            transform: translateY(-5px);
-        }
-
-        /* ESTILO CLAVE: LIQUID GLASS CYBERPUNK */
-        .icon-box {
-            width: 75px;
-            height: 75px;
-            border-radius: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 12px;
-            font-size: 26px;
-            
-            /* Glassmorphism: Fondo translúcido + Desenfoque */
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(15px); /* El efecto de cristal esmerilado */
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border); /* Borde de cristal sutil */
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-
-            color: #e0e0e0; /* Icono gris claro por defecto */
-            transition: all 0.3s ease;
-        }
-
-        /* Efecto Hover en los botones normales */
-        .grid-item:hover .icon-box {
-            border-color: var(--neon-red);
-            color: var(--neon-red);
-            box-shadow: 0 0 25px rgba(255, 0, 60, 0.5), inset 0 0 10px rgba(255, 0, 60, 0.2);
-        }
-        .grid-item:hover .icon-box i {
-             text-shadow: 0 0 10px var(--neon-red);
-        }
-
-        /* El botón central ROJO NEÓN ACTIVO */
-        .icon-box.red-neon {
-            background: rgba(255, 0, 60, 0.15); /* Cristal tintado de rojo */
-            border: 2px solid var(--neon-red);
-            color: white;
-             /* Resplandor intenso */
-            box-shadow: 0 0 30px rgba(255, 0, 60, 0.6), inset 0 0 20px rgba(255, 0, 60, 0.3);
-        }
-        
-        .icon-box.red-neon i {
-            font-size: 32px;
-            /* El icono brilla intensamente */
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px var(--neon-red);
-        }
-
-        .label {
-            font-size: 11px;
-            text-align: center;
-            color: var(--text-grey);
-            font-weight: 600;
-            letter-spacing: 0.5px;
+        nav ul li a {
+            color: var(--blanco);
+            text-decoration: none;
+            font-weight: 500;
             transition: color 0.3s;
         }
-        
-        .grid-item:hover .label {
-            color: white;
-            text-shadow: 0 0 5px var(--neon-red);
+
+        nav ul li a:hover {
+            color: var(--verde-claro);
         }
 
+        /* Secciones Comunes */
+        section {
+            padding: 80px 10%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1, h2 {
+            margin-bottom: 20px;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Sección: Inicio */
+        #inicio {
+            background-color: var(--rosa);
+            text-align: center;
+            align-items: center;
+        }
+
+        #inicio h1 {
+            font-size: 3.5rem;
+            color: var(--negro);
+        }
+
+        #inicio p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin-bottom: 30px;
+            color: var(--negro);
+        }
+
+        .botones-inicio {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: var(--negro);
+            color: var(--blanco);
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--verde-claro);
+            color: var(--negro);
+        }
+        
+        .btn-ig {
+            background-color: transparent;
+            border: 2px solid var(--negro);
+            color: var(--negro);
+        }
+
+        .btn-ig:hover {
+            background-color: var(--negro);
+            color: var(--blanco);
+        }
+
+        /* Sección: Conócenos */
+        #conocenos {
+            background-color: var(--blanco);
+            text-align: center;
+        }
+
+        #conocenos h2 {
+            color: var(--rosa);
+            font-weight: bold;
+        }
+
+        #conocenos p {
+            color: var(--gris-oscuro);
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            font-size: 1.1rem;
+        }
+
+        /* Sección: Lista de Precios */
+        #precios {
+            background-color: var(--verde-claro);
+            text-align: center;
+        }
+
+        #precios h2 {
+            color: var(--negro);
+            font-weight: bold;
+        }
+
+        .pricing-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .price-card {
+            background-color: var(--blanco);
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-top: 5px solid var(--rosa);
+        }
+
+        .price-card h3 {
+            margin-bottom: 15px;
+            color: var(--negro);
+            border-bottom: 2px solid var(--gris);
+            padding-bottom: 10px;
+        }
+
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: var(--gris-oscuro);
+        }
+
+        .price-item span:last-child {
+            font-weight: bold;
+            color: var(--negro);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--gris);
+            color: var(--gris-oscuro);
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--rosa);
+            text-decoration: none;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <div class="mobile-screen">
-        <div class="content-wrapper">
-            <div class="header">
-                <h1 class="title">CYBER GYM</h1>
-                <div class="underline"></div>
-                <p class="subtitle">Actualiza tu Sistema // V.2.049</p>
-            </div>
+    <nav>
+        <a href="#inicio">
+            <img src="logo.png" alt="Logotipo kV Studio" class="logo-img">
+        </a>
+        
+        <ul>
+            <li><a href="#inicio">Inicio</a></li>
+            <li><a href="#conocenos">Conócenos</a></li>
+            <li><a href="#precios">Precios</a></li>
+        </ul>
+    </nav>
 
-            <div class="grid">
-                <div class="grid-item">
-                    <div class="icon-box"><i class="fa-solid fa-dumbbell"></i></div>
-                    <span class="label">Entrenos</span>
-                </div>
-                <div class="grid-item">
-                    <div class="icon-box"><i class="fa-solid fa-chart-line"></i></div>
-                    <span class="label">Datos Bio</span>
-                </div>
-                <div class="grid-item">
-                    <div class="icon-box"><i class="fa-solid fa-capsules"></i></div>
-                    <span class="label">Fuel/Nutri</span>
-                </div>
-
-                <div class="grid-item">
-                    <div class="icon-box"><i class="fa-solid fa-user-astronaut"></i></div>
-                    <span class="label">Avatar</span>
-                </div>
-                <div class="grid-item">
-                    <div class="icon-box red-neon"><i class="fa-solid fa-qrcode"></i></div>
-                    <span class="label" style="color: var(--neon-red); text-shadow: 0 0 10px rgba(255,0,60,0.5);">ACCESO NET</span>
-                </div>
-                <div class="grid-item">
-                    <div class="icon-box"><i class="fa-regular fa-calendar-check"></i></div>
-                    <span class="label">Reservas</span>
-                </div>
-
-                <div class="grid-item">
-                    <div class="icon-box"><i class="fa-solid fa-headset"></i></div>
-                    <span class="label">Soporte IT</span>
-                </div>
-                <div class="grid-item">
-                    <div class="icon-box"><i class="fa-solid fa-play"></i></div>
-                    <span class="label">Streaming</span>
-                </div>
-                <div class="grid-item">
-                    <div class="icon-box"><i class="fa-solid fa-users-rays"></i></div>
-                    <span class="label">Nexo</span>
-                </div>
-            </div>
+    <section id="inicio">
+        <h1>Bienvenida a kV Studio</h1>
+        <p>Tu espacio exclusivo para resaltar tu mirada y lucir unas manos impecables. Somos especialistas en diseño de uñas y extensiones de pestañas.</p>
+        <div class="botones-inicio">
+            <a href="#precios" class="btn">Ver nuestros servicios</a>
+            <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank" class="btn btn-ig">Síguenos en Instagram</a>
         </div>
-    </div>
+    </section>
+
+    <section id="conocenos">
+        <h2>Conócenos</h2>
+        <p>En <strong>kV Studio</strong> creemos que la belleza está en los detalles. Nuestro objetivo es brindarte un momento de relajación mientras nuestros especialistas realzan tu belleza natural con productos de la más alta calidad.</p>
+        <p>Ya sea que busques unas uñas acrílicas espectaculares, un esmaltado semipermanente elegante o unas pestañas con volumen que detengan el tráfico, aquí encontrarás la experiencia y la pasión para lograrlo.</p>
+    </section>
+
+    <section id="precios">
+        <h2>Lista de Precios</h2>
+        <div class="pricing-container">
+            
+            <div class="price-card">
+                <h3>💅 Servicios de Uñas</h3>
+                <div class="price-item"><span>Manicura Tradicional</span><span>15€</span></div>
+                <div class="price-item"><span>Esmaltado Semipermanente</span><span>20€</span></div>
+                <div class="price-item"><span>Uñas Acrílicas (Nuevas)</span><span>35€</span></div>
+                <div class="price-item"><span>Relleno de Acrílico</span><span>25€</span></div>
+                <div class="price-item"><span>Diseño/Nail Art (por uña)</span><span>2€</span></div>
+            </div>
+
+            <div class="price-card">
+                <h3>👁️ Servicios de Pestañas</h3>
+                <div class="price-item"><span>Lifting + Tinte</span><span>30€</span></div>
+                <div class="price-item"><span>Extensiones (Pelo a Pelo)</span><span>45€</span></div>
+                <div class="price-item"><span>Extensiones (Volumen Ruso)</span><span>60€</span></div>
+                <div class="price-item"><span>Mantenimiento Pelo a Pelo</span><span>25€</span></div>
+                <div class="price-item"><span>Mantenimiento Volumen</span><span>35€</span></div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 kV Studio. Todos los derechos reservados. | Diseñado con amor para realzar tu belleza.</p>
+        <p>Visita nuestro <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank">Instagram (@kv_studionails)</a> para ver nuestros trabajos.</p>
+    </footer>
 
 </body>
 </html>
