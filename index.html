@@ -5,14 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <title>kV Studio | Uñas, Pestañas y Estética Premium en Barcelona</title>
-    <meta name="description" content="kV Studio, tu centro de estética familiar en Barcelona con más de 18 años de experiencia. Especialistas en todos los estilos de uñas, máxima higiene y productos premium.">
-    <meta name="keywords" content="uñas Barcelona, centro estética familiar, uñas acrílicas, nail art, más de 18 años experiencia uñas, higiene manicura, lifting pestañas, estética premium Barcelona, kV Studio">
-    <meta name="author" content="kV Studio">
-    <meta name="robots" content="index, follow">
-    
-    <meta property="og:title" content="kV Studio | Tu Refugio de Belleza en Barcelona">
-    <meta property="og:description" content="Más de 18 años de experiencia creando arte en tus uñas. Descubre nuestro estudio familiar, relajante y con máxima higiene.">
-    <meta property="og:type" content="website">
+    <meta name="description" content="kV Studio, tu centro de estética premium en Eixample, Barcelona. Más de 18 años de experiencia. Especialistas en uñas acrílicas, manicura rusa y extensiones de pestañas.">
+    <meta name="keywords" content="uñas Eixample Barcelona, centro estética Carrer de la Marina, uñas acrílicas, manicura rusa, reseñas kV Studio, lifting pestañas, estética premium Barcelona">
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
     
@@ -25,7 +19,6 @@
             --gris-claro: #F9F9F9;
             --gris-texto: #555555;
             --blanco: #FFFFFF;
-            --verde-claro: #E2F0E6;
             
             /* Detalles Premium Plateados */
             --plata-solido: #C0C0C0;
@@ -45,12 +38,10 @@
         h1, h2, h3, h4 { font-family: var(--font-titulo); color: var(--negro); }
 
         h2 { font-size: 2.5rem; margin-bottom: 1rem; position: relative; display: inline-block; }
-        h2::after {
-            content: ''; position: absolute; bottom: -10px; left: 0; width: 80px; height: 3px; background: var(--plata-metalico);
-        }
+        h2::after { content: ''; position: absolute; bottom: -10px; left: 0; width: 80px; height: 3px; background: var(--plata-metalico); }
         .centrar-titulo h2::after { left: 50%; transform: translateX(-50%); }
 
-        section { padding: 100px 10%; position: relative; }
+        section { padding: 90px 10%; position: relative; }
 
         /* --- NAVEGACIÓN --- */
         nav {
@@ -58,12 +49,12 @@
             border-bottom: 2px solid; border-image: var(--plata-metalico) 1;
         }
         .logo-img { height: 55px; width: auto; border-radius: 50%; border: 2px solid transparent; background: var(--plata-metalico); padding: 2px; }
-        nav ul { list-style: none; display: flex; gap: 30px; align-items: center; }
-        nav ul li a { color: var(--blanco); text-decoration: none; font-weight: 400; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; position: relative; padding-bottom: 5px; transition: 0.3s; }
+        nav ul { list-style: none; display: flex; gap: 20px; align-items: center; }
+        nav ul li a { color: var(--blanco); text-decoration: none; font-weight: 400; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; position: relative; padding-bottom: 5px; transition: 0.3s; }
         nav ul li a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 2px; background: var(--plata-metalico); transition: width 0.3s ease; }
         nav ul li a:hover::after { width: 100%; }
 
-        /* --- SECCIÓN INICIO --- */
+        /* --- INICIO --- */
         #inicio {
             background-image: linear-gradient(rgba(0,0,0,0.6), rgba(26, 4, 10, 0.8)), url('https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1920&auto=format&fit=crop');
             background-size: cover; background-position: center; background-attachment: fixed; display: flex; align-items: center; justify-content: flex-start; color: var(--blanco); min-height: 100vh;
@@ -75,55 +66,89 @@
         #inicio p { font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9; font-weight: 300; }
         
         .botones-inicio { display: flex; gap: 20px; flex-wrap: wrap; }
-        .btn { padding: 15px 35px; text-decoration: none; border-radius: 50px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; transition: all 0.3s ease; display: inline-block; }
+        .btn { padding: 15px 35px; text-decoration: none; border-radius: 50px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; transition: all 0.3s ease; display: inline-block; cursor: pointer; text-align: center;}
         .btn-premium { background: var(--plata-metalico); color: var(--negro); box-shadow: var(--sombra-plata); border: none; }
         .btn-premium:hover { background: var(--plata-hover); transform: translateY(-3px); box-shadow: 0 10px 25px rgba(192, 192, 192, 0.6); }
         .btn-ig { background-color: transparent; border: 2px solid var(--plata-solido); color: var(--blanco); }
         .btn-ig:hover { background-color: var(--plata-solido); color: var(--negro); transform: translateY(-3px); }
 
-        /* --- SECCIÓN CONÓCENOS (AMPLIADA) --- */
+        /* --- CONÓCENOS (MÁS FOTOS) --- */
         #conocenos { background-color: var(--blanco); }
-        
-        .historia-container { display: flex; align-items: center; gap: 60px; margin-bottom: 80px; }
+        .historia-container { display: flex; align-items: center; gap: 60px; margin-bottom: 60px; }
         .about-text { flex: 1; }
         .about-text h3 { font-size: 1.8rem; margin-bottom: 15px; color: var(--rosa-oscuro); }
         .about-text p { margin-bottom: 20px; color: var(--gris-texto); font-size: 1.05rem; }
-        .about-image-container { flex: 1; position: relative; }
-        .about-image { width: 100%; height: auto; border-radius: 5px; box-shadow: var(--sombra-suave); position: relative; z-index: 2; content: url('https://images.unsplash.com/photo-1512290923902-8a9284379427?q=80&w=1080&auto=format&fit=crop'); }
-        .about-image-container::before { content: ''; position: absolute; top: -15px; left: -15px; width: 100%; height: 100%; background: var(--plata-metalico); border-radius: 5px; z-index: 1; }
-
-        /* Cuadrícula de Valores (NUEVO) */
+        
+        /* Grid para el par de fotos estáticas */
+        .about-images-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; position: relative; }
+        .about-img { width: 100%; height: 250px; object-fit: cover; border-radius: 5px; box-shadow: var(--sombra-suave); }
+        .about-img:nth-child(1) { transform: translateY(-20px); }
+        .about-img:nth-child(2) { transform: translateY(20px); }
+        
         .valores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 50px; }
         .valor-card { background: var(--gris-claro); padding: 40px 30px; border-radius: 10px; text-align: center; transition: 0.3s; border-bottom: 4px solid var(--rosa); box-shadow: var(--sombra-suave); }
         .valor-card:hover { transform: translateY(-5px); border-bottom-color: var(--plata-solido); }
         .valor-icon { font-size: 2.5rem; margin-bottom: 20px; display: inline-block; background: var(--plata-metalico); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .valor-card h4 { margin-bottom: 15px; font-size: 1.3rem; }
-        .valor-card p { color: var(--gris-texto); font-size: 0.95rem; }
 
-        /* --- SECCIÓN PRECIOS --- */
-        #precios { background-color: var(--verde-claro); text-align: center; }
-        .pricing-intro { max-width: 700px; margin: 30px auto 50px auto; color: var(--gris-texto); }
-        .pricing-container { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; align-items: stretch; }
-        .price-card { background-color: var(--blanco); padding: 40px; border-radius: 10px; width: 350px; box-shadow: var(--sombra-suave); transition: transform 0.3s, box-shadow 0.3s; position: relative; overflow: hidden; }
-        .price-card:hover { transform: translateY(-10px); box-shadow: var(--sombra-plata); }
-        .price-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; }
-        .card-unas::before { background: linear-gradient(90deg, var(--plata-solido), var(--rosa)); }
-        .card-pestanas::before { background: linear-gradient(90deg, var(--plata-solido), var(--negro)); }
-        .card-icon { font-size: 2.5rem; margin-bottom: 15px; display: block; }
-        .price-card h3 { margin-bottom: 25px; font-size: 1.8rem; color: var(--negro); }
-        .price-list { text-align: left; }
-        .price-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #eaeaea; color: var(--gris-texto); font-size: 0.95rem; }
-        .price-item:last-child { border-bottom: none; }
+        /* --- GALERÍA (CARRUSEL) --- */
+        #galeria { background-color: var(--negro); color: var(--blanco); text-align: center; }
+        #galeria h2 { color: var(--blanco); }
+        
+        .carrusel-contenedor {
+            position: relative; max-width: 900px; margin: 40px auto 0; overflow: hidden; border-radius: 10px; box-shadow: var(--sombra-plata); border: 2px solid var(--plata-solido);
+        }
+        .carrusel-slide { display: flex; transition: transform 0.5s ease-in-out; }
+        .carrusel-slide img { width: 100%; height: 500px; object-fit: cover; flex-shrink: 0; }
+        
+        .carrusel-btn {
+            position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: var(--blanco); border: 1px solid var(--plata-solido); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s;
+        }
+        .carrusel-btn:hover { background: var(--plata-solido); color: var(--negro); }
+        .btn-prev { left: 15px; }
+        .btn-next { right: 15px; }
+
+        /* --- PRECIOS --- */
+        #precios { background-color: var(--gris-claro); text-align: center; }
+        .pricing-container { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 40px; }
+        .price-card { background-color: var(--blanco); padding: 40px; border-radius: 10px; width: 350px; box-shadow: var(--sombra-suave); border-top: 5px solid; position: relative; }
+        .card-unas { border-image: linear-gradient(90deg, var(--plata-solido), var(--rosa)) 1; }
+        .card-pestanas { border-image: linear-gradient(90deg, var(--plata-solido), var(--negro)) 1; }
+        .price-card h3 { margin-bottom: 25px; font-size: 1.8rem; }
+        .price-item { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eaeaea; color: var(--gris-texto); }
         .price-value { font-weight: 600; color: var(--negro); }
 
-        /* --- SECCIÓN FAQ --- */
-        #faq { background-color: var(--blanco); max-width: 900px; margin: 0 auto; padding: 100px 5%; }
-        .faq-item { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; overflow: hidden; }
-        .faq-item summary { padding: 20px; background: var(--gris-claro); font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; }
-        .faq-item summary:hover { background: #f0f0f0; }
-        .faq-item summary::after { content: '+'; font-size: 1.5rem; color: var(--plata-solido); font-weight: bold; }
-        .faq-item[open] summary::after { content: '-'; }
-        .faq-item p { padding: 20px; color: var(--gris-texto); font-size: 0.95rem; border-top: 1px solid #ddd; background: var(--blanco); }
+        /* --- RESEÑAS DE GOOGLE --- */
+        #resenas { background-color: var(--blanco); text-align: center; }
+        .google-rating { margin-bottom: 40px; display: inline-block; padding: 15px 40px; background: var(--gris-claro); border-radius: 50px; border: 1px solid #e0e0e0; box-shadow: var(--sombra-suave); }
+        .google-rating h3 { font-size: 2.5rem; color: var(--negro); display: inline-block; margin-right: 15px; vertical-align: middle; }
+        .estrellas { color: #fbbc04; font-size: 1.5rem; letter-spacing: 2px; }
+        
+        .resenas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto; }
+        .resena-card { background: var(--blanco); border: 1px solid #eee; padding: 30px; border-radius: 10px; box-shadow: var(--sombra-suave); text-align: left; transition: 0.3s; }
+        .resena-card:hover { transform: translateY(-5px); border-color: var(--plata-solido); }
+        .resena-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .resena-avatar { width: 45px; height: 45px; background: var(--rosa); color: var(--blanco); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; }
+        .resena-nombre { font-weight: 600; color: var(--negro); }
+        .resena-fecha { font-size: 0.8rem; color: #999; }
+        .resena-texto { color: var(--gris-texto); font-size: 0.95rem; font-style: italic; }
+
+        /* --- INFO GOOGLE Y CONTACTO --- */
+        #contacto { background-color: var(--gris-claro); }
+        .contacto-container { display: flex; flex-wrap: wrap; gap: 50px; max-width: 1100px; margin: 40px auto 0; background: var(--blanco); padding: 40px; border-radius: 10px; box-shadow: var(--sombra-suave); }
+        
+        .contacto-datos { flex: 1; min-width: 300px; }
+        .info-item { margin-bottom: 25px; display: flex; align-items: flex-start; gap: 15px; }
+        .info-icon { font-size: 1.5rem; background: var(--plata-metalico); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .info-texto h4 { margin-bottom: 5px; font-size: 1.1rem; }
+        .info-texto p, .info-texto a { color: var(--gris-texto); text-decoration: none; font-size: 0.95rem; }
+        
+        .horario-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .horario-tabla td { padding: 5px 0; border-bottom: 1px solid #eee; font-size: 0.95rem; color: var(--gris-texto); }
+        .horario-tabla tr:last-child td { border-bottom: none; }
+        .cerrado { color: #d9534f; font-weight: 600; }
+
+        .contacto-mapa { flex: 1.5; min-width: 300px; border-radius: 10px; overflow: hidden; border: 2px solid var(--plata-solido); }
+        iframe { width: 100%; height: 100%; min-height: 350px; border: 0; }
 
         /* --- FOOTER --- */
         footer { background-color: var(--negro); color: rgba(255,255,255,0.7); text-align: center; padding: 40px 20px; font-size: 0.9rem; border-top: 3px solid transparent; border-image: var(--plata-metalico) 1; }
@@ -131,14 +156,14 @@
         footer a:hover { color: var(--plata-solido); }
 
         /* --- RESPONSIVE --- */
-        @media (max-width: 768px) {
-            nav { flex-wrap: wrap; }
-            nav ul { display: none; }
+        @media (max-width: 850px) {
+            nav ul { display: none; } /* Oculto en móvil por simplicidad */
             #inicio h1 { font-size: 2.8rem; }
-            #inicio { text-align: center; justify-content: center; }
-            .botones-inicio { justify-content: center; }
-            .historia-container { flex-direction: column; gap: 40px; }
-            .about-image-container { width: 100%; }
+            .historia-container { flex-direction: column; }
+            .about-images-grid { grid-template-columns: 1fr; }
+            .about-img:nth-child(1), .about-img:nth-child(2) { transform: none; }
+            .contacto-container { flex-direction: column; }
+            .carrusel-slide img { height: 350px; }
         }
     </style>
 </head>
@@ -146,23 +171,25 @@
 
     <nav>
         <a href="#inicio">
-            <img src="logo.png" alt="Logotipo kV Studio Barcelona" class="logo-img">
+            <img src="logo.png" alt="kV Studio" class="logo-img">
         </a>
         <ul>
             <li><a href="#inicio">Inicio</a></li>
-            <li><a href="#conocenos">Conócenos</a></li>
-            <li><a href="#precios">Servicios</a></li>
-            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#conocenos">Estudio</a></li>
+            <li><a href="#galeria">Galería</a></li>
+            <li><a href="#precios">Precios</a></li>
+            <li><a href="#resenas">Reseñas</a></li>
+            <li><a href="#contacto">Contacto</a></li>
         </ul>
     </nav>
 
     <section id="inicio">
         <div class="hero-content">
-            <h1>Tu centro familiar de <span class="texto-destacado-rosa">estética premium</span> en Barcelona</h1>
-            <p>Descubre <span class="texto-destacado-plata">kV Studio</span>. Más de 18 años de experiencia dedicados al arte de las uñas y el diseño de miradas. Calidad, higiene y buenas vibraciones en cada cita.</p>
+            <h1>Arte y belleza en <span class="texto-destacado-rosa">Carrer de la Marina</span></h1>
+            <p>Descubre <span class="texto-destacado-plata">kV Studio Art & Nails</span>. Un centro de estética premium en el Eixample con valoración de 4.9⭐ en Google. Especialistas en diseño de mirada y uñas esculpidas.</p>
             <div class="botones-inicio">
-                <a href="#precios" class="btn btn-premium">Ver Tratamientos</a>
-                <a href="#conocenos" class="btn btn-ig">Nuestra Historia</a>
+                <a href="#contacto" class="btn btn-premium">Reserva tu Cita</a>
+                <a href="#galeria" class="btn btn-ig">Ver Trabajos</a>
             </div>
         </div>
     </section>
@@ -171,101 +198,196 @@
         <div class="historia-container">
             <div class="about-text">
                 <h2>El Alma de kV Studio</h2>
-                <h3>Más de 18 años creando belleza</h3>
-                <p>Ubicados en el corazón de Barcelona, <strong>kV Studio</strong> nace de una pasión inquebrantable por la estética. Somos un <strong>negocio familiar</strong> que lleva casi dos décadas perfeccionando el arte de cuidar de ti.</p>
-                <p>Nuestra filosofía es sencilla: huir de las prisas y el estrés. Hemos diseñado nuestro estudio para que sea un auténtico refugio. Un lugar tranquilo, lleno de <strong>buenas vibraciones</strong>, donde te sentirás como en casa desde el momento en que cruzas la puerta. No solo venimos a trabajar; venimos a crear momentos agradables y a potenciar tu belleza natural con un trato cercano, cálido y 100% personalizado.</p>
-            </div>
-            <div class="about-image-container">
-                <img class="about-image" alt="Interior acogedor y relajante de kV Studio">
-            </div>
-        </div>
-
-        <div class="centrar-titulo" style="text-align: center; margin-bottom: 40px;">
-            <h2>Nuestra Garantía de Calidad</h2>
-        </div>
-        
-        <div class="valores-grid">
-            <div class="valor-card">
-                <div class="valor-icon">✨</div>
-                <h4>Dominamos Todos los Estilos</h4>
-                <p>Desde la elegancia de una manicura clásica y sutil, hasta las estructuras acrílicas más extremas y el <em>Nail Art</em> de vanguardia. Sea cual sea tu estilo, tenemos la técnica, el pulso y la experiencia de 18 años para hacerlo realidad.</p>
+                <h3>18 años perfeccionando detalles</h3>
+                <p>Nuestra historia se escribe con precisión y pasión. En <strong>kV Studio Art & Nails</strong>, somos un equipo familiar con casi dos décadas de experiencia en el sector. Nos enorgullece recibir a cada clienta en un espacio tranquilo y seguro, diseñado para desconectar de la rutina.</p>
+                <p>La máxima higiene y el uso de herramientas esterilizadas de grado clínico son nuestra firma. Ya busques unas uñas esculpidas impecables, un esmaltado semipermanente duradero o un volumen ruso que transforme tu mirada, aquí utilizamos los mejores productos del mercado para garantizar tu salud y belleza.</p>
             </div>
             
-            <div class="valor-card">
-                <div class="valor-icon">🛡️</div>
-                <h4>Higiene Clínica Absoluta</h4>
-                <p>Tu salud no es negociable. Cumplimos con los protocolos de bioseguridad más estrictos. Todo nuestro instrumental pasa por procesos de esterilización de grado médico y utilizamos material desechable en cada clienta.</p>
-            </div>
-
-            <div class="valor-card">
-                <div class="valor-icon">💎</div>
-                <h4>Productos del Mercado Premium</h4>
-                <p>Para lograr resultados excepcionales, solo trabajamos con las marcas más prestigiosas y reconocidas del sector. Fórmulas de alta adherencia, respetuosas con tu uña natural y con una durabilidad incomparable.</p>
+            <div class="about-images-grid">
+                <img src="https://images.unsplash.com/photo-1519014816548-bf5fe059e98b?q=80&w=800&auto=format&fit=crop" class="about-img" alt="Detalle manicura">
+                <img src="https://images.unsplash.com/photo-1512290923902-8a9284379427?q=80&w=800&auto=format&fit=crop" class="about-img" alt="Estudio kV Studio">
             </div>
         </div>
     </section>
 
+    <section id="galeria">
+        <div class="centrar-titulo">
+            <h2>Nuestra Galería de Arte</h2>
+        </div>
+        <p>Desliza para ver algunos de nuestros trabajos más recientes en uñas y pestañas.</p>
+        
+        <div class="carrusel-contenedor">
+            <div class="carrusel-slide" id="carruselSlide">
+                <img src="https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1000&auto=format&fit=crop" alt="Trabajo 1">
+                <img src="https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=1000&auto=format&fit=crop" alt="Trabajo 2">
+                <img src="https://images.unsplash.com/photo-1595085350907-7e2898b3f2bd?q=80&w=1000&auto=format&fit=crop" alt="Trabajo 3">
+                <img src="https://images.unsplash.com/photo-1588732890520-a6122d645eeb?q=80&w=1000&auto=format&fit=crop" alt="Trabajo 4">
+                <img src="https://images.unsplash.com/photo-1599598425947-33001c3e6df1?q=80&w=1000&auto=format&fit=crop" alt="Trabajo 5">
+            </div>
+            
+            <button class="carrusel-btn btn-prev" onclick="moverCarrusel(-1)">❮</button>
+            <button class="carrusel-btn btn-next" onclick="moverCarrusel(1)">❯</button>
+        </div>
+    </section>
+
     <section id="precios">
-        <h2>Tarifas de Estética y Manicura</h2>
-        <p class="pricing-intro">Tratamientos personalizados de alta gama. Invierte en ti con nuestros servicios especializados.</p>
+        <div class="centrar-titulo">
+            <h2>Servicios Destacados</h2>
+        </div>
         
         <div class="pricing-container">
             <div class="price-card card-unas">
                 <span class="card-icon">💅</span>
                 <h3>Nails Studio</h3>
-                <div class="price-list">
-                    <div class="price-item"><span>Manicura Rusa + Esmaltado</span><span class="price-value">25€</span></div>
-                    <div class="price-item"><span>Uñas Esculpidas (Acrílico)</span><span class="price-value">45€</span></div>
-                    <div class="price-item"><span>Relleno Esculpido</span><span class="price-value">35€</span></div>
-                    <div class="price-item"><span>Retirada y Cuidado</span><span class="price-value">10€</span></div>
-                    <div class="price-item"><span>Nail Art Avanzado (por uña)</span><span class="price-value">+3€</span></div>
-                </div>
+                <div class="price-item"><span>Manicura Rusa Completa</span><span class="price-value">25€</span></div>
+                <div class="price-item"><span>Uñas Esculpidas Acrílico</span><span class="price-value">45€</span></div>
+                <div class="price-item"><span>Relleno Acrílico</span><span class="price-value">35€</span></div>
+                <div class="price-item"><span>Nail Art / Diseños</span><span class="price-value">desde 3€</span></div>
             </div>
 
             <div class="price-card card-pestanas">
                 <span class="card-icon">👁️</span>
                 <h3>Lash Studio</h3>
-                <div class="price-list">
-                    <div class="price-item"><span>Lifting de Pestañas + Tinte</span><span class="price-value">40€</span></div>
-                    <div class="price-item"><span>Extensiones Clásicas 1D</span><span class="price-value">55€</span></div>
-                    <div class="price-item"><span>Volumen Ruso 3D-5D</span><span class="price-value">75€</span></div>
-                    <div class="price-item"><span>Mega Volumen Premium</span><span class="price-value">90€</span></div>
-                    <div class="price-item"><span>Mantenimiento (3 semanas)</span><span class="price-value">40€</span></div>
-                </div>
+                <div class="price-item"><span>Lifting + Tinte Pestañas</span><span class="price-value">40€</span></div>
+                <div class="price-item"><span>Extensiones Clásicas</span><span class="price-value">55€</span></div>
+                <div class="price-item"><span>Volumen Ruso (3D-5D)</span><span class="price-value">75€</span></div>
+                <div class="price-item"><span>Mega Volumen Premium</span><span class="price-value">90€</span></div>
             </div>
         </div>
     </section>
 
-    <section id="faq">
+    <section id="resenas">
         <div class="centrar-titulo">
-            <h2>Preguntas Frecuentes</h2>
+            <h2>Lo que dicen de nosotros</h2>
         </div>
         
-        <details class="faq-item">
-            <summary>¿Trabajáis con cita previa?</summary>
-            <p>Sí, para poder ofrecerte ese ambiente tranquilo y dedicarte el tiempo y la atención que mereces, trabajamos exclusivamente con cita previa. Puedes contactarnos a través de nuestro Instagram o WhatsApp para reservar tu espacio.</p>
-        </details>
+        <div class="google-rating">
+            <h3>4.9</h3>
+            <span class="estrellas">★★★★★</span>
+            <p style="font-size: 0.9rem; color: var(--gris-texto); margin-top: 5px;">Basado en las reseñas de Google</p>
+        </div>
 
-        <details class="faq-item">
-            <summary>¿Lleváis a cabo esterilización de las herramientas?</summary>
-            <p>Por supuesto. La higiene es uno de nuestros pilares. Utilizamos autoclaves y líquidos esterilizadores de grado hospitalario para garantizar que todo el material reutilizable sea 100% seguro. Además, usamos limas y buffers desechables por cada clienta.</p>
-        </details>
+        <div class="resenas-grid">
+            <div class="resena-card">
+                <div class="resena-header">
+                    <div class="resena-avatar">M</div>
+                    <div>
+                        <div class="resena-nombre">María G.</div>
+                        <span class="estrellas" style="font-size: 1rem;">★★★★★</span>
+                    </div>
+                </div>
+                <p class="resena-texto">"Llevo haciéndome las uñas aquí meses y no las cambio por nada. La limpieza es de 10 y el trato inmejorable. Son unas artistas, siempre aciertan con mis diseños."</p>
+            </div>
 
-        <details class="faq-item">
-            <summary>¿Qué diferencia hay entre manicura tradicional y rusa?</summary>
-            <p>La manicura rusa es una técnica en seco donde se utiliza el torno para limpiar la cutícula de forma profunda y precisa. Esto nos permite aplicar el esmalte de alta gama mucho más cerca del nacimiento de la uña, logrando un acabado perfecto y retrasando visualmente el crecimiento.</p>
-        </details>
-        
-        <details class="faq-item">
-            <summary>Tengo las uñas muy débiles, ¿puedo ponerme acrílico?</summary>
-            <p>Gracias a nuestros 18 años de experiencia, sabemos evaluar exactamente el estado de tu uña natural. Trabajamos con productos premium menos agresivos y te asesoraremos sobre si es mejor aplicar acrílico, gel constructor o realizar un tratamiento de refuerzo previo.</p>
-        </details>
+            <div class="resena-card">
+                <div class="resena-header">
+                    <div class="resena-avatar">L</div>
+                    <div>
+                        <div class="resena-nombre">Laura P.</div>
+                        <span class="estrellas" style="font-size: 1rem;">★★★★★</span>
+                    </div>
+                </div>
+                <p class="resena-texto">"Fui por primera vez para ponerme extensiones de pestañas volumen ruso y he salido encantada. El ambiente transmite muchísima paz y te aconsejan súper bien."</p>
+            </div>
+
+            <div class="resena-card">
+                <div class="resena-header">
+                    <div class="resena-avatar">C</div>
+                    <div>
+                        <div class="resena-nombre">Carmen R.</div>
+                        <span class="estrellas" style="font-size: 1rem;">★★★★★</span>
+                    </div>
+                </div>
+                <p class="resena-texto">"Atención espectacular. Se nota que llevan muchos años en el sector porque cuidan la uña natural al máximo. No duele nada al quitar el acrílico. ¡100% recomendado!"</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contacto">
+        <div class="centrar-titulo">
+            <h2>Encuéntranos en Barcelona</h2>
+        </div>
+        <p style="text-align: center; color: var(--gris-texto); max-width: 600px; margin: 0 auto;">Visítanos en nuestro estudio en el barrio del Eixample. Aceptamos pagos con tarjeta y efectivo.</p>
+
+        <div class="contacto-container">
+            <div class="contacto-datos">
+                
+                <div class="info-item">
+                    <div class="info-icon">📍</div>
+                    <div class="info-texto">
+                        <h4>Dirección</h4>
+                        <p>Carrer de la Marina, 154, Entresuelo 1ª<br>Eixample, 08013 Barcelona</p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">📞</div>
+                    <div class="info-texto">
+                        <h4>Teléfono y Citas</h4>
+                        <p><a href="tel:+34635246641">+34 635 24 66 41</a></p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">🕒</div>
+                    <div class="info-texto" style="width: 100%;">
+                        <h4>Horario de Atención</h4>
+                        <table class="horario-tabla">
+                            <tr><td>Lunes</td><td>10:00 – 18:00</td></tr>
+                            <tr><td>Martes</td><td>10:00 – 18:00</td></tr>
+                            <tr><td>Miércoles</td><td>10:00 – 18:00</td></tr>
+                            <tr><td>Jueves</td><td>10:00 – 18:00</td></tr>
+                            <tr><td>Viernes</td><td>10:00 – 18:00</td></tr>
+                            <tr><td>Sábado</td><td class="cerrado">Cerrado</td></tr>
+                            <tr><td>Domingo</td><td class="cerrado">Cerrado</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="contacto-mapa">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2993.0076712398547!2d2.180991315668636!3d41.39814007926315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12a4a3e3d5745ec1%3A0x5116a06f2e2e70fd!2sCarrer%20de%20la%20Marina%2C%20154%2C%20Eixample%2C%2008013%20Barcelona!5e0!3m2!1ses!2ses!4v1699999999999!5m2!1ses!2ses" 
+                    allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+        </div>
     </section>
 
     <footer>
-        <p>&copy; 2026 kV Studio. Tu estudio familiar de estética premium en Barcelona.</p>
-        <p style="margin-top: 10px;">Síguenos y descubre nuestros trabajos en <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank">@kv_studionails</a></p>
+        <p>&copy; 2026 kV Studio Art & Nails. Belleza y salud para tus uñas y pestañas.</p>
+        <p style="margin-top: 10px;">Síguenos en Instagram <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank">@kv_studionails</a></p>
     </footer>
+
+    <script>
+        let slideIndex = 0;
+        const slides = document.querySelectorAll('.carrusel-slide img');
+        const totalSlides = slides.length;
+        const carruselContainer = document.getElementById('carruselSlide');
+
+        function moverCarrusel(direccion) {
+            slideIndex += direccion;
+            
+            // Volver al principio si se pasa de la última foto
+            if (slideIndex >= totalSlides) {
+                slideIndex = 0;
+            } 
+            // Ir a la última foto si va hacia atrás desde la primera
+            else if (slideIndex < 0) {
+                slideIndex = totalSlides - 1;
+            }
+
+            // Calcular el desplazamiento en porcentaje
+            const desplazamiento = -(slideIndex * 100);
+            carruselContainer.style.transform = `translateX(${desplazamiento}%)`;
+        }
+
+        // Cambio automático cada 4 segundos
+        setInterval(() => {
+            moverCarrusel(1);
+        }, 4000);
+    </script>
 
 </body>
 </html>
