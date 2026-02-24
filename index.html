@@ -1,356 +1,333 @@
 <!DOCTYPE html>
-<html <?php language_attributes(); ?>>
+<html lang="es">
 <head>
-    <meta charset="<?php bloginfo( 'charset' ); ?>">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <meta name="description" content="Bienvenid@ a KV Studio Nails & Art. Un espacio creativo y profesional en Barcelona (Eixample). Especialistas en manicura rusa, uñas acrílicas y extensiones de pestañas.">
-    <meta name="keywords" content="uñas Eixample, manicura rusa Barcelona, KV Studio Nails & Art, extensiones de pestañas Eixample, centro de estética Barcelona, uñas acrílicas, lifting de pestañas">
-    <meta name="author" content="KV Studio Nails & Art">
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    
-    <meta property="og:locale" content="es_ES">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="KV Studio Nails & Art | Estética Premium en Barcelona">
-    <meta property="og:description" content="Un espacio creativo en Barcelona (Eixample) donde tu belleza se convierte en arte personalizado. Cuidamos hasta el más mínimo detalle.">
-    <meta property="og:url" content="<?php echo home_url(); ?>">
-    <meta property="og:site_name" content="KV Studio Nails & Art">
-    <meta property="og:image" content="<?php echo get_template_directory_uri(); ?>/tu-fondo.jpg">
-    
-    <link rel="icon" href="<?php echo get_template_directory_uri(); ?>/logo.png" type="image/png">
-    
-    <title><?php bloginfo('name'); ?> | Centro de Estética en Eixample, Barcelona</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <?php wp_head(); ?>
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FitDataPro - Cyberpunk Edition</title>
     <style>
-        /* --- PALETA Y VARIABLES --- */
+        /* --- CSS Variables & Design System --- */
         :root {
-            --rosa: #F2C4CE; --rosa-oscuro: #d9a7b1; --negro: #1A1A1A;
-            --gris-claro: #F9F9F9; --gris-texto: #555555; --blanco: #FFFFFF;
-            --plata-solido: #C0C0C0;
-            --plata-metalico: linear-gradient(135deg, #e6e6e6 0%, #ffffff 40%, #a6a6a6 60%, #e6e6e6 100%);
-            --plata-hover: linear-gradient(135deg, #ffffff 0%, #e6e6e6 50%, #8c8c8c 100%);
-            --sombra-suave: 0 10px 30px rgba(0,0,0,0.08); --sombra-plata: 0 5px 20px rgba(192, 192, 192, 0.4);
-            --font-titulo: 'Playfair Display', serif; --font-texto: 'Montserrat', sans-serif;
+            --cyber-black: #050505;
+            --cyber-dark-gray: #121212;
+            --cyber-red-neon: #ff1f3d;
+            --cyber-red-dim: rgba(255, 31, 61, 0.3);
+            --cyber-white: #ffffff;
+            --cyber-text-gray: #a0a0a0;
+            
+            /* Liquid Glass Effect Variables */
+            --glass-bg: rgba(20, 20, 20, 0.65);
+            --glass-border: 1px solid rgba(255, 31, 61, 0.2);
+            --glass-highlight: rgba(255, 255, 255, 0.1);
+            --glass-blur: blur(12px);
+            
+            --nav-height: 70px;
+            --safe-area-bottom: env(safe-area-inset-bottom, 20px);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
-        body { background-color: var(--blanco); color: var(--negro); font-family: var(--font-texto); line-height: 1.7; overflow-x: hidden; }
-        h1, h2, h3, h4 { font-family: var(--font-titulo); color: var(--negro); }
-        h2 { font-size: 2.5rem; margin-bottom: 1rem; position: relative; display: inline-block; }
-        h2::after { content: ''; position: absolute; bottom: -10px; left: 0; width: 80px; height: 3px; background: var(--plata-metalico); }
-        .centrar-titulo h2::after { left: 50%; transform: translateX(-50%); }
-        section { padding: 90px 10%; position: relative; }
-
-        /* NAVEGACIÓN Y MENÚ HAMBURGUESA */
-        header { background-color: rgba(26, 26, 26, 0.98); padding: 0.8rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid; border-image: var(--plata-metalico) 1; flex-wrap: wrap; }
-        .logo-img { height: 55px; width: auto; border-radius: 50%; border: 2px solid transparent; background: var(--plata-metalico); padding: 2px; }
-        .menu-toggle { display: none; color: var(--blanco); font-size: 1.8rem; cursor: pointer; transition: 0.3s; }
-        .menu-toggle:hover { color: var(--rosa); }
-        nav ul { list-style: none; display: flex; gap: 20px; align-items: center; transition: all 0.3s ease; }
-        nav ul li a { color: var(--blanco); text-decoration: none; font-weight: 400; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; position: relative; padding-bottom: 5px; transition: 0.3s; display: block;}
-        nav ul li a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 2px; background: var(--plata-metalico); transition: width 0.3s ease; }
-        nav ul li a:hover::after { width: 100%; }
-
-        /* INICIO */
-        #inicio { 
-            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(26, 4, 10, 0.8)), url('<?php echo get_template_directory_uri(); ?>/tu-fondo.jpg'); 
-            background-size: cover; background-position: center; background-attachment: fixed; display: flex; align-items: center; justify-content: flex-start; color: var(--blanco); min-height: 100vh; 
+        /* Reset & Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            /* Desactivar resaltado de tap en móviles */
+            -webkit-tap-highlight-color: transparent;
         }
-        .hero-content { max-width: 680px; z-index: 2; }
-        
-        /* Ajuste sutil del tamaño del H1 para que encaje perfecto el nuevo texto largo */
-        #inicio h1 { font-size: 3.2rem; line-height: 1.2; margin-bottom: 20px; color: var(--blanco); }
-        .texto-destacado-rosa { color: var(--rosa); font-style: italic; }
-        #inicio p { font-size: 1.15rem; margin-bottom: 40px; opacity: 0.95; font-weight: 300; line-height: 1.8; }
-        
-        .botones-inicio { display: flex; gap: 20px; flex-wrap: wrap; }
-        .btn { padding: 15px 35px; text-decoration: none; border-radius: 50px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; text-align: center;}
-        .btn-premium { background: var(--plata-metalico); color: var(--negro); box-shadow: var(--sombra-plata); border: none; }
-        .btn-premium:hover { background: var(--plata-hover); transform: translateY(-3px); box-shadow: 0 10px 25px rgba(192, 192, 192, 0.6); }
-        .btn-ig { background-color: transparent; border: 2px solid var(--plata-solido); color: var(--blanco); }
-        .btn-ig:hover { background-color: var(--plata-solido); color: var(--negro); transform: translateY(-3px); }
 
-        /* CONÓCENOS */
-        #conocenos { background-color: var(--blanco); }
-        .historia-container { display: flex; align-items: center; gap: 60px; margin-bottom: 60px; }
-        .about-text { flex: 1; }
-        .about-text h3 { font-size: 1.8rem; margin-bottom: 15px; color: var(--rosa-oscuro); }
-        .about-text p { margin-bottom: 20px; color: var(--gris-texto); font-size: 1.05rem; }
-        .about-images-grid { flex: 1; display: flex; flex-direction: column; gap: 20px; position: relative; }
-        .about-img { width: 90%; height: auto; border-radius: 8px; box-shadow: var(--sombra-plata); }
-        .about-img:nth-child(1) { align-self: flex-start; }
-        .about-img:nth-child(2) { align-self: flex-end; margin-top: -15%; border: 8px solid var(--blanco); z-index: 2; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--cyber-black);
+            /* Sutil patrón de fondo cyberpunk */
+            background-image: 
+                radial-gradient(circle at 10% 20%, var(--cyber-red-dim) 0%, transparent 20%),
+                linear-gradient(to bottom, var(--cyber-black), var(--cyber-dark-gray));
+            color: var(--cyber-white);
+            min-height: 100vh;
+            padding-bottom: calc(var(--nav-height) + var(--safe-area-bottom) + 20px);
+            overscroll-behavior-y: none; /* Previene rubber-banding en el body */
+        }
 
-        /* GALERÍA */
-        #galeria { background-color: var(--negro); color: var(--blanco); text-align: center; }
-        #galeria h2 { color: var(--blanco); }
-        .instagram-placeholder { padding: 40px; border: 2px dashed var(--plata-solido); border-radius: 10px; margin-top: 40px; color: var(--plata-solido); font-style: italic; }
+        /* --- Utility Classes (Glassmorphism Mixin) --- */
+        .liquid-glass {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur); /* Safari Support */
+            border: var(--glass-border);
+            box-shadow: 
+                0 4px 20px rgba(0,0,0,0.5), /* Sombra profunda */
+                inset 0 1px 1px var(--glass-highlight); /* Reflejo superior */
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
 
-        /* SERVICIOS */
-        #servicios { background-color: var(--gris-claro); text-align: center; }
-        .pricing-container { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 40px; }
-        .price-card { background-color: var(--blanco); padding: 40px; border-radius: 10px; width: 350px; box-shadow: var(--sombra-suave); border-top: 5px solid; position: relative; }
-        .card-unas { border-image: linear-gradient(90deg, var(--plata-solido), var(--rosa)) 1; }
-        .card-pestanas { border-image: linear-gradient(90deg, var(--plata-solido), var(--negro)) 1; }
-        .price-card h3 { margin-bottom: 25px; font-size: 1.8rem; }
-        .service-list { text-align: left; }
-        .service-item { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #eaeaea; color: var(--gris-texto); font-weight: 500; }
-        .service-item:last-child { border-bottom: none; }
-        .service-item i { background: var(--plata-metalico); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.1rem; }
+        /* --- Layout & Components --- */
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
 
-        /* RESEÑAS */
-        #resenas { background-color: var(--blanco); text-align: center; }
-        .google-rating { margin-bottom: 40px; display: inline-block; padding: 15px 40px; background: var(--gris-claro); border-radius: 50px; border: 1px solid #e0e0e0; box-shadow: var(--sombra-suave); }
-        .google-rating h3 { font-size: 2.5rem; color: var(--negro); display: inline-block; margin-right: 15px; vertical-align: middle; }
-        .estrellas { color: #fbbc04; font-size: 1.5rem; letter-spacing: 2px; }
-        .resenas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto; }
-        .resena-card { background: var(--blanco); border: 1px solid #eee; padding: 30px; border-radius: 10px; box-shadow: var(--sombra-suave); text-align: left; transition: 0.3s; }
-        .resena-card:hover { transform: translateY(-5px); border-color: var(--plata-solido); }
-        .resena-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .resena-avatar { width: 45px; height: 45px; background: var(--rosa); color: var(--blanco); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; }
-        .resena-nombre { font-weight: 600; color: var(--negro); }
-        .resena-texto { color: var(--gris-texto); font-size: 0.95rem; font-style: italic; }
+        /* Header */
+        header {
+            padding-top: 20px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .highlight-red {
+            color: var(--cyber-red-neon);
+            text-shadow: 0 0 10px var(--cyber-red-dim);
+        }
 
-        /* CONTACTO */
-        #contacto { background-color: var(--gris-claro); }
-        .contacto-container { display: flex; flex-wrap: wrap; gap: 40px; max-width: 1100px; margin: 40px auto 0; background: var(--blanco); padding: 40px; border-radius: 10px; box-shadow: var(--sombra-suave); }
-        .contacto-datos { flex: 1; min-width: 100%; }
-        @media (min-width: 768px){ .contacto-datos { min-width: 300px; } }
-        .info-item { margin-bottom: 25px; display: flex; align-items: flex-start; gap: 15px; text-align: left; }
-        .info-icon i { font-size: 1.8rem; background: var(--plata-metalico); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .info-texto h4 { margin-bottom: 5px; font-size: 1.1rem; }
-        .info-texto p, .info-texto a { color: var(--gris-texto); text-decoration: none; font-size: 0.95rem; transition: 0.3s;}
-        .info-texto a:hover { color: var(--negro); }
-        .horario-tabla { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .horario-tabla td { padding: 5px 0; border-bottom: 1px solid #eee; font-size: 0.95rem; color: var(--gris-texto); text-align: left; }
-        .horario-tabla tr:last-child td { border-bottom: none; }
-        .cerrado { color: #d9534f; font-weight: 600; }
-        .contacto-mapa { flex: 1.5; min-width: 100%; height: 350px; border-radius: 10px; overflow: hidden; border: 2px solid var(--plata-solido); }
-        @media (min-width: 768px){ .contacto-mapa { min-width: 300px; } }
-        iframe { width: 100%; height: 100%; border: 0; }
+        /* Section Titles */
+        h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .see-all {
+            font-size: 14px;
+            color: var(--cyber-red-neon);
+            text-decoration: none;
+        }
 
-        /* WHATSAPP FLOTANTE */
-        .btn-whatsapp-flotante { position: fixed; bottom: 30px; right: 30px; background: var(--negro); color: var(--blanco); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; box-shadow: var(--sombra-plata); z-index: 9999; border: 2px solid var(--plata-solido); text-decoration: none; transition: all 0.3s ease; }
-        .btn-whatsapp-flotante:hover { transform: scale(1.1); background-color: #25D366; border-color: #25D366; box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4); }
-        .btn-whatsapp-flotante i { background: var(--plata-metalico); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .btn-whatsapp-flotante:hover i { background: none; -webkit-text-fill-color: white; color: white; }
+        /* Date Picker (Simplified Visual) */
+        .date-scroller {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 10px 0;
+        }
+        .date-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 12px;
+            color: var(--cyber-text-gray);
+        }
+        .date-item.active {
+            background: var(--cyber-red-neon);
+            color: var(--cyber-white);
+            box-shadow: 0 0 15px var(--cyber-red-neon);
+            font-weight: bold;
+        }
+        .day-name { font-size: 12px; margin-bottom: 4px; }
+        .day-num { font-size: 18px; }
 
-        /* FOOTER */
-        footer { background-color: var(--negro); color: rgba(255,255,255,0.7); text-align: center; padding: 40px 20px; font-size: 0.9rem; border-top: 3px solid transparent; border-image: var(--plata-metalico) 1; }
-        footer a { color: var(--rosa); text-decoration: none; transition: 0.3s; }
-        footer a:hover { color: var(--plata-solido); }
+        /* Cards / Containers */
+        .content-card {
+            padding: 25px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--cyber-text-gray);
+            font-style: italic;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        /* Efecto de "escaneo" sutil en las tarjetas */
+        .content-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyber-red-neon), transparent);
+            opacity: 0.4;
+        }
 
-        /* RESPONSIVE DESIGN */
-        @media (max-width: 850px) {
-            .menu-toggle { display: block; }
-            header { padding: 15px 5%; }
-            nav ul { width: 100%; flex-direction: column; text-align: center; display: none; padding: 20px 0; background: rgba(26, 26, 26, 0.98); position: absolute; top: 100%; left: 0; border-bottom: 2px solid var(--plata-solido); }
-            nav ul.activo { display: flex; } 
-            nav ul li a { padding: 10px 0; font-size: 1rem; }
-            section { padding: 60px 5%; } 
-            #inicio { justify-content: center; text-align: center; background-position: center right; }
-            #inicio h1 { font-size: 2.6rem; }
-            #inicio p { font-size: 1.05rem; }
-            .botones-inicio { justify-content: center; flex-direction: column; width: 100%; max-width: 300px; margin: 0 auto; }
-            .btn { width: 100%; }
-            .historia-container { flex-direction: column; text-align: center; gap: 40px; }
-            h2::after { left: 50%; transform: translateX(-50%); } 
-            .about-images-grid { width: 100%; align-items: center; }
-            .about-img { width: 100%; align-self: center !important; }
-            .about-img:nth-child(2) { margin-top: 20px; border: none; z-index: 1; }
-            .price-card { width: 100%; max-width: 400px; }
-            .contacto-container { padding: 25px; text-align: left; }
-            .btn-whatsapp-flotante { bottom: 20px; right: 20px; width: 55px; height: 55px; font-size: 2rem; }
+        /* --- Bottom Navigation (Fixed & Glassy) --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: calc(var(--nav-height) + var(--safe-area-bottom));
+            padding-bottom: var(--safe-area-bottom);
+            
+            background: rgba(10, 10, 10, 0.85); /* Más oscuro para contraste */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 31, 61, 0.3);
+            
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--cyber-text-gray);
+            font-size: 11px;
+            flex: 1;
+            height: 100%;
+            cursor: pointer; /* touch-action: manipulation en JS */
+            transition: color 0.2s ease;
+        }
+
+        /* Iconos SVG inline para asegurar carga rápida */
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            fill: currentColor;
+        }
+
+        .nav-item.active {
+            color: var(--cyber-red-neon);
+        }
+        .nav-item.active .nav-icon {
+            filter: drop-shadow(0 0 5px var(--cyber-red-neon));
+        }
+
+        /* FAB Button (Centro) */
+        .fab-container {
+            position: relative;
+            top: -20px;
+        }
+        .fab-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--cyber-red-neon);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            border: none;
+            /* Glow intenso para el botón principal */
+            box-shadow: 
+                0 5px 20px rgba(255, 31, 61, 0.5),
+                inset 0 2px 3px rgba(255, 255, 255, 0.3);
+        }
+        .fab-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 10px rgba(255, 31, 61, 0.4);
+        }
+
+        /* Fallback para navegadores que no soportan backdrop-filter */
+        @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+            .liquid-glass, .bottom-nav {
+                background: rgba(20, 20, 20, 0.95); /* Fondo casi sólido */
+            }
         }
     </style>
 </head>
-<body <?php body_class(); ?>>
+<body>
 
-    <header>
-        <a href="#inicio" aria-label="Ir a la página de inicio de KV Studio Nails & Art">
-            <img src="<?php echo get_template_directory_uri(); ?>/logo.png" alt="Logotipo Oficial KV Studio Nails & Art" class="logo-img">
-        </a>
-        <div class="menu-toggle" id="menuToggle" aria-label="Abrir menú de navegación" role="button">
-            <i class="fa-solid fa-bars"></i>
+    <div class="container">
+        <header>
+            <h1>¡Buenos días, <span class="highlight-red">ANTONI!</span></h1>
+        </header>
+
+        <section>
+            <h2>Mis actividades</h2>
+            <div class="date-scroller">
+                <div class="date-item"><span class="day-name">LUN.</span><span class="day-num">16</span></div>
+                <div class="date-item"><span class="day-name">MAR.</span><span class="day-num">17</span></div>
+                <div class="date-item"><span class="day-name">MIÉ.</span><span class="day-num">18</span></div>
+                <div class="date-item active liquid-glass"><span class="day-name">JUE.</span><span class="day-num">19</span></div>
+                <div class="date-item"><span class="day-name">VIE.</span><span class="day-num">20</span></div>
+            </div>
+
+            <div class="content-card liquid-glass">
+                Sin eventos hoy
+            </div>
+        </section>
+
+        <section>
+            <h2>
+                Mis planes de entrenamiento
+                <a href="#" class="see-all">Ver todo</a>
+            </h2>
+            <div class="content-card liquid-glass">
+                Sin planes asignados. Carga tu rutina.
+            </div>
+        </section>
+
+         <section>
+            <h2>
+                Mis planes de nutrición
+                <a href="#" class="see-all">Ver todo</a>
+            </h2>
+            <div class="content-card liquid-glass">
+               Calculando macros...
+            </div>
+        </section>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" data-target="menu">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+            <span>Menú</span>
         </div>
-        <nav>
-            <ul id="navMenu">
-                <li><a href="#inicio">Inicio</a></li>
-                <li><a href="#conocenos">Estudio</a></li>
-                <li><a href="#galeria">Galería</a></li>
-                <li><a href="#servicios">Servicios</a></li>
-                <li><a href="#resenas">Reseñas</a></li>
-                <li><a href="#contacto">Contacto</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <main>
+        <div class="nav-item active" data-target="iforce">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 17 22.71 22.71 17z"/></svg>
+            <span>iForce</span>
+        </div>
         
-        <section id="inicio">
-            <div class="hero-content">
-                <h1>Bienvenid@ a <span class="texto-destacado-rosa">KV Studio Nails & Art</span></h1>
-                
-                <p>Un espacio creativo y profesional en <strong>Barcelona (Eixample)</strong> donde tu belleza se convierte en arte personalizado. Cada diseño está pensado para realzar tu estilo con técnica, tendencia y un toque único. Cuidamos hasta el más mínimo detalle.</p>
-                
-                <div class="botones-inicio">
-                    <a href="https://wa.me/34635246641?text=Hola,%20me%20gustaría%20pedir%20información%20o%20cita%20en%20KV%20Studio." target="_blank" rel="noopener noreferrer" class="btn btn-premium">
-                        <i class="fa-brands fa-whatsapp"></i> Reserva por WhatsApp
-                    </a>
-                    <a href="#galeria" class="btn btn-ig">Ver Nuestros Trabajos</a>
-                </div>
-            </div>
-        </section>
+        <div class="fab-container">
+            <button class="fab-button">+</button>
+        </div>
 
-        <section id="conocenos">
-            <div class="historia-container">
-                <div class="about-text">
-                    <h2>Nuestro Salón de Uñas y Pestañas en Eixample</h2>
-                    <h3>18 años perfeccionando detalles</h3>
-                    <p>Nuestra historia se escribe con precisión y pasión. En <strong>KV Studio Nails & Art</strong>, somos un equipo familiar con casi dos décadas de experiencia. Nos enorgullece recibir a cada clienta en un espacio tranquilo y seguro, diseñado para desconectar de la rutina.</p>
-                    <p>La máxima higiene y el uso de herramientas esterilizadas de grado clínico son nuestra firma. Aquí utilizamos los mejores productos del mercado para garantizar tu salud y belleza en cada tratamiento.</p>
-                </div>
-                
-                <div class="about-images-grid">
-                    <img src="<?php echo get_template_directory_uri(); ?>/foto-manicura.jpg" class="about-img" alt="Especialista realizando manicura rusa y esculpido de uñas en KV Studio Barcelona">
-                    <img src="<?php echo get_template_directory_uri(); ?>/foto-local.jpg" class="about-img" alt="Instalaciones del centro de estética premium KV Studio en el Eixample">
-                </div>
-            </div>
-        </section>
-
-        <section id="galeria">
-            <div class="centrar-titulo"><h2>Nuestra Galería de Arte y Tendencias</h2></div>
-            <p>Síguenos en Instagram para ver nuestros trabajos diarios en diseño de mirada y uñas esculpidas.</p>
-            
-            <div style="max-width: 1000px; margin: 0 auto;">
-                <?php 
-                    if ( shortcode_exists( 'instagram-feed' ) ) {
-                        echo do_shortcode('[instagram-feed]'); 
-                    } else {
-                        echo '<div class="instagram-placeholder">';
-                        echo '<i class="fa-brands fa-instagram" style="font-size: 3rem; margin-bottom: 15px;"></i><br>';
-                        echo '<strong>Sección en preparación</strong><br>';
-                        echo 'Para mostrar las fotos, instala el plugin "Smash Balloon Social Photo Feed" en tu panel de WordPress.';
-                        echo '</div>';
-                    }
-                ?>
-            </div>
-        </section>
-
-        <section id="servicios">
-            <div class="centrar-titulo"><h2>Nuestros Servicios de Estética Avanzada</h2></div>
-            <p style="margin-bottom: 20px; color: var(--gris-texto);">Diseño de mirada y cuidado integral de uñas. Contáctanos para consultar nuestras tarifas y promociones actuales.</p>
-            
-            <div class="pricing-container">
-                <div class="price-card card-unas">
-                    <span class="card-icon">💅</span>
-                    <h3>Nails Studio</h3>
-                    <div class="service-list">
-                        <div class="service-item"><i class="fa-regular fa-gem"></i> <span>Manicura Rusa Completa</span></div>
-                        <div class="service-item"><i class="fa-regular fa-gem"></i> <span>Uñas Esculpidas en Acrílico</span></div>
-                        <div class="service-item"><i class="fa-regular fa-gem"></i> <span>Relleno y Mantenimiento de Acrílico</span></div>
-                        <div class="service-item"><i class="fa-regular fa-gem"></i> <span>Nail Art y Diseños Personalizados</span></div>
-                        <div class="service-item"><i class="fa-regular fa-gem"></i> <span>Retirada Cuidada de Producto</span></div>
-                    </div>
-                </div>
-                
-                <div class="price-card card-pestanas">
-                    <span class="card-icon">👁️</span>
-                    <h3>Lash Studio</h3>
-                    <div class="service-list">
-                        <div class="service-item"><i class="fa-regular fa-gem"></i> <span>Lifting y Tinte de Pestañas</span></div>
-                        <div class="service-item"><i class="fa-regular fa-gem"></i> <span>Extensiones Clásicas (Pelo a Pelo)</span></div>
-                        <div class="service-item"><i class="fa-regular fa-gem"></i> <span>Extensiones Volumen Ruso (3D-5D)</span></div>
-                        <div class="service-item"><i class="fa-regular fa-gem"></i> <span>Mega Volumen Premium</span></div>
-                        <div class="service-item"><i class="fa-regular fa-gem"></i> <span>Mantenimiento de Pestañas</span></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="margin-top: 40px;">
-                <a href="https://wa.me/34635246641?text=Hola,%20me%20gustaría%20saber%20los%20precios%20de%20vuestros%20servicios." target="_blank" rel="noopener noreferrer" class="btn btn-premium">
-                    <i class="fa-brands fa-whatsapp"></i> Consultar Tarifas
-                </a>
-            </div>
-        </section>
-
-        <section id="resenas">
-            <div class="centrar-titulo"><h2>Opiniones de nuestras clientas</h2></div>
-            <div class="google-rating">
-                <h3>4.9</h3><span class="estrellas">★★★★★</span>
-            </div>
-            <div class="resenas-grid">
-                <div class="resena-card">
-                    <div class="resena-header"><div class="resena-avatar">M</div><div><div class="resena-nombre">María G.</div><span class="estrellas" style="font-size: 1rem;">★★★★★</span></div></div>
-                    <p class="resena-texto">"Llevo haciéndome las uñas aquí meses y no las cambio por nada. La limpieza es de 10 y el trato inmejorable."</p>
-                </div>
-                <div class="resena-card">
-                    <div class="resena-header"><div class="resena-avatar">L</div><div><div class="resena-nombre">Laura P.</div><span class="estrellas" style="font-size: 1rem;">★★★★★</span></div></div>
-                    <p class="resena-texto">"Fui por primera vez para ponerme extensiones de pestañas volumen ruso y he salido encantada."</p>
-                </div>
-                <div class="resena-card">
-                    <div class="resena-header"><div class="resena-avatar">C</div><div><div class="resena-nombre">Carmen R.</div><span class="estrellas" style="font-size: 1rem;">★★★★★</span></div></div>
-                    <p class="resena-texto">"Atención espectacular. Se nota que llevan muchos años en el sector porque cuidan la uña natural al máximo."</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="contacto">
-            <div class="centrar-titulo"><h2>Contacta con KV Studio en Barcelona</h2></div>
-            <div class="contacto-container">
-                <div class="contacto-datos">
-                    <div class="info-item"><div class="info-icon"><i class="fa-solid fa-location-dot"></i></div><div class="info-texto"><h4>Dirección</h4><p>Carrer de la Marina, 154, Entresuelo 1ª<br>Eixample, 08013 Barcelona</p></div></div>
-                    <div class="info-item"><div class="info-icon"><i class="fa-solid fa-phone"></i></div><div class="info-texto"><h4>Teléfono</h4><p><a href="tel:+34635246641">+34 635 24 66 41</a></p></div></div>
-                    <div class="info-item"><div class="info-icon"><i class="fa-brands fa-whatsapp"></i></div><div class="info-texto"><h4>WhatsApp</h4><p><a href="https://wa.me/34635246641" target="_blank" rel="noopener noreferrer">Escríbenos directamente</a></p></div></div>
-                    <div class="info-item">
-                        <div class="info-icon"><i class="fa-regular fa-clock"></i></div>
-                        <div class="info-texto" style="width: 100%;">
-                            <h4>Horario de Atención</h4>
-                            <table class="horario-tabla">
-                                <tr><td>Lunes a Viernes</td><td>10:00 – 18:00</td></tr>
-                                <tr><td>Sábados y Domingos</td><td class="cerrado">Cerrado</td></tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div class="contacto-mapa">
-                    <iframe title="Mapa de ubicación de KV Studio en Barcelona" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2993.0076712398547!2d2.180991315668636!3d41.39814007926315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12a4a3e3d5745ec1%3A0x5116a06f2e2e70fd!2sCarrer%20de%20la%20Marina%2C%20154%2C%20Eixample%2C%2008013%20Barcelona!5e0!3m2!1ses!2ses!4v1699999999999!5m2!1ses!2ses" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <footer>
-        <p>© 2026 KV Studio Nails & Art. Expertos en belleza, salud para tus uñas y extensiones de pestañas en Barcelona.</p>
-        <p style="margin-top: 10px;">Síguenos en Instagram <a href="https://www.instagram.com/kv_studionails?igsh=MTU1eXRhaHJmeWZmeQ==" target="_blank" rel="noopener noreferrer">@kv_studionails</a></p>
-    </footer>
-
-    <a href="https://wa.me/34635246641?text=Hola,%20me%20gustaría%20pedir%20información%20o%20cita%20en%20KV%20Studio." class="btn-whatsapp-flotante" target="_blank" rel="noopener noreferrer" aria-label="Contactar rápidamente por WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+        <div class="nav-item" data-target="progreso">
+             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+            <span>Progreso</span>
+        </div>
+        <div class="nav-item" data-target="mensajeria">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+            <span>Mensajes</span>
+        </div>
+    </nav>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuToggle = document.getElementById('menuToggle');
-            const navMenu = document.getElementById('navMenu');
-            
-            menuToggle.addEventListener('click', function() {
-                navMenu.classList.toggle('activo');
+        /**
+         * Senior JS: Manejo de eventos optimizado para móvil.
+         * Usamos delegación de eventos en el nav para eficiencia.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const nav = document.querySelector('.bottom-nav');
+
+            // Usamos 'pointerup' para una respuesta más rápida que 'click' en móviles
+            nav.addEventListener('pointerup', (e) => {
+                // Encuentra el elemento .nav-item más cercano al punto de contacto
+                const clickedItem = e.target.closest('.nav-item');
+                
+                // Si no es un nav-item (ej. el espacio entre iconos), ignoramos
+                if (!clickedItem) return;
+
+                // Lógica de cambio de pestaña activa (Visual Only para la demo)
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                clickedItem.classList.add('active');
+
+                // Feedback háptico sutil si el dispositivo lo soporta
+                if (navigator.vibrate) {
+                    navigator.vibrate(10); 
+                }
+
+                console.log(`Navegando a: ${clickedItem.dataset.target}`);
+                // Aquí iría la lógica de enrutamiento de la SPA
             });
 
-            const enlacesMenu = navMenu.querySelectorAll('a');
-            enlacesMenu.forEach(function(enlace) {
-                enlace.addEventListener('click', function() {
-                    navMenu.classList.remove('activo');
-                });
-            });
+             // FAB Button interaction (separado porque tiene un comportamiento distinto)
+             const fab = document.querySelector('.fab-button');
+             fab.addEventListener('pointerup', () => {
+                 if (navigator.vibrate) navigator.vibrate(20);
+                 alert('Acción principal: Añadir entrenamiento');
+             });
         });
     </script>
-
-    <?php wp_footer(); ?>
 </body>
 </html>
