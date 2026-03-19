@@ -93,6 +93,19 @@ const frameOpacityVal    = $('#frame-opacity-val');
 const activeFramesList   = $('#active-frames-list');
 const btnClearFrames     = $('#btn-clear-frames');
 
+// Watermark controls
+const wmToggle          = $('#wm-toggle');
+const wmTextInput       = $('#wm-text');
+const wmPosBtns         = document.querySelectorAll('.wm-pos-btn');
+const wmStyleBtns       = document.querySelectorAll('.wm-style-btn');
+const wmColor           = $('#wm-color');
+const wmSize            = $('#wm-size');
+const wmSizeVal         = $('#wm-size-val');
+const wmOpacity         = $('#wm-opacity');
+const wmOpacityVal      = $('#wm-opacity-val');
+const btnWmSavePreset   = $('#btn-wm-save-preset');
+const wmPresetsList     = $('#wm-presets-list');
+
 // Sound controls
 const soundTiles          = document.querySelectorAll('.sound-tile[data-sound]');
 const btnStopSound        = $('#btn-stop-sound');
@@ -196,6 +209,15 @@ const state = {
   segments:         [],       // [{id, start, end, deleted}]
   selectedSegment:  0,
   stickers:         [],       // [{id, emoji, x, y, size, opacity}]
+  watermark: {
+    active:   false,
+    text:     '',
+    pos:      'br',          // tl tc tr ml mc mr bl bc br
+    style:    'shadow',      // shadow outline plain glow
+    color:    '#ffffff',
+    size:     32,
+    opacity:  70,
+  },
   selectedSticker:  null,     // emoji string currently selected for placement
   activeFrames:     [],       // [{id, type, opacity}]
   flareTrackEyes:   false,
@@ -269,6 +291,16 @@ async function init() {
   }, 650);
 
   bindEvents();
+  // Seed default watermark presets if none exist
+  if (!wmLoadPresets().length) {
+    const defaults = [
+      { text: '@miusuario',   pos: 'br', style: 'shadow',  color: '#ffffff', size: 28, opacity: 70 },
+      { text: '© Mi Marca',  pos: 'bc', style: 'outline', color: '#ffffff', size: 24, opacity: 65 },
+      { text: 'CONFIDENCIAL', pos: 'mc', style: 'glow',    color: '#ff3333', size: 48, opacity: 40 },
+    ];
+    wmSavePresetsToStorage(defaults);
+    wmRenderPresetsList();
+  }
   renderFilterPresets();
   setAspectRatio('9:16');
   showPanel('upload');
@@ -320,6 +352,7 @@ function startRenderLoop() {
     drawTextLayers(compCtx, W, H);
     drawStickers(compCtx, W, H);
     drawFrames(compCtx, W, H);
+    drawWatermark(compCtx, W, H);
 
     // ── Step 3b: REC blink timer ──
     state.recBlinkTimer += 1;
@@ -645,6 +678,143 @@ function applyColorPreset(preset) {
 
   // Re-render preset buttons
   renderFilterPresets();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WATERMARK ENGINE
+// ══════════════════════════════════════════════════════════════════════════════
+
+const WM_POSITIONS = {
+  tl: { x: 4,  y: 4,  align: 'left',   baseline: 'top'    },
+  tc: { x: 50, y: 4,  align: 'center', baseline: 'top'    },
+  tr: { x: 96, y: 4,  align: 'right',  baseline: 'top'    },
+  ml: { x: 4,  y: 50, align: 'left',   baseline: 'middle' },
+  mc: { x: 50, y: 50, align: 'center', baseline: 'middle' },
+  mr: { x: 96, y: 50, align: 'right',  baseline: 'middle' },
+  bl: { x: 4,  y: 96, align: 'left',   baseline: 'bottom' },
+  bc: { x: 50, y: 96, align: 'center', baseline: 'bottom' },
+  br: { x: 96, y: 96, align: 'right',  baseline: 'bottom' },
+};
+
+function drawWatermark(ctx, w, h) {
+  const wm = state.watermark;
+  if (!wm.active || !wm.text.trim()) return;
+
+  const pos  = WM_POSITIONS[wm.pos] || WM_POSITIONS.br;
+  const px   = (pos.x / 100) * w;
+  const py   = (pos.y / 100) * h;
+  const size = wm.size;
+
+  ctx.save();
+  ctx.globalAlpha    = wm.opacity / 100;
+  ctx.font           = `bold ${size}px 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif`;
+  ctx.textAlign      = pos.align;
+  ctx.textBaseline   = pos.baseline;
+
+  switch (wm.style) {
+    case 'shadow':
+      ctx.shadowColor   = 'rgba(0,0,0,0.85)';
+      ctx.shadowBlur    = size * 0.5;
+      ctx.shadowOffsetX = size * 0.06;
+      ctx.shadowOffsetY = size * 0.06;
+      ctx.fillStyle     = wm.color;
+      ctx.fillText(wm.text, px, py);
+      break;
+
+    case 'outline':
+      ctx.lineWidth   = Math.max(2, size * 0.1);
+      ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+      ctx.lineJoin    = 'round';
+      ctx.strokeText(wm.text, px, py);
+      ctx.fillStyle   = wm.color;
+      ctx.fillText(wm.text, px, py);
+      break;
+
+    case 'plain':
+      ctx.fillStyle = wm.color;
+      ctx.fillText(wm.text, px, py);
+      break;
+
+    case 'glow':
+      ctx.shadowColor = wm.color;
+      ctx.shadowBlur  = size * 0.8;
+      ctx.fillStyle   = wm.color;
+      ctx.fillText(wm.text, px, py);
+      // Second pass for stronger glow
+      ctx.shadowBlur  = size * 0.3;
+      ctx.fillText(wm.text, px, py);
+      break;
+  }
+
+  ctx.restore();
+}
+
+// ── Presets (localStorage) ──────────────────────────────────────────────────
+const WM_STORAGE_KEY = 'censor_pro_wm_presets';
+
+function wmLoadPresets() {
+  try { return JSON.parse(localStorage.getItem(WM_STORAGE_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function wmSavePresetsToStorage(presets) {
+  try { localStorage.setItem(WM_STORAGE_KEY, JSON.stringify(presets)); }
+  catch {}
+}
+
+function wmRenderPresetsList() {
+  if (!wmPresetsList) return;
+  const presets = wmLoadPresets();
+  wmPresetsList.innerHTML = '';
+
+  if (!presets.length) {
+    wmPresetsList.innerHTML = '<p style="font-size:10px;color:var(--text-muted);text-align:center;padding:8px 0">No hay presets guardados</p>';
+    return;
+  }
+
+  presets.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = `wm-preset-item${state.watermark.text === p.text ? ' active' : ''}`;
+    div.innerHTML = `
+      <div style="flex:1;min-width:0">
+        <div class="wm-preset-text">${p.text}</div>
+        <div class="wm-preset-sub">${p.style} · ${p.size}px · ${p.opacity}%</div>
+      </div>
+      <button class="wm-preset-del" data-idx="${i}" title="Eliminar">✕</button>
+    `;
+
+    // Click to apply
+    div.addEventListener('click', (e) => {
+      if (e.target.classList.contains('wm-preset-del')) return;
+      wmApplyPreset(p);
+    });
+
+    // Delete button
+    div.querySelector('.wm-preset-del').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const all = wmLoadPresets();
+      all.splice(i, 1);
+      wmSavePresetsToStorage(all);
+      wmRenderPresetsList();
+    });
+
+    wmPresetsList.appendChild(div);
+  });
+}
+
+function wmApplyPreset(p) {
+  state.watermark = { ...state.watermark, ...p };
+  // Sync UI
+  if (wmTextInput)  wmTextInput.value   = p.text;
+  if (wmColor)      wmColor.value       = p.color;
+  if (wmSize)       { wmSize.value      = p.size;    wmSizeVal.textContent    = `${p.size}px`; }
+  if (wmOpacity)    { wmOpacity.value   = p.opacity; wmOpacityVal.textContent = `${p.opacity}%`; }
+  if (wmToggle)     wmToggle.checked    = state.watermark.active;
+  // Position button
+  wmPosBtns.forEach(b => b.classList.toggle('active', b.dataset.pos === p.pos));
+  // Style button
+  wmStyleBtns.forEach(b => b.classList.toggle('active', b.dataset.style === p.style));
+  wmRenderPresetsList();
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1320,6 +1490,71 @@ function bindEvents() {
     }
   });
 
+  // ─── Watermark panel ─────────────────────────────────────────────────────
+  wmToggle?.addEventListener('change', () => {
+    state.watermark.active = wmToggle.checked;
+  });
+
+  wmTextInput?.addEventListener('input', () => {
+    state.watermark.text = wmTextInput.value;
+  });
+
+  wmPosBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      wmPosBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.watermark.pos = btn.dataset.pos;
+    });
+  });
+
+  wmStyleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      wmStyleBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.watermark.style = btn.dataset.style;
+    });
+  });
+
+  wmColor?.addEventListener('input', () => {
+    state.watermark.color = wmColor.value;
+  });
+
+  wmSize?.addEventListener('input', () => {
+    const v = parseInt(wmSize.value);
+    wmSizeVal.textContent = `${v}px`;
+    state.watermark.size  = v;
+  });
+
+  wmOpacity?.addEventListener('input', () => {
+    const v = parseInt(wmOpacity.value);
+    wmOpacityVal.textContent = `${v}%`;
+    state.watermark.opacity  = v;
+  });
+
+  btnWmSavePreset?.addEventListener('click', () => {
+    const text = state.watermark.text.trim();
+    if (!text) return;
+    const presets = wmLoadPresets();
+    // Avoid duplicates by text
+    const existing = presets.findIndex(p => p.text === text);
+    const entry = {
+      text:    state.watermark.text,
+      pos:     state.watermark.pos,
+      style:   state.watermark.style,
+      color:   state.watermark.color,
+      size:    state.watermark.size,
+      opacity: state.watermark.opacity,
+    };
+    if (existing !== -1) presets[existing] = entry;
+    else presets.unshift(entry);
+    // Keep max 15 presets
+    wmSavePresetsToStorage(presets.slice(0, 15));
+    wmRenderPresetsList();
+  });
+
+  // Load presets on start
+  wmRenderPresetsList();
+
   // ─── Sounds panel ────────────────────────────────────────────────────────
   soundTiles.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1390,22 +1625,24 @@ function bindEvents() {
 // UTILITY
 // ══════════════════════════════════════════════════════════════════════════════
 function showPanel(name) {
-  const panelSounds = $('#panel-sounds');
+  const panelSounds     = $('#panel-sounds');
+  const panelWatermark  = $('#panel-watermark');
   [panelUpload, panelCensor, panelEffects, panelColor, panelText, panelMusic,
-   panelTrim, panelStickers, panelFrames, panelSounds].forEach(p => {
+   panelTrim, panelStickers, panelFrames, panelSounds, panelWatermark].forEach(p => {
     p?.classList.add('hidden');
   });
   const map = {
-    upload:   panelUpload,
-    censor:   panelCensor,
-    effects:  panelEffects,
-    color:    panelColor,
-    text:     panelText,
-    music:    panelMusic,
-    trim:     panelTrim,
-    stickers: panelStickers,
-    frames:   panelFrames,
-    sounds:   panelSounds,
+    upload:    panelUpload,
+    censor:    panelCensor,
+    effects:   panelEffects,
+    color:     panelColor,
+    text:      panelText,
+    music:     panelMusic,
+    trim:      panelTrim,
+    stickers:  panelStickers,
+    frames:    panelFrames,
+    sounds:    panelSounds,
+    watermark: panelWatermark,
   };
   map[name]?.classList.remove('hidden');
 
@@ -1500,6 +1737,7 @@ async function renderSingleFrame() {
   drawTextLayers(compCtx, W, H);
   drawStickers(compCtx, W, H);
   drawFrames(compCtx, W, H);
+  drawWatermark(compCtx, W, H);
   webglFx.renderFrame(compositeCanvas);
   drawVignette(W, H);
   updateTimeDisplay();

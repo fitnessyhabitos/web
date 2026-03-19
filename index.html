@@ -171,6 +171,13 @@
           </svg>
           <span>Sounds</span>
         </button>
+        <button class="tool-btn" data-tool="watermark" title="Marca de agua">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4" stroke-width="2.5"/>
+          </svg>
+          <span>Marca</span>
+        </button>
       </aside>
 
       <!-- CANVAS AREA -->
@@ -737,6 +744,89 @@
           </div>
           <div id="active-frames-list" class="segments-list" style="margin-top:8px"></div>
           <button class="neon-btn-secondary" id="btn-clear-frames" style="margin-top:8px">Clear all frames</button>
+        </div>
+
+        <!-- WATERMARK PANEL -->
+        <div class="panel-section hidden" id="panel-watermark">
+          <div class="panel-title"><span>Marca de Agua</span></div>
+
+          <!-- Toggle -->
+          <div class="wm-toggle-row">
+            <span>Activar marca de agua</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="wm-toggle">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+
+          <!-- Text input -->
+          <div class="control-group" style="margin-top:12px">
+            <label>Texto</label>
+            <input type="text" id="wm-text" class="neon-input" placeholder="@usuario / nombre / © marca" maxlength="60">
+          </div>
+
+          <!-- Position grid -->
+          <div class="control-group">
+            <label>Posición</label>
+            <div class="wm-position-grid" id="wm-position-grid">
+              <button class="wm-pos-btn" data-pos="tl" title="Arriba izquierda">↖</button>
+              <button class="wm-pos-btn" data-pos="tc" title="Arriba centro">↑</button>
+              <button class="wm-pos-btn" data-pos="tr" title="Arriba derecha">↗</button>
+              <button class="wm-pos-btn" data-pos="ml" title="Medio izquierda">←</button>
+              <button class="wm-pos-btn" data-pos="mc" title="Centro">⬤</button>
+              <button class="wm-pos-btn" data-pos="mr" title="Medio derecha">→</button>
+              <button class="wm-pos-btn active" data-pos="br" title="Abajo derecha">↘</button>
+              <button class="wm-pos-btn" data-pos="bc" title="Abajo centro">↓</button>
+              <button class="wm-pos-btn" data-pos="bl" title="Abajo izquierda">↙</button>
+            </div>
+          </div>
+
+          <!-- Style row -->
+          <div class="control-group">
+            <label>Estilo</label>
+            <div class="wm-style-row">
+              <button class="wm-style-btn active" data-style="shadow">Sombra</button>
+              <button class="wm-style-btn" data-style="outline">Contorno</button>
+              <button class="wm-style-btn" data-style="plain">Plano</button>
+              <button class="wm-style-btn" data-style="glow">Glow</button>
+            </div>
+          </div>
+
+          <!-- Color + size -->
+          <div class="wm-inline-controls">
+            <div class="control-group" style="flex:1">
+              <label>Color</label>
+              <input type="color" id="wm-color" value="#ffffff" class="color-picker-btn">
+            </div>
+            <div class="control-group" style="flex:2">
+              <label>Tamaño</label>
+              <div class="slider-row">
+                <input type="range" id="wm-size" min="12" max="120" value="32" class="neon-range">
+                <span id="wm-size-val">32px</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opacity -->
+          <div class="control-group">
+            <label>Opacidad</label>
+            <div class="slider-row">
+              <input type="range" id="wm-opacity" min="5" max="100" value="70" class="neon-range">
+              <span id="wm-opacity-val">70%</span>
+            </div>
+          </div>
+
+          <!-- Presets section -->
+          <div class="panel-title" style="margin-top:14px">
+            <span>Presets guardados</span>
+            <button class="neon-btn-sm" id="btn-wm-save-preset" title="Guardar configuración actual como preset">+ Guardar</button>
+          </div>
+          <div id="wm-presets-list" class="wm-presets-list">
+            <!-- Populated by JS -->
+          </div>
+          <p class="hint-text" style="margin-top:6px;font-size:9px;color:var(--text-muted);text-align:center">
+            Los presets se guardan en el navegador y persisten entre sesiones
+          </p>
         </div>
 
         <!-- SOUNDS PANEL -->
