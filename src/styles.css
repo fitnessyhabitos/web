@@ -532,7 +532,47 @@ html, body {
 .canvas-ctrl-btn:hover { border-color: var(--cyan); color: var(--cyan); }
 .canvas-ctrl-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
 
-.canvas-ctrl-spacer { flex: 1; }
+/* Seek bar — always visible, flex fills remaining space */
+.seek-bar-range {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.seek-bar-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan-glow);
+  cursor: pointer;
+}
+.seek-bar-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--cyan);
+  border: none;
+  cursor: pointer;
+}
+.seek-bar-range:disabled { opacity: 0.3; pointer-events: none; }
+@media (max-width: 768px) {
+  .seek-bar-range {
+    height: 6px;
+  }
+  .seek-bar-range::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.canvas-ctrl-spacer { display: none; } /* replaced by flex seek-bar */
 
 #time-display {
   font-size: 12px;
@@ -1636,6 +1676,33 @@ button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; poin
 .censor-action-btn.danger { border-color: var(--red); color: var(--red); }
 .censor-action-btn.danger:hover { background: rgba(180,20,20,0.15); }
 
+/* ── CENSOR TARGET SELECTOR ── */
+.censor-target-row {
+  display: flex;
+  gap: 5px;
+  margin-top: 4px;
+}
+.censor-target-btn {
+  flex: 1;
+  padding: 7px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.censor-target-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.censor-target-btn.active {
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
+  color: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan-glow);
+}
+
 /* ── ZONE LIST ITEMS ── */
 .zone-item {
   display: flex;
@@ -1747,6 +1814,14 @@ button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; poin
   border-color: rgba(239,68,68,0.35);
 }
 .sound-tile.stop-btn:hover { border-color: #ef4444; background: rgba(239,68,68,0.08); }
+.sound-tile.pixabay-tile { border-color: rgba(236,72,153,0.3); }
+.sound-tile.pixabay-tile:hover { border-color: #ec4899; color: #ec4899; }
+.sound-tile.pixabay-tile.active {
+  border-color: #ec4899;
+  background: rgba(236,72,153,0.12);
+  color: #ec4899;
+  box-shadow: 0 0 8px rgba(236,72,153,0.3);
+}
 
 /* ══════════════════════════════════════════════════════
    MOBILE RESPONSIVE — InShot-style layout for iPhone

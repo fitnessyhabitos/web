@@ -163,6 +163,7 @@ export class ZenAudioEngine {
     if (this.masterGain) {
       this.masterGain.gain.setTargetAtTime(v, this.audioCtx.currentTime, 0.05);
     }
+    if (this._urlAudio) this._urlAudio.volume = v;
   }
 
   stop() {
@@ -172,6 +173,11 @@ export class ZenAudioEngine {
     });
     this.currentNodes = [];
     this.currentSound = null;
+    if (this._urlAudio) {
+      this._urlAudio.pause();
+      this._urlAudio.src = '';
+      this._urlAudio = null;
+    }
   }
 
   play(soundId) {
@@ -645,4 +651,33 @@ export class ZenAudioEngine {
 
     this.currentNodes = nodes;
   }
+
+  // ── PIXABAY / URL PLAYER ─────────────────────────────────────────────────
+  /** Play a remote MP3 URL using HTMLAudioElement (bypasses WebAudio graph) */
+  playUrl(url, name) {
+    this.stop();
+    if (this._urlAudio) {
+      this._urlAudio.pause();
+      this._urlAudio.src = '';
+    }
+    const audio = new Audio();
+    audio.crossOrigin = 'anonymous';
+    audio.src = url;
+    audio.loop = true;
+    audio.volume = this.volume;
+    audio.play().catch(() => {});
+    this._urlAudio = audio;
+    this.currentSound = '__url__' + (name || url);
+  }
+
+  /** Stop URL playback */
+  stopUrl() {
+    if (this._urlAudio) {
+      this._urlAudio.pause();
+      this._urlAudio.src = '';
+      this._urlAudio = null;
+    }
+    this.currentSound = null;
+  }
+
 }

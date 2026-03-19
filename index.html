@@ -213,7 +213,8 @@
             <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
           </button>
           <span id="time-display">0:00 / 0:00</span>
-          <div class="canvas-ctrl-spacer"></div>
+          <!-- Touch-friendly seek bar (always visible, replaces timeline-only scrubbing on mobile) -->
+          <input type="range" id="seek-bar" min="0" max="1000" value="0" step="1" class="seek-bar-range" disabled>
           <button id="btn-fullscreen" class="canvas-ctrl-btn" title="Fullscreen">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
@@ -260,6 +261,16 @@
             </label>
           </div>
           <div class="panel-body" id="censor-controls">
+
+            <!-- CENSOR TARGET -->
+            <div class="control-group">
+              <label>Detectar y tapar</label>
+              <div class="censor-target-row" id="censor-target-row">
+                <button class="censor-target-btn active" data-target="eyes">👁 Ojos</button>
+                <button class="censor-target-btn" data-target="face">😶 Cara</button>
+                <button class="censor-target-btn" data-target="head">🗿 Cabeza</button>
+              </div>
+            </div>
 
             <!-- AI EYE CENSOR MODES -->
             <div class="control-group">
@@ -980,6 +991,45 @@
             </button>
           </div>
 
+          <!-- SENSUAL / ERÓTICO (Pixabay) -->
+          <div class="sounds-section-label" style="margin-top:10px">💋 Sensual &amp; Erótico</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(3,1fr)">
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2025/05/06/audio_c6f450e0d6.mp3" data-pname="Sensual Fire">
+              <span class="sound-icon">🔥</span><span>Sensual Fire</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2022/12/22/audio_d1d04f3bea.mp3" data-pname="Sensual Jazz">
+              <span class="sound-icon">🎷</span><span>Sensual Jazz</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2026/01/15/audio_7d57806167.mp3" data-pname="Red Lips Lo-Fi">
+              <span class="sound-icon">💄</span><span>Red Lips</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2025/03/10/audio_8af7c5256d.mp3" data-pname="Bedroom Vibes">
+              <span class="sound-icon">🛏️</span><span>Bedroom</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2025/03/10/audio_ae98973954.mp3" data-pname="Erotic Flow">
+              <span class="sound-icon">🌙</span><span>Ero Flow</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2025/03/10/audio_d7b5612712.mp3" data-pname="Hypnotic Touch">
+              <span class="sound-icon">🌀</span><span>Hypnotic</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2025/03/10/audio_6e32404ea4.mp3" data-pname="Passion">
+              <span class="sound-icon">❤️</span><span>Passion</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2025/03/10/audio_6f460efa16.mp3" data-pname="Midnight">
+              <span class="sound-icon">🌃</span><span>Midnight</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/11/26/audio_959daac178.mp3" data-pname="Strange Mood">
+              <span class="sound-icon">🎸</span><span>Strange Mood</span>
+            </button>
+          </div>
+
+          <!-- URL PERSONALIZADA -->
+          <div class="sounds-section-label" style="margin-top:10px">🔗 URL de Música (MP3)</div>
+          <div style="display:flex;gap:6px;margin-top:4px">
+            <input type="url" id="custom-music-url" class="neon-input" placeholder="Pega URL de MP3..." style="flex:1;font-size:11px;padding:6px 8px">
+            <button id="btn-play-url" class="censor-action-btn" style="padding:6px 10px;white-space:nowrap">▶ Play</button>
+          </div>
+
           <button class="sound-tile stop-btn" id="btn-stop-sound" style="margin-top:14px;width:100%;justify-content:center;gap:8px;padding:10px">
             <span>⏹</span><span>Parar música</span>
           </button>
@@ -993,8 +1043,8 @@
           </div>
 
           <div class="hint-text" style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:10px;line-height:1.5">
-            Guitarra Karplus-Strong · Piano ADSR · Reverb<br>
-            Sintetizado en tiempo real · Sin copyright
+            Guitarra Karplus-Strong · Piano ADSR · Reverb · Pixabay<br>
+            Música libre de derechos · Sin copyright
           </div>
         </div>
 

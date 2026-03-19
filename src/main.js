@@ -106,6 +106,10 @@ const wmOpacityVal      = $('#wm-opacity-val');
 const btnWmSavePreset   = $('#btn-wm-save-preset');
 const wmPresetsList     = $('#wm-presets-list');
 
+// Seek bar
+const seekBar             = $('#seek-bar');
+let   _seekDragging       = false;
+
 // Sound controls
 const soundTiles          = document.querySelectorAll('.sound-tile[data-sound]');
 const btnStopSound        = $('#btn-stop-sound');
@@ -324,30 +328,27 @@ function startRenderLoop() {
     const W = compositeCanvas.width;
     const H = compositeCanvas.height;
 
-    // ── Step 1: Background blur (if active, replaces normal video draw) ──
+    // ── Step 1: FaceMesh processing FIRST (populates lastResults for bgBlur + censor) ──
     const needsFaceMesh = (state.censorActive || state.bgBlurActive || state.flareTrackEyes || faceCensor.manualZones.length > 0) && state.faceMeshReady;
-
-    if (state.bgBlurActive && state.faceMeshReady) {
-      // processFrame handled below; here we draw blurred bg
-      compCtx.filter = webglFx.buildCSSFilter();
-      faceCensor.applyBgBlur(compCtx, videoEl, W, H);
-      compCtx.filter = 'none';
-    } else {
-      // ── Normal video draw ──
-      compCtx.filter = webglFx.buildCSSFilter();
-      compCtx.drawImage(videoEl, 0, 0, W, H);
-      compCtx.filter = 'none';
-    }
-
-    // ── Step 2: FaceMesh processing + AI eye censor ──
     if (needsFaceMesh) {
       await faceCensor.processFrame(videoEl);
-      if (state.censorActive) {
-        faceCensor.applyBlurMask(compCtx, videoEl, W, H);
-      }
     }
 
-    // ── Step 2c: Manual zone censoring ──
+    // ── Step 2: Draw background (blurred or normal) ──
+    // bgBlur works regardless of faceMeshReady — without face data it blurs everything,
+    // with face data (from processFrame above) it keeps the face sharp.
+    compCtx.filter = webglFx.buildCSSFilter();
+    if (state.bgBlurActive) {
+      faceCensor.applyBgBlur(compCtx, videoEl, W, H);
+    } else {
+      compCtx.drawImage(videoEl, 0, 0, W, H);
+    }
+    compCtx.filter = 'none';
+
+    // ── Step 3: AI censor + manual zone overlays ──
+    if (state.censorActive && state.faceMeshReady) {
+      faceCensor.applyBlurMask(compCtx, videoEl, W, H);
+    }
     if (faceCensor.manualZones.length > 0) {
       faceCensor.applyManualZones(compCtx, videoEl, W, H);
     }
@@ -946,6 +947,7 @@ async function loadVideo(file) {
   dropOverlay.classList.add('hidden');
   headerFilename.textContent = file.name;
   btnPlayPause.disabled = false;
+  if (seekBar) seekBar.disabled = false;
   state.videoLoaded = true;
   resizeDisplayCanvas(vw, vh);
 
@@ -1000,6 +1002,12 @@ async function togglePlayPause() {
     btnPreviewToggle.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
   } else {
     try {
+      // iOS fix: if video ended, seek to beginning before playing (iOS won't auto-restart)
+      if (videoEl.ended || videoEl.currentTime >= (videoEl.duration - 0.05)) {
+        const firstSeg = state.segments.find(s => !s.deleted);
+        videoEl.currentTime = firstSeg?.start ?? 0;
+        await new Promise(r => videoEl.addEventListener('seeked', r, { once: true }));
+      }
       await videoEl.play();
       if (audioMixer.musicBuffer) {
         audioMixer.startMusic(videoEl.currentTime);
@@ -1018,6 +1026,10 @@ function updateTimeDisplay() {
   const cur = videoEl.currentTime || 0;
   const dur = videoEl.duration    || 0;
   timeDisplay.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+  // Update seek bar position (only when user is not dragging it)
+  if (seekBar && !_seekDragging && dur > 0) {
+    seekBar.value = String(Math.round((cur / dur) * 1000));
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1127,11 +1139,21 @@ function bindEvents() {
   btnPlayPause.addEventListener('click', togglePlayPause);
   btnPreviewToggle.addEventListener('click', togglePlayPause);
 
+  // ── Seek bar ──
+  seekBar?.addEventListener('pointerdown', () => { _seekDragging = true; });
+  seekBar?.addEventListener('pointerup',   () => { _seekDragging = false; });
+  seekBar?.addEventListener('input', () => {
+    if (!state.videoLoaded || !videoEl.duration) return;
+    videoEl.currentTime = (parseInt(seekBar.value) / 1000) * videoEl.duration;
+  });
+
   videoEl.addEventListener('ended', () => {
     state.playing = false;
     iconPlay.classList.remove('hidden');
     iconPause.classList.add('hidden');
     audioMixer.stopMusic();
+    // Reset seek bar to beginning for easy replay
+    if (seekBar) seekBar.value = '0';
   });
 
   videoEl.addEventListener('seeked', () => {
@@ -1585,23 +1607,67 @@ function bindEvents() {
   wmRenderPresetsList();
 
   // ─── Sounds panel ────────────────────────────────────────────────────────
+  // All sound tiles (synthesized)
   soundTiles.forEach(btn => {
     btn.addEventListener('click', () => {
       const soundId = btn.dataset.sound;
       if (zenAudio.currentSound === soundId) {
         zenAudio.stop();
-        soundTiles.forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.sound-tile').forEach(b => b.classList.remove('active'));
       } else {
         zenAudio.play(soundId);
-        soundTiles.forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.sound-tile').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       }
     });
   });
 
+  // Pixabay tiles (real MP3 URLs)
+  document.querySelectorAll('.pixabay-tile').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url  = btn.dataset.purl;
+      const name = btn.dataset.pname || url;
+      const key  = '__url__' + name;
+      if (zenAudio.currentSound === key) {
+        zenAudio.stop();
+        document.querySelectorAll('.sound-tile').forEach(b => b.classList.remove('active'));
+      } else {
+        zenAudio.playUrl(url, name);
+        document.querySelectorAll('.sound-tile').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    });
+  });
+
+  // Custom URL player
+  const customMusicUrl = $('#custom-music-url');
+  const btnPlayUrl     = $('#btn-play-url');
+  btnPlayUrl?.addEventListener('click', () => {
+    const url = customMusicUrl?.value?.trim();
+    if (!url) return;
+    zenAudio.playUrl(url, 'Custom URL');
+    document.querySelectorAll('.sound-tile').forEach(b => b.classList.remove('active'));
+    btnPlayUrl.textContent = '⏹ Stop';
+    btnPlayUrl.classList.add('active');
+  });
+  customMusicUrl?.addEventListener('input', () => {
+    if (btnPlayUrl) { btnPlayUrl.textContent = '▶ Play'; btnPlayUrl.classList.remove('active'); }
+  });
+
   btnStopSound?.addEventListener('click', () => {
     zenAudio.stop();
-    soundTiles.forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.sound-tile').forEach(b => b.classList.remove('active'));
+    if (btnPlayUrl) { btnPlayUrl.textContent = '▶ Play'; btnPlayUrl.classList.remove('active'); }
+  });
+
+  // ─── Censor Target (Eyes / Face / Head) ──────────────────────────────────
+  document.querySelectorAll('.censor-target-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target;
+      faceCensor.setCensorTarget(target);
+      document.querySelectorAll('.censor-target-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
   });
 
   soundVolume?.addEventListener('input', () => {
@@ -1743,7 +1809,7 @@ function bindEvents() {
         const cy = (y + h / 2) * H2;
         const rW = (w / 2) * W2;
         const rH = (h / 2) * H2;
-        faceCensor.addManualZone(cx, cy, rW, rH, faceCensor.censorMode);
+        faceCensor.addManualZone(cx, cy, rW, rH, faceCensor.censorMode, W2, H2);
         // Ensure FaceMesh engine is active for template tracking
         if (!faceCensor.isActive) faceCensor.isActive = true;
         state.zoneCounter++;
@@ -1941,21 +2007,21 @@ async function renderSingleFrame() {
   const W = compositeCanvas.width;
   const H = compositeCanvas.height;
 
-  if (state.bgBlurActive && state.faceMeshReady) {
-    compCtx.filter = webglFx.buildCSSFilter();
-    faceCensor.applyBgBlur(compCtx, videoEl, W, H);
-    compCtx.filter = 'none';
-  } else {
-    compCtx.filter = webglFx.buildCSSFilter();
-    compCtx.drawImage(videoEl, 0, 0, W, H);
-    compCtx.filter = 'none';
-  }
-
+  // processFrame first to populate lastResults for bgBlur face-sharp overlay
   if ((state.censorActive || state.bgBlurActive || faceCensor.manualZones.length > 0) && state.faceMeshReady) {
     await faceCensor.processFrame(videoEl);
-    if (state.censorActive) faceCensor.applyBlurMask(compCtx, videoEl, W, H);
-    if (faceCensor.manualZones.length > 0) faceCensor.applyManualZones(compCtx, videoEl, W, H);
   }
+
+  compCtx.filter = webglFx.buildCSSFilter();
+  if (state.bgBlurActive) {
+    faceCensor.applyBgBlur(compCtx, videoEl, W, H);
+  } else {
+    compCtx.drawImage(videoEl, 0, 0, W, H);
+  }
+  compCtx.filter = 'none';
+
+  if (state.censorActive && state.faceMeshReady) faceCensor.applyBlurMask(compCtx, videoEl, W, H);
+  if (faceCensor.manualZones.length > 0) faceCensor.applyManualZones(compCtx, videoEl, W, H);
 
   drawTextLayers(compCtx, W, H);
   drawStickers(compCtx, W, H);
