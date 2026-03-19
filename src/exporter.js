@@ -120,18 +120,39 @@ export class VideoExporter {
   }
 
   // ─── Internal ────────────────────────────────────────────────────────────
-  _finalize(mimeType) {
-    const ext  = mimeType.includes('mp4') ? 'mp4' : 'webm';
-    const blob = new Blob(this.chunks, { type: mimeType });
-    const url  = URL.createObjectURL(blob);
+  async _finalize(mimeType) {
+    const ext      = mimeType.includes('mp4') ? 'mp4' : 'webm';
+    const filename = `CensorEnginePro_${Date.now()}.${ext}`;
+    const blob     = new Blob(this.chunks, { type: mimeType });
+    const url      = URL.createObjectURL(blob);
 
     this.onProgress?.(100, 'Export complete!');
     this.onComplete?.(blob, url);
 
-    // Auto-download
+    // ── iOS: use Web Share API → saves directly to Photos / Camera Roll ──
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS && navigator.canShare) {
+      try {
+        const file = new File([blob], filename, { type: mimeType });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files:  [file],
+            title:  'Video exportado — Censor Engine Pro',
+          });
+          // Share sheet opened — user can save to Photos from there
+          setTimeout(() => URL.revokeObjectURL(url), 60_000);
+          return;
+        }
+      } catch (shareErr) {
+        // User cancelled share or API unavailable — fall through to download
+        if (shareErr.name !== 'AbortError') console.warn('Share failed:', shareErr);
+      }
+    }
+
+    // ── Desktop / Android: standard anchor download ──
     const a    = document.createElement('a');
     a.href     = url;
-    a.download = `CensorEnginePro_${Date.now()}.${ext}`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

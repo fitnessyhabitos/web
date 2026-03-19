@@ -1396,13 +1396,8 @@ function bindEvents() {
   btnExport.addEventListener('click', openExportModal);
   // Mobile sidebar export & screenshot buttons
   $('#btn-export-mob')?.addEventListener('click', openExportModal);
-  $('#btn-shot-mob')?.addEventListener('click', () => {
-    if (!state.videoLoaded) return;
-    const link = document.createElement('a');
-    link.download = `frame-${Date.now()}.png`;
-    link.href = displayCanvas.toDataURL('image/png');
-    link.click();
-  });
+  $('#btn-shot-mob')?.addEventListener('click', captureFrame);
+
 
   btnCloseExport.addEventListener('click',  () => exportModal.classList.add('hidden'));
   btnCancelExport.addEventListener('click', () => {
@@ -1739,15 +1734,31 @@ function bindEvents() {
     });
   });
 
-  // Screenshot / frame capture
-  const btnScreenshot = $('#btn-screenshot');
-  btnScreenshot?.addEventListener('click', () => {
+  // Screenshot / frame capture — iOS: Web Share → Fotos; desktop: download
+  async function captureFrame() {
     if (!state.videoLoaded) return;
+    const filename = `frame-${Date.now()}.png`;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS && navigator.canShare) {
+      try {
+        const blob = await new Promise(res => displayCanvas.toBlob(res, 'image/png'));
+        const file = new File([blob], filename, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Fotograma — Censor Engine Pro' });
+          return;
+        }
+      } catch (e) {
+        if (e.name !== 'AbortError') console.warn('Share frame failed:', e);
+      }
+    }
+    // Fallback
     const link = document.createElement('a');
-    link.download = `frame-${Date.now()}.png`;
+    link.download = filename;
     link.href = displayCanvas.toDataURL('image/png');
     link.click();
-  });
+  }
+  const btnScreenshot = $('#btn-screenshot');
+  btnScreenshot?.addEventListener('click', captureFrame);
 
   // Playback speed toggle
   const btnSpeed   = $('#btn-speed');
