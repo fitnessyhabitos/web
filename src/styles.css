@@ -563,6 +563,38 @@ html, body {
 }
 .seek-bar-range:disabled { opacity: 0.3; pointer-events: none; }
 
+/* Zone mode picker grid */
+.zone-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.zone-mode-btn {
+  padding: 5px 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px solid var(--border-red);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+  touch-action: manipulation;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zone-mode-btn:hover { border-color: var(--cyan); color: var(--text); }
+.zone-mode-btn.active {
+  background: rgba(148,10,10,0.18);
+  border-color: var(--red-light);
+  color: #ff6060;
+  box-shadow: 0 0 7px rgba(148,10,10,0.4);
+}
+
 /* Background effect mode grid */
 .bg-mode-grid {
   display: grid;

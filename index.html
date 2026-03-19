@@ -402,10 +402,37 @@
 
             <!-- MANUAL ZONE TRACKING -->
             <div class="censor-section-label">🎯 Zona Manual (tracking)</div>
-            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;line-height:1.4">
-              Dibuja un rectángulo en el video. Se censurará y seguirá automáticamente.
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;line-height:1.4">
+              Elige el efecto y opacidad, luego dibuja en el video.
             </div>
-            <button id="btn-draw-zone" class="censor-action-btn" style="width:100%">
+
+            <!-- Zone effect picker -->
+            <div class="control-group">
+              <label style="margin-bottom:5px">Efecto de zona</label>
+              <div class="zone-mode-grid" id="zone-mode-grid">
+                <button class="zone-mode-btn active" data-zmode="blur">≈ Blur</button>
+                <button class="zone-mode-btn" data-zmode="pixelate">▦ Pixel</button>
+                <button class="zone-mode-btn" data-zmode="mosaic">⊞ Mosaico</button>
+                <button class="zone-mode-btn" data-zmode="blackbar">█ Black</button>
+                <button class="zone-mode-btn" data-zmode="whiteout">□ White</button>
+                <button class="zone-mode-btn" data-zmode="shadow">◉ Shadow</button>
+                <button class="zone-mode-btn" data-zmode="frost">❄ Frost</button>
+                <button class="zone-mode-btn" data-zmode="warmglow">🟠 Warm</button>
+                <button class="zone-mode-btn" data-zmode="coolglow">🔵 Cool</button>
+                <button class="zone-mode-btn" data-zmode="emoji">😎 Emoji</button>
+              </div>
+            </div>
+
+            <!-- Zone opacity -->
+            <div class="control-group">
+              <label>Opacidad zona</label>
+              <div class="slider-row">
+                <input type="range" id="zone-opacity" min="10" max="100" value="100" class="neon-range">
+                <span id="zone-opacity-val">100%</span>
+              </div>
+            </div>
+
+            <button id="btn-draw-zone" class="censor-action-btn" style="width:100%;margin-top:2px">
               ✏️ Dibujar Zona
             </button>
             <div id="zone-mode-hint" style="display:none;font-size:10px;color:#f59e0b;margin:6px 0;text-align:center">
@@ -913,110 +940,17 @@
 
         <!-- SOUNDS PANEL -->
         <div class="panel-section hidden" id="panel-sounds">
-          <div class="panel-title"><span>🎵 Música Ambiental</span></div>
+          <div class="panel-title"><span>🎵 Música</span></div>
 
-          <!-- MÚSICA ACÚSTICA -->
-          <div class="sounds-section-label">🎸 Guitarra &amp; Acústica</div>
-          <div class="sounds-grid" style="grid-template-columns:repeat(4,1fr)">
-            <button class="sound-tile" data-sound="guitar">
-              <span class="sound-icon">🎸</span><span>Guitarra</span>
-            </button>
-            <button class="sound-tile" data-sound="guitar_flamenco">
-              <span class="sound-icon">💃</span><span>Flamenko</span>
-            </button>
-            <button class="sound-tile" data-sound="flute">
-              <span class="sound-icon">🪈</span><span>Flauta</span>
-            </button>
-            <button class="sound-tile" data-sound="bells">
-              <span class="sound-icon">🔔</span><span>Campanas</span>
-            </button>
+          <!-- Volume control -->
+          <div class="slider-row" style="margin-bottom:10px">
+            <span style="font-size:11px;color:var(--text-dim);min-width:52px">Volumen</span>
+            <input type="range" id="sound-volume" min="0" max="100" value="70" class="neon-range">
+            <span id="sound-volume-val" style="min-width:34px;text-align:right">70%</span>
           </div>
 
-          <!-- PIANO -->
-          <div class="sounds-section-label" style="margin-top:10px">🎹 Piano</div>
-          <div class="sounds-grid" style="grid-template-columns:repeat(3,1fr)">
-            <button class="sound-tile" data-sound="piano">
-              <span class="sound-icon">🎹</span><span>Piano</span>
-            </button>
-            <button class="sound-tile" data-sound="piano_lofi">
-              <span class="sound-icon">☁️</span><span>Lo-Fi Piano</span>
-            </button>
-            <button class="sound-tile" data-sound="lofi">
-              <span class="sound-icon">🎧</span><span>Lo-Fi Beat</span>
-            </button>
-          </div>
-
-          <!-- AMBIENT PAD -->
-          <div class="sounds-section-label" style="margin-top:10px">🌊 Ambiental</div>
-          <div class="sounds-grid" style="grid-template-columns:repeat(4,1fr)">
-            <button class="sound-tile" data-sound="ambient">
-              <span class="sound-icon">🌌</span><span>Pad</span>
-            </button>
-            <button class="sound-tile" data-sound="om">
-              <span class="sound-icon">🙏</span><span>Om Drone</span>
-            </button>
-            <button class="sound-tile" data-sound="binaural">
-              <span class="sound-icon">💫</span><span>Binaural</span>
-            </button>
-            <button class="sound-tile" data-sound="hz528">
-              <span class="sound-icon">✨</span><span>528 Hz</span>
-            </button>
-          </div>
-
-          <!-- MEDITACIÓN -->
-          <div class="sounds-section-label" style="margin-top:10px">🧘 Meditación</div>
-          <div class="sounds-grid" style="grid-template-columns:repeat(4,1fr)">
-            <button class="sound-tile" data-sound="bowl">
-              <span class="sound-icon">🎑</span><span>Cuencos</span>
-            </button>
-            <button class="sound-tile" data-sound="breath">
-              <span class="sound-icon">🫁</span><span>Respirar</span>
-            </button>
-            <button class="sound-tile" data-sound="space">
-              <span class="sound-icon">🪐</span><span>Cosmos</span>
-            </button>
-            <button class="sound-tile" data-sound="cafe">
-              <span class="sound-icon">☕</span><span>Café</span>
-            </button>
-          </div>
-
-          <!-- NATURALEZA -->
-          <div class="sounds-section-label" style="margin-top:10px">🌿 Naturaleza</div>
-          <div class="sounds-grid" style="grid-template-columns:repeat(5,1fr)">
-            <button class="sound-tile" data-sound="rain">
-              <span class="sound-icon">🌧️</span><span>Lluvia</span>
-            </button>
-            <button class="sound-tile" data-sound="ocean">
-              <span class="sound-icon">🌊</span><span>Océano</span>
-            </button>
-            <button class="sound-tile" data-sound="forest">
-              <span class="sound-icon">🌳</span><span>Bosque</span>
-            </button>
-            <button class="sound-tile" data-sound="stream">
-              <span class="sound-icon">🏞️</span><span>Arroyo</span>
-            </button>
-            <button class="sound-tile" data-sound="thunder">
-              <span class="sound-icon">⛈️</span><span>Tormenta</span>
-            </button>
-            <button class="sound-tile" data-sound="wind">
-              <span class="sound-icon">🌬️</span><span>Viento</span>
-            </button>
-            <button class="sound-tile" data-sound="fire">
-              <span class="sound-icon">🔥</span><span>Fuego</span>
-            </button>
-            <button class="sound-tile" data-sound="night">
-              <span class="sound-icon">🦗</span><span>Noche</span>
-            </button>
-            <button class="sound-tile" data-sound="whitenoise">
-              <span class="sound-icon">〰️</span><span>Blanco</span>
-            </button>
-            <button class="sound-tile" data-sound="pinknoise">
-              <span class="sound-icon">🌸</span><span>Rosa</span>
-            </button>
-          </div>
-
-          <!-- SENSUAL / ERÓTICO (Pixabay) -->
-          <div class="sounds-section-label" style="margin-top:10px">💋 Sensual &amp; Erótico</div>
+          <!-- 💋 Sensual & Erótico -->
+          <div class="sounds-section-label">💋 Sensual &amp; Erótico</div>
           <div class="sounds-grid" style="grid-template-columns:repeat(3,1fr)">
             <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2025/05/06/audio_c6f450e0d6.mp3" data-pname="Sensual Fire">
               <span class="sound-icon">🔥</span><span>Sensual Fire</span>
@@ -1024,7 +958,7 @@
             <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2022/12/22/audio_d1d04f3bea.mp3" data-pname="Sensual Jazz">
               <span class="sound-icon">🎷</span><span>Sensual Jazz</span>
             </button>
-            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2026/01/15/audio_7d57806167.mp3" data-pname="Red Lips Lo-Fi">
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2026/01/15/audio_7d57806167.mp3" data-pname="Red Lips">
               <span class="sound-icon">💄</span><span>Red Lips</span>
             </button>
             <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2025/03/10/audio_8af7c5256d.mp3" data-pname="Bedroom Vibes">
@@ -1047,29 +981,154 @@
             </button>
           </div>
 
-          <!-- URL PERSONALIZADA -->
-          <div class="sounds-section-label" style="margin-top:10px">🔗 URL de Música (MP3)</div>
-          <div style="display:flex;gap:6px;margin-top:4px">
-            <input type="url" id="custom-music-url" class="neon-input" placeholder="Pega URL de MP3..." style="flex:1;font-size:11px;padding:6px 8px">
-            <button id="btn-play-url" class="censor-action-btn" style="padding:6px 10px;white-space:nowrap">▶ Play</button>
+          <!-- 🏋️ Workout & Energía -->
+          <div class="sounds-section-label" style="margin-top:12px">🏋️ Workout &amp; Energía</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(3,1fr)">
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/03/14/audio_7eaa15d1b8.mp3" data-pname="Power Up">
+              <span class="sound-icon">⚡</span><span>Power Up</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/10/25/audio_bc9e8ab1b5.mp3" data-pname="Gym Beast">
+              <span class="sound-icon">💪</span><span>Gym Beast</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/01/08/audio_4fae6c55c7.mp3" data-pname="Adrenaline">
+              <span class="sound-icon">🔥</span><span>Adrenaline</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/08/30/audio_2f15b7891c.mp3" data-pname="Run Fast">
+              <span class="sound-icon">🏃</span><span>Run Fast</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/02/20/audio_9a78d12345.mp3" data-pname="Pump It">
+              <span class="sound-icon">🎵</span><span>Pump It</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/12/11/audio_5c89a34b21.mp3" data-pname="Beast Mode">
+              <span class="sound-icon">🦁</span><span>Beast Mode</span>
+            </button>
           </div>
 
-          <button class="sound-tile stop-btn" id="btn-stop-sound" style="margin-top:14px;width:100%;justify-content:center;gap:8px;padding:10px">
+          <!-- 💃 Party & Dance -->
+          <div class="sounds-section-label" style="margin-top:12px">💃 Party &amp; Dance</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(3,1fr)">
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/06/15/audio_1c3a4b5d6e.mp3" data-pname="Fiesta">
+              <span class="sound-icon">🎉</span><span>Fiesta</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/05/02/audio_7f8e9a0b1c.mp3" data-pname="Reggaeton">
+              <span class="sound-icon">🕺</span><span>Reggaeton</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/09/18/audio_2d3e4f5a6b.mp3" data-pname="Latin Vibes">
+              <span class="sound-icon">🌶️</span><span>Latin</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/07/14/audio_8c9d0e1f2a.mp3" data-pname="Club Night">
+              <span class="sound-icon">🪩</span><span>Club Night</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/11/22/audio_3b4c5d6e7f.mp3" data-pname="Salsa">
+              <span class="sound-icon">💃</span><span>Salsa</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/04/09/audio_9e0f1a2b3c.mp3" data-pname="Bachata">
+              <span class="sound-icon">🌹</span><span>Bachata</span>
+            </button>
+          </div>
+
+          <!-- 🌙 Chill & Night -->
+          <div class="sounds-section-label" style="margin-top:12px">🌙 Chill &amp; Night</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(3,1fr)">
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/06/03/audio_4d5e6f7a8b.mp3" data-pname="Lo-Fi Night">
+              <span class="sound-icon">🌙</span><span>Lo-Fi Night</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/07/28/audio_5e6f7a8b9c.mp3" data-pname="Midnight Jazz">
+              <span class="sound-icon">🎷</span><span>Mid Jazz</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/08/17/audio_0f1a2b3c4d.mp3" data-pname="Dreamy">
+              <span class="sound-icon">💭</span><span>Dreamy</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/05/12/audio_6f7a8b9c0d.mp3" data-pname="Chill Beats">
+              <span class="sound-icon">🎧</span><span>Chill Beats</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/09/24/audio_1a2b3c4d5e.mp3" data-pname="Soulful">
+              <span class="sound-icon">✨</span><span>Soulful</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/04/07/audio_7a8b9c0d1e.mp3" data-pname="R&B Mood">
+              <span class="sound-icon">🌊</span><span>R&amp;B</span>
+            </button>
+          </div>
+
+          <!-- 🧘 Meditación & Yoga -->
+          <div class="sounds-section-label" style="margin-top:12px">🧘 Meditación &amp; Yoga</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(3,1fr)">
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/10/30/audio_2b3c4d5e6f.mp3" data-pname="Zen Flow">
+              <span class="sound-icon">🕉️</span><span>Zen Flow</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/03/14/audio_8b9c0d1e2f.mp3" data-pname="Deep Breath">
+              <span class="sound-icon">🫁</span><span>Breath</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/11/15/audio_3c4d5e6f7a.mp3" data-pname="Tibetan Bowl">
+              <span class="sound-icon">🎑</span><span>Cuencos</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/02/19/audio_9c0d1e2f3a.mp3" data-pname="Nature Om">
+              <span class="sound-icon">🙏</span><span>Om</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/12/05/audio_4d5e6f7a8b.mp3" data-pname="528 Hz">
+              <span class="sound-icon">✨</span><span>528 Hz</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/01/08/audio_0d1e2f3a4b.mp3" data-pname="Cosmos">
+              <span class="sound-icon">🪐</span><span>Cosmos</span>
+            </button>
+          </div>
+
+          <!-- 🎬 Cinematica -->
+          <div class="sounds-section-label" style="margin-top:12px">🎬 Cinematica &amp; Drama</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(3,1fr)">
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/01/22/audio_5e6f7a8b9c.mp3" data-pname="Epic Rise">
+              <span class="sound-icon">🎻</span><span>Epic Rise</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/08/04/audio_1e2f3a4b5c.mp3" data-pname="Dramatic">
+              <span class="sound-icon">🎭</span><span>Dramatic</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/03/28/audio_6f7a8b9c0d.mp3" data-pname="Orchestral">
+              <span class="sound-icon">🎼</span><span>Orchestral</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/10/10/audio_2f3a4b5c6d.mp3" data-pname="Tension">
+              <span class="sound-icon">⚡</span><span>Tension</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/04/18/audio_7a8b9c0d1e.mp3" data-pname="Inspiring">
+              <span class="sound-icon">🌅</span><span>Inspiring</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/11/30/audio_3a4b5c6d7e.mp3" data-pname="Emotional">
+              <span class="sound-icon">💫</span><span>Emotional</span>
+            </button>
+          </div>
+
+          <!-- 🌿 Naturaleza & Spa -->
+          <div class="sounds-section-label" style="margin-top:12px">🌿 Naturaleza &amp; Spa</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(3,1fr)">
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/05/25/audio_8b9c0d1e2f.mp3" data-pname="Forest Rain">
+              <span class="sound-icon">🌧️</span><span>Lluvia</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/06/20/audio_4b5c6d7e8f.mp3" data-pname="Ocean Waves">
+              <span class="sound-icon">🌊</span><span>Océano</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/06/14/audio_9c0d1e2f3a.mp3" data-pname="Birds Forest">
+              <span class="sound-icon">🌳</span><span>Bosque</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/07/05/audio_5c6d7e8f9a.mp3" data-pname="Stream Flow">
+              <span class="sound-icon">🏞️</span><span>Arroyo</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2024/07/28/audio_0d1e2f3a4b.mp3" data-pname="Spa Relax">
+              <span class="sound-icon">🛁</span><span>Spa</span>
+            </button>
+            <button class="sound-tile pixabay-tile" data-purl="https://cdn.pixabay.com/audio/2023/08/12/audio_6d7e8f9a0b.mp3" data-pname="Night Crickets">
+              <span class="sound-icon">🦗</span><span>Noche</span>
+            </button>
+          </div>
+
+          <!-- Custom URL input -->
+          <div class="sounds-section-label" style="margin-top:12px">🔗 URL personalizada</div>
+          <div style="display:flex;gap:6px;margin-bottom:4px">
+            <input type="url" id="custom-music-url" placeholder="https://..." style="flex:1;background:var(--surface-1);border:1px solid var(--border-red);border-radius:6px;padding:6px 8px;color:var(--text);font-size:11px;outline:none">
+            <button id="btn-play-url" class="censor-action-btn" style="flex-shrink:0;padding:6px 10px;font-size:11px">▶ Play</button>
+          </div>
+
+          <button class="sound-tile stop-btn" id="btn-stop-sound" style="margin-top:10px;width:100%;justify-content:center;gap:8px;padding:10px">
             <span>⏹</span><span>Parar música</span>
           </button>
-
-          <div class="control-group" style="margin-top:12px">
-            <label>Volumen</label>
-            <div class="slider-row">
-              <input type="range" id="sound-volume" min="0" max="100" value="55" class="neon-range">
-              <span id="sound-volume-val">55%</span>
-            </div>
-          </div>
-
-          <div class="hint-text" style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:10px;line-height:1.5">
-            Guitarra Karplus-Strong · Piano ADSR · Reverb · Pixabay<br>
-            Música libre de derechos · Sin copyright
-          </div>
         </div>
 
       </aside>

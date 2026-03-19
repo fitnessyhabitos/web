@@ -660,6 +660,19 @@ const COLOR_PRESETS = [
   { id: 'cinema',  name: 'Cinema',   brightness: -10, contrast: 25,  saturation: -15, exposure: -5, swatch: 'linear-gradient(160deg,#405060,#101820)' },
   { id: 'pastel',  name: 'Pastel',   brightness: 25,  contrast: -20, saturation: -25, exposure: 5,  swatch: 'linear-gradient(160deg,#d0c0c8,#a098b8)' },
   { id: 'drama',   name: 'Drama',    brightness: -20, contrast: 40,  saturation: 15,  exposure: -10,swatch: 'linear-gradient(160deg,#602040,#100810)' },
+  // ── Skin & Tone ──────────────────────────────────────────────────────────
+  { id: 'skin_warm',  name: 'Skin Warm',  brightness: 8,  contrast: 10, saturation: 20, exposure: 6,  swatch: 'linear-gradient(160deg,#e8a070,#c87040)' },
+  { id: 'skin_peach', name: 'Peach',      brightness: 15, contrast: 5,  saturation: 15, exposure: 8,  swatch: 'linear-gradient(160deg,#f0b898,#e08060)' },
+  { id: 'skin_bronze',name: 'Bronze',     brightness: -5, contrast: 20, saturation: 30, exposure: 5,  swatch: 'linear-gradient(160deg,#c87830,#904820)' },
+  { id: 'skin_honey', name: 'Honey',      brightness: 10, contrast: 12, saturation: 28, exposure: 7,  swatch: 'linear-gradient(160deg,#f0a830,#c87018)' },
+  { id: 'skin_glow',  name: 'Glow',       brightness: 22, contrast: -5, saturation: 18, exposure: 12, swatch: 'linear-gradient(160deg,#f8c8a0,#e09870)' },
+  { id: 'skin_nude',  name: 'Nude',       brightness: 12, contrast: 0,  saturation: -8, exposure: 5,  swatch: 'linear-gradient(160deg,#d4b898,#b89878)' },
+  { id: 'skin_cool',  name: 'Skin Cool',  brightness: 5,  contrast: 8,  saturation: -10,exposure: 3,  swatch: 'linear-gradient(160deg,#c0a8b8,#908098)' },
+  { id: 'rose',       name: 'Rose',       brightness: 8,  contrast: 8,  saturation: 25, exposure: 5,  swatch: 'linear-gradient(160deg,#e87898,#c05070)' },
+  { id: 'sunset',     name: 'Sunset',     brightness: 5,  contrast: 18, saturation: 40, exposure: 3,  swatch: 'linear-gradient(160deg,#f06828,#c02858)' },
+  { id: 'coral',      name: 'Coral',      brightness: 10, contrast: 12, saturation: 35, exposure: 6,  swatch: 'linear-gradient(160deg,#f08860,#d05840)' },
+  { id: 'velvet',     name: 'Velvet',     brightness: -8, contrast: 25, saturation: 22, exposure: 2,  swatch: 'linear-gradient(160deg,#903060,#500030)' },
+  { id: 'champagne',  name: 'Champagne',  brightness: 18, contrast: -8, saturation: 12, exposure: 10, swatch: 'linear-gradient(160deg,#f0d8a0,#d0b060)' },
 ];
 
 let activePreset = 'original';
@@ -1750,7 +1763,7 @@ function bindEvents() {
     faceCensor.manualZones.forEach(zone => {
       const item = document.createElement('div');
       item.className = 'zone-item';
-      item.innerHTML = `<span>🎯 Zona ${zone.id} — ${zone.mode}</span>
+      item.innerHTML = `<span>🎯 Z${zone.id} · ${zone.mode} · ${zone.opacity ?? 100}%</span>
         <button class="zone-del" data-id="${zone.id}" title="Eliminar">✕</button>`;
       zoneList.appendChild(item);
     });
@@ -1770,6 +1783,25 @@ function bindEvents() {
   btnClearZones?.addEventListener('click', () => {
     faceCensor.clearManualZones();
     renderZoneList();
+  });
+
+  // ─── Zone mode & opacity controls ─────────────────────────────────────────
+  state.zoneMode    = 'blur';
+  state.zoneOpacity = 100;
+
+  document.querySelectorAll('.zone-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.zoneMode = btn.dataset.zmode;
+      document.querySelectorAll('.zone-mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  const zoneOpacitySlider = $('#zone-opacity');
+  const zoneOpacityVal    = $('#zone-opacity-val');
+  zoneOpacitySlider?.addEventListener('input', () => {
+    state.zoneOpacity = parseInt(zoneOpacitySlider.value);
+    if (zoneOpacityVal) zoneOpacityVal.textContent = `${state.zoneOpacity}%`;
   });
 
   btnDrawZone?.addEventListener('click', () => {
@@ -1847,7 +1879,7 @@ function bindEvents() {
         const cy = (y + h / 2) * H2;
         const rW = (w / 2) * W2;
         const rH = (h / 2) * H2;
-        faceCensor.addManualZone(cx, cy, rW, rH, faceCensor.censorMode, W2, H2);
+        faceCensor.addManualZone(cx, cy, rW, rH, state.zoneMode, W2, H2, state.zoneOpacity);
         // Ensure FaceMesh engine is active for template tracking
         if (!faceCensor.isActive) faceCensor.isActive = true;
         state.zoneCounter++;

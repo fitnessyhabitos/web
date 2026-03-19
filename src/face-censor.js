@@ -587,11 +587,12 @@ export class FaceCensorEngine {
   // ══════════════════════════════════════════════════════
   // MANUAL ZONES — face-anchored tracking
   // ══════════════════════════════════════════════════════
-  addManualZone(cx, cy, rW, rH, mode, canvasW, canvasH) {
+  addManualZone(cx, cy, rW, rH, mode, canvasW, canvasH, opacity = 100) {
     const zone = {
-      id:    this._nextZoneId++,
+      id:      this._nextZoneId++,
       cx, cy, rW, rH,
-      mode:  mode || this.censorMode,
+      mode:    mode || this.censorMode,
+      opacity: Math.max(10, Math.min(100, opacity)),
       // Face anchoring (set on creation if a face is near)
       _faceAnchored: false,
       _offX: 0,  // offset from nose tip (normalized)
@@ -667,7 +668,7 @@ export class FaceCensorEngine {
       if (bw <= 0 || bh <= 0) continue;
 
       ctx.save();
-      ctx.globalAlpha = this.censorOpacity / 100;
+      ctx.globalAlpha = (zone.opacity ?? this.censorOpacity) / 100;
       this._drawCensorEffect(ctx, zone.mode, zone.cx, zone.cy, rW, rH, bx, by, bw, bh, width, height, 'rect');
       ctx.restore();
     }
