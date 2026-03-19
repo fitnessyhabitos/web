@@ -227,6 +227,175 @@ export class ZenAudioEngine {
         });
         break;
       }
+
+      case 'whitenoise': {
+        const noise = this._noise(2);
+        const g     = ctx.createGain(); g.gain.value = 0.55;
+        noise.connect(g); g.connect(dest); noise.start();
+        nodes.push(noise, g);
+        break;
+      }
+
+      case 'pinknoise': {
+        // Pink noise via successive filtering of white noise
+        const noise = this._noise(2);
+        const b0 = ctx.createBiquadFilter(); b0.type = 'lowshelf'; b0.frequency.value = 200; b0.gain.value = 6;
+        const b1 = ctx.createBiquadFilter(); b1.type = 'lowshelf'; b1.frequency.value = 800; b1.gain.value = 3;
+        const g   = ctx.createGain(); g.gain.value = 0.3;
+        noise.connect(b0); b0.connect(b1); b1.connect(g); g.connect(dest); noise.start();
+        nodes.push(noise, b0, b1, g);
+        break;
+      }
+
+      case 'thunder': {
+        // Rain + periodic thunder rumble
+        const noise = this._noise(2);
+        const bp    = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.8;
+        const gr    = ctx.createGain(); gr.gain.value = 0.6;
+        noise.connect(bp); bp.connect(gr); gr.connect(dest); noise.start();
+        const rumble = () => {
+          const rn = this._noise(1);
+          const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 120;
+          const rg = ctx.createGain(); rg.gain.value = 0;
+          rn.connect(lp); lp.connect(rg); rg.connect(dest); rn.start();
+          const t = ctx.currentTime;
+          rg.gain.linearRampToValueAtTime(1.2, t + 0.1);
+          rg.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+          setTimeout(() => { try { rn.stop(); } catch(_){} }, 3000);
+        };
+        rumble();
+        const iv = setInterval(rumble, 8000 + Math.random() * 12000);
+        nodes.push(noise, bp, gr, { stop: () => clearInterval(iv), disconnect: () => {} });
+        break;
+      }
+
+      case 'stream': {
+        // Flowing water stream — higher frequency turbulence
+        const noise = this._noise(2);
+        const hp    = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 800;
+        const bp    = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2500; bp.Q.value = 0.4;
+        const g     = ctx.createGain(); g.gain.value = 0.5;
+        const lfo   = ctx.createOscillator(); lfo.frequency.value = 0.22;
+        const lfoG  = ctx.createGain(); lfoG.gain.value = 0.18;
+        lfo.connect(lfoG); lfoG.connect(g.gain);
+        noise.connect(hp); hp.connect(bp); bp.connect(g); g.connect(dest);
+        noise.start(); lfo.start();
+        nodes.push(noise, hp, bp, g, lfo, lfoG);
+        break;
+      }
+
+      case 'night': {
+        // Cricket chirping — modulated high-frequency oscillators
+        const cricket = () => {
+          const osc = ctx.createOscillator();
+          const og  = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.value = 4200 + Math.random() * 400;
+          og.gain.setValueAtTime(0, ctx.currentTime);
+          og.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.015);
+          og.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.04);
+          osc.connect(og); og.connect(dest);
+          osc.start(); osc.stop(ctx.currentTime + 0.05);
+        };
+        const iv = setInterval(() => {
+          for (let i = 0; i < 3; i++) setTimeout(cricket, i * 35);
+        }, 120 + Math.random() * 80);
+        nodes.push({ stop: () => clearInterval(iv), disconnect: () => {} });
+        break;
+      }
+
+      case 'space': {
+        // Cosmic drone — deep oscillators + slow filter sweep
+        const freqs = [40, 60, 80, 120];
+        freqs.forEach((f, i) => {
+          const osc = ctx.createOscillator();
+          const og  = ctx.createGain();
+          osc.type = 'sawtooth'; osc.frequency.value = f;
+          og.gain.value = 0.06 / (i + 1);
+          const lfo = ctx.createOscillator(); lfo.frequency.value = 0.03 + i * 0.01;
+          const lg  = ctx.createGain(); lg.gain.value = f * 0.2;
+          lfo.connect(lg); lg.connect(osc.frequency);
+          osc.connect(og); og.connect(dest);
+          osc.start(); lfo.start();
+          nodes.push(osc, og, lfo, lg);
+        });
+        break;
+      }
+
+      case 'breath': {
+        // Deep breath guide — slow in/out amplitude modulation
+        const osc  = ctx.createOscillator();
+        const og   = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = 110;
+        og.gain.value = 0;
+        osc.connect(og); og.connect(dest); osc.start();
+        let inhale = true;
+        const cycle = () => {
+          const t   = ctx.currentTime;
+          const dur = inhale ? 4 : 6; // 4s in, 6s out
+          og.gain.cancelScheduledValues(t);
+          og.gain.setValueAtTime(og.gain.value, t);
+          og.gain.linearRampToValueAtTime(inhale ? 0.35 : 0.001, t + dur);
+          inhale = !inhale;
+        };
+        cycle();
+        const iv = setInterval(cycle, 4500);
+        nodes.push(osc, og, { stop: () => clearInterval(iv), disconnect: () => {} });
+        break;
+      }
+
+      case 'crystal': {
+        // Crystal/glass tones — pure high-frequency sines
+        const CRYSTAL_FREQS = [1047, 1319, 1568, 2093, 2637];
+        const pulse = () => {
+          const f   = CRYSTAL_FREQS[Math.floor(Math.random() * CRYSTAL_FREQS.length)];
+          const osc = ctx.createOscillator();
+          const og  = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.value = f;
+          og.gain.setValueAtTime(0, ctx.currentTime);
+          og.gain.linearRampToValueAtTime(0.14, ctx.currentTime + 0.008);
+          og.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.5);
+          osc.connect(og); og.connect(dest);
+          osc.start(); osc.stop(ctx.currentTime + 2.6);
+        };
+        pulse();
+        const iv = setInterval(pulse, 1500 + Math.random() * 2000);
+        nodes.push({ stop: () => clearInterval(iv), disconnect: () => {} });
+        break;
+      }
+
+      case 'hz528': {
+        // 528 Hz "DNA repair" healing tone + harmonics
+        [528, 1056, 264].forEach((f, i) => {
+          const osc = ctx.createOscillator();
+          const og  = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.value = f;
+          og.gain.value = 0.22 / (i + 1);
+          osc.connect(og); og.connect(dest); osc.start();
+          nodes.push(osc, og);
+        });
+        break;
+      }
+
+      case 'cafe': {
+        // Café ambience: filtered noise + soft chatter + cups
+        const noise = this._noise(3);
+        const bp    = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1200; bp.Q.value = 0.3;
+        const g     = ctx.createGain(); g.gain.value = 0.22;
+        noise.connect(bp); bp.connect(g); g.connect(dest); noise.start();
+        // Subtle cup clinks
+        const clink = () => {
+          const osc = ctx.createOscillator();
+          const og  = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.value = 900 + Math.random() * 600;
+          og.gain.setValueAtTime(0.06, ctx.currentTime);
+          og.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+          osc.connect(og); og.connect(dest);
+          osc.start(); osc.stop(ctx.currentTime + 0.9);
+        };
+        const iv = setInterval(clink, 3000 + Math.random() * 5000);
+        nodes.push(noise, bp, g, { stop: () => clearInterval(iv), disconnect: () => {} });
+        break;
+      }
     }
 
     this.currentNodes = nodes;
