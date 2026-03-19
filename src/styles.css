@@ -1527,3 +1527,96 @@ button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; poin
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
   animation: pulse-green 1s infinite;
 }
+
+/* ── FILTER PRESETS (InShot-style) ── */
+.filter-presets-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-red) transparent;
+}
+.filter-presets-scroll::-webkit-scrollbar { height: 3px; }
+.filter-presets-scroll::-webkit-scrollbar-track { background: transparent; }
+.filter-presets-scroll::-webkit-scrollbar-thumb { background: var(--border-red); border-radius: 2px; }
+
+.filter-preset-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.filter-swatch {
+  width: 58px;
+  height: 72px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.filter-preset-btn.active .filter-swatch {
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan-glow);
+}
+.filter-swatch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  mix-blend-mode: multiply;
+  opacity: 0.6;
+}
+.filter-name {
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  text-align: center;
+}
+.filter-preset-btn.active .filter-name { color: var(--cyan); }
+
+.panel-divider {
+  height: 1px;
+  background: var(--border-red);
+  margin: 8px 0;
+  opacity: 0.4;
+}
+
+/* ── CENSOR MODE GRID ── */
+.censor-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin-top: 6px;
+}
+.censor-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 4px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-red);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 8px;
+  color: var(--text-muted);
+  transition: all var(--transition);
+  letter-spacing: 0.3px;
+}
+.censor-mode-btn .cmb-icon { font-size: 14px; line-height: 1; }
+.censor-mode-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.censor-mode-btn.active {
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
+  color: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan-glow);
+}

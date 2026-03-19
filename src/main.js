@@ -104,6 +104,8 @@ const censorStatusDot    = censorStatus.querySelector('.status-dot');
 const censorStatusText   = censorStatus.querySelector('.status-text');
 const faceCountDisplay   = $('#face-count-display');
 const censorControls     = $('#censor-controls');
+const censorModeGrid     = document.querySelectorAll('.censor-mode-btn');
+const censorRadiusLabel  = $('#censor-radius-label');
 
 // Effects controls
 const effectBtns         = document.querySelectorAll('.effect-btn');
@@ -113,6 +115,8 @@ const flareX             = $('#flare-x');
 const flareXVal          = $('#flare-x-val');
 const flareY             = $('#flare-y');
 const flareYVal          = $('#flare-y-val');
+const toggleFlareTrack   = $('#toggle-flare-track');
+const flareTrackHint     = $('#flare-track-hint');
 
 // Color correction
 const ccBrightness       = $('#cc-brightness');
@@ -122,6 +126,7 @@ const ccExposure         = $('#cc-exposure');
 const ccVignette         = $('#cc-vignette');
 const ccSharpen          = $('#cc-sharpen');
 const btnResetColor      = $('#btn-reset-color');
+const filterPresetsScroll  = $('#filter-presets-scroll');
 
 // Text controls
 const textContent        = $('#text-content');
@@ -179,6 +184,7 @@ const state = {
   stickers:         [],       // [{id, emoji, x, y, size, opacity}]
   selectedSticker:  null,     // emoji string currently selected for placement
   activeFrames:     [],       // [{id, type, opacity}]
+  flareTrackEyes:   false,
   recBlinkState:    true,
   recBlinkTimer:    0,
   frameCount:       0,
@@ -249,6 +255,7 @@ async function init() {
   }, 650);
 
   bindEvents();
+  renderFilterPresets();
   setAspectRatio('9:16');
   showPanel('upload');
   updateToolActive('upload');
@@ -273,10 +280,26 @@ function startRenderLoop() {
     compCtx.drawImage(videoEl, 0, 0, W, H);
     compCtx.filter = 'none';
 
-    // ── Step 2: Apply eye blur if censor active ──
-    if (state.censorActive && state.faceMeshReady) {
+    // ── Step 2: Apply eye blur + optional eye tracking for flare ──
+    const needsFaceMesh = (state.censorActive || state.flareTrackEyes) && state.faceMeshReady;
+    if (needsFaceMesh) {
       await faceCensor.processFrame(videoEl);
-      faceCensor.applyBlurMask(compCtx, videoEl, W, H);
+      if (state.censorActive) {
+        faceCensor.applyBlurMask(compCtx, videoEl, W, H);
+      }
+    }
+
+    // ── Step 2b: Flare eye tracking ──
+    if (state.flareTrackEyes && state.currentEffect === 'flare') {
+      const centers = faceCensor.getEyeCenters(0);
+      if (centers) {
+        const avgX = (centers.left.x + centers.right.x) / 2;
+        const avgY = (centers.left.y + centers.right.y) / 2;
+        webglFx.setFlareX(avgX);
+        webglFx.setFlareY(avgY);
+        if (flareX) { flareX.value = Math.round(avgX * 100); flareXVal.textContent = `${Math.round(avgX * 100)}%`; }
+        if (flareY) { flareY.value = Math.round(avgY * 100); flareYVal.textContent = `${Math.round(avgY * 100)}%`; }
+      }
     }
 
     // ── Step 3: Draw text layers, stickers, frames ──
@@ -543,6 +566,71 @@ function drawRecIndicator(ctx, w, h, label) {
   // Label text
   ctx.fillStyle = '#fff';
   ctx.fillText(label, x + dotR * 2 + pad * 0.5, y);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// COLOR FILTER PRESETS  (InShot-style)
+// ══════════════════════════════════════════════════════════════════════════════
+const COLOR_PRESETS = [
+  { id: 'original', name: 'Original', brightness: 0,   contrast: 0,   saturation: 0,   exposure: 0,  swatch: 'linear-gradient(160deg,#7a7a7a,#3a3a3a)' },
+  { id: 'hx1',     name: 'HX1',      brightness: 8,   contrast: 15,  saturation: 25,  exposure: 5,  swatch: 'linear-gradient(160deg,#d4935a,#c05030)' },
+  { id: 'eg4',     name: 'EG4',      brightness: 0,   contrast: 20,  saturation: -25, exposure: 0,  swatch: 'linear-gradient(160deg,#7aaac0,#3a6080)' },
+  { id: 'eg2',     name: 'EG2',      brightness: 10,  contrast: 10,  saturation: 10,  exposure: 3,  swatch: 'linear-gradient(160deg,#8ab0be,#5a8090)' },
+  { id: 'xh1',     name: 'XH1',      brightness: 5,   contrast: 20,  saturation: 40,  exposure: 5,  swatch: 'linear-gradient(160deg,#e89040,#d05020)' },
+  { id: 'b1',      name: 'B1',       brightness: 0,   contrast: 35,  saturation: -100,exposure: 0,  swatch: 'linear-gradient(160deg,#909090,#181818)' },
+  { id: 'b2',      name: 'B2',       brightness: 10,  contrast: 25,  saturation: -90, exposure: 5,  swatch: 'linear-gradient(160deg,#a0a0a0,#383838)' },
+  { id: 'fade',    name: 'Fade',     brightness: 25,  contrast: -30, saturation: -20, exposure: 0,  swatch: 'linear-gradient(160deg,#c8b8b0,#988880)' },
+  { id: 'golden',  name: 'Golden',   brightness: 12,  contrast: 15,  saturation: 35,  exposure: 8,  swatch: 'linear-gradient(160deg,#f0b840,#e06810)' },
+  { id: 'moody',   name: 'Moody',    brightness: -15, contrast: 30,  saturation: -30, exposure: -5, swatch: 'linear-gradient(160deg,#384860,#101820)' },
+  { id: 'fresh',   name: 'Fresh',    brightness: 10,  contrast: 10,  saturation: 20,  exposure: 5,  swatch: 'linear-gradient(160deg,#60c8a8,#2888a0)' },
+  { id: 'vintage', name: 'Vintage',  brightness: 0,   contrast: -15, saturation: -30, exposure: -5, swatch: 'linear-gradient(160deg,#c09060,#805030)' },
+  { id: 'neon',    name: 'Neon',     brightness: 10,  contrast: 25,  saturation: 60,  exposure: 0,  swatch: 'linear-gradient(160deg,#a030e0,#d02080)' },
+  { id: 'cinema',  name: 'Cinema',   brightness: -10, contrast: 25,  saturation: -15, exposure: -5, swatch: 'linear-gradient(160deg,#405060,#101820)' },
+  { id: 'pastel',  name: 'Pastel',   brightness: 25,  contrast: -20, saturation: -25, exposure: 5,  swatch: 'linear-gradient(160deg,#d0c0c8,#a098b8)' },
+  { id: 'drama',   name: 'Drama',    brightness: -20, contrast: 40,  saturation: 15,  exposure: -10,swatch: 'linear-gradient(160deg,#602040,#100810)' },
+];
+
+let activePreset = 'original';
+
+function renderFilterPresets() {
+  if (!filterPresetsScroll) return;
+  filterPresetsScroll.innerHTML = '';
+  for (const p of COLOR_PRESETS) {
+    const btn = document.createElement('button');
+    btn.className = `filter-preset-btn${p.id === activePreset ? ' active' : ''}`;
+    btn.dataset.preset = p.id;
+    btn.innerHTML = `
+      <div class="filter-swatch" style="background:${p.swatch}"></div>
+      <span class="filter-name">${p.name}</span>
+    `;
+    btn.addEventListener('click', () => applyColorPreset(p));
+    filterPresetsScroll.appendChild(btn);
+  }
+}
+
+function applyColorPreset(preset) {
+  activePreset = preset.id;
+
+  // Update sliders + values
+  const set = (id, valId, v) => {
+    const el = document.getElementById(id);
+    const vEl = document.getElementById(valId);
+    if (el)  el.value = v;
+    if (vEl) vEl.textContent = v;
+  };
+
+  set('cc-brightness', 'cc-brightness-val', preset.brightness);
+  set('cc-contrast',   'cc-contrast-val',   preset.contrast);
+  set('cc-saturation', 'cc-saturation-val', preset.saturation);
+  set('cc-exposure',   'cc-exposure-val',   preset.exposure);
+
+  // Fire change to rebuild CSS filter
+  ['cc-brightness','cc-contrast','cc-saturation','cc-exposure'].forEach(id => {
+    document.getElementById(id)?.dispatchEvent(new Event('input'));
+  });
+
+  // Re-render preset buttons
+  renderFilterPresets();
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -865,6 +953,21 @@ function bindEvents() {
     }
   });
 
+  // ─── Censor mode buttons ─────────────────────────────────────────────────
+  censorModeGrid.forEach(btn => {
+    btn.addEventListener('click', () => {
+      censorModeGrid.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = btn.dataset.mode;
+      faceCensor.censorMode = mode;
+      // Update label
+      if (censorRadiusLabel) {
+        const labels = { blur: 'Blur Radius', pixelate: 'Block Size', blackbar: 'Bar Expand', shadow: 'Shadow Radius', stripes: 'Stripe Width' };
+        censorRadiusLabel.textContent = labels[mode] || 'Radius';
+      }
+    });
+  });
+
   blurRadiusSlider.addEventListener('input', () => {
     const v = parseInt(blurRadiusSlider.value);
     blurRadiusVal.textContent = `${v}px`;
@@ -900,6 +1003,17 @@ function bindEvents() {
         timeline.addEffectMarker(videoEl.currentTime, state.currentEffect);
       }
     });
+  });
+
+  // Flare eye tracking toggle
+  toggleFlareTrack?.addEventListener('change', () => {
+    state.flareTrackEyes = toggleFlareTrack.checked;
+    if (flareTrackHint) flareTrackHint.style.display = toggleFlareTrack.checked ? 'block' : 'none';
+    if (toggleFlareTrack.checked && !state.faceMeshReady) {
+      alert('Enable Censor first to activate FaceMesh, then Eye Tracking will work.');
+      toggleFlareTrack.checked = false;
+      state.flareTrackEyes = false;
+    }
   });
 
   effectIntensity.addEventListener('input', () => {

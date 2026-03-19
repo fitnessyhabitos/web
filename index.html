@@ -243,7 +243,27 @@
           </div>
           <div class="panel-body" id="censor-controls">
             <div class="control-group">
-              <label>Blur Radius</label>
+              <label>Censor Mode</label>
+              <div class="censor-mode-grid" id="censor-mode-grid">
+                <button class="censor-mode-btn active" data-mode="blur">
+                  <span class="cmb-icon">≈</span><span>Blur</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="pixelate">
+                  <span class="cmb-icon">▦</span><span>Pixel</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="blackbar">
+                  <span class="cmb-icon">█</span><span>Black</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="shadow">
+                  <span class="cmb-icon">◉</span><span>Shadow</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="stripes">
+                  <span class="cmb-icon">≡</span><span>Stripes</span>
+                </button>
+              </div>
+            </div>
+            <div class="control-group">
+              <label id="censor-radius-label">Blur Radius</label>
               <div class="slider-row">
                 <input type="range" id="blur-radius" min="5" max="60" value="20" class="neon-range">
                 <span id="blur-radius-val">20px</span>
@@ -336,11 +356,28 @@
               <span id="flare-y-val">25%</span>
             </div>
           </div>
+          <div class="control-group">
+            <label style="display:flex;align-items:center;justify-content:space-between">
+              Track Eyes with Flare
+              <label class="toggle-switch" style="margin:0">
+                <input type="checkbox" id="toggle-flare-track">
+                <span class="toggle-slider"></span>
+              </label>
+            </label>
+          </div>
+          <div class="hint-text" id="flare-track-hint" style="display:none;font-size:10px;color:var(--cyan);text-align:center;padding:4px 0">
+            ✦ Flare follows detected eyes automatically
+          </div>
         </div>
 
         <!-- COLOR PANEL -->
         <div class="panel-section hidden" id="panel-color">
-          <div class="panel-title"><span>Color Grade</span></div>
+          <div class="panel-title"><span>Filter Presets</span></div>
+          <div class="filter-presets-scroll" id="filter-presets-scroll">
+            <!-- filter buttons will be rendered by JS -->
+          </div>
+          <div class="panel-divider"></div>
+          <div class="panel-title" style="margin-top:4px"><span>Manual Adjust</span></div>
           <div class="control-group">
             <label>Brightness</label>
             <div class="slider-row">

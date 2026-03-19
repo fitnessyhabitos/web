@@ -21,9 +21,15 @@ export class FaceCensorEngine {
     this.onResultsCb    = null;
     this.onLoadProgress = null;
 
-    // Offscreen blur canvas (reused each frame)
+    // Offscreen processing canvases (reused each frame)
     this._blurCanvas    = document.createElement('canvas');
     this._blurCtx       = this._blurCanvas.getContext('2d');
+    this._pixCanvas     = document.createElement('canvas');
+    this._pixCtx        = this._pixCanvas.getContext('2d');
+
+    // Censor mode: 'blur' | 'pixelate' | 'blackbar' | 'shadow' | 'stripes'
+    this.censorMode     = 'blur';
+    this.blockSize      = 10;   // for pixelate mode
   }
 
   /**
@@ -104,16 +110,21 @@ export class FaceCensorEngine {
   applyBlurMask(ctx, video, width, height) {
     if (!this.lastResults?.multiFaceLandmarks?.length) return;
 
-    // Ensure blur canvas matches output size
+    // Ensure processing canvas matches output size
     if (this._blurCanvas.width !== width || this._blurCanvas.height !== height) {
       this._blurCanvas.width  = width;
       this._blurCanvas.height = height;
     }
 
-    // Paint the blurred version of the whole frame onto blur canvas
-    this._blurCtx.filter = `blur(${this.blurRadius}px)`;
-    this._blurCtx.drawImage(video, 0, 0, width, height);
-    this._blurCtx.filter = 'none';
+    if (this.censorMode === 'blur') {
+      // Pre-blur the entire frame once; clip regions will sample from it
+      this._blurCtx.filter = `blur(${this.blurRadius}px)`;
+      this._blurCtx.drawImage(video, 0, 0, width, height);
+      this._blurCtx.filter = 'none';
+    } else if (this.censorMode === 'pixelate') {
+      // Pre-draw clean frame; pixelation happens per-eye-region in _censorEye
+      this._blurCtx.drawImage(video, 0, 0, width, height);
+    }
 
     for (const landmarks of this.lastResults.multiFaceLandmarks) {
       this._censorEyePair(ctx, landmarks, width, height);
@@ -126,46 +137,92 @@ export class FaceCensorEngine {
     this._censorEye(ctx, landmarks, RIGHT_EYE_CONTOUR, w, h);
   }
 
-  /** Clip to eye polygon and paint from the pre-blurred canvas */
+  /** Censor one eye using the active censor mode */
   _censorEye(ctx, landmarks, indices, w, h) {
     const pts = indices.map(i => ({
       x: landmarks[i].x * w,
       y: landmarks[i].y * h,
     }));
 
-    // Compute bounding box for expand padding
-    const xs = pts.map(p => p.x);
-    const ys = pts.map(p => p.y);
+    const xs  = pts.map(p => p.x);
+    const ys  = pts.map(p => p.y);
     const minX = Math.min(...xs);
     const minY = Math.min(...ys);
     const maxX = Math.max(...xs);
     const maxY = Math.max(...ys);
-    const ex = this.maskExpand;
+    const ex   = this.maskExpand;
+    const cx   = (minX + maxX) / 2;
+    const cy   = (minY + maxY) / 2;
+
+    // Expanded polygon path
+    const expandedPts = pts.map(p => {
+      const dx = p.x - cx, dy = p.y - cy;
+      const len = Math.sqrt(dx*dx + dy*dy) || 1;
+      return { x: p.x + (dx/len)*ex, y: p.y + (dy/len)*ex };
+    });
+
+    // Bounding box with expansion
+    const bx = Math.max(0, minX - ex);
+    const by = Math.max(0, minY - ex);
+    const bw = Math.min(w - bx, (maxX - minX) + ex * 2);
+    const bh = Math.min(h - by, (maxY - minY) + ex * 2);
 
     ctx.save();
 
-    // Build eye polygon path (expanded)
-    ctx.beginPath();
-    const cx = (minX + maxX) / 2;
-    const cy = (minY + maxY) / 2;
+    if (this.censorMode === 'blur' || this.censorMode === 'pixelate') {
+      // Clip to eye polygon then draw processed content
+      ctx.beginPath();
+      ctx.moveTo(expandedPts[0].x, expandedPts[0].y);
+      for (let i = 1; i < expandedPts.length; i++) ctx.lineTo(expandedPts[i].x, expandedPts[i].y);
+      ctx.closePath();
+      ctx.clip();
 
-    // Scale points outward from eye center to expand the mask
-    const expandedPts = pts.map(p => {
-      const dx = p.x - cx;
-      const dy = p.y - cy;
-      const len = Math.sqrt(dx * dx + dy * dy) || 1;
-      return { x: p.x + (dx / len) * ex, y: p.y + (dy / len) * ex };
-    });
+      if (this.censorMode === 'blur') {
+        ctx.drawImage(this._blurCanvas, 0, 0);
+      } else {
+        // Pixelate: scale down then up with imageSmoothingEnabled = false
+        const bs  = Math.max(2, this.blurRadius);   // reuse blurRadius slider as block size
+        const tW  = Math.max(1, Math.floor(bw / bs));
+        const tH  = Math.max(1, Math.floor(bh / bs));
+        if (this._pixCanvas.width !== tW || this._pixCanvas.height !== tH) {
+          this._pixCanvas.width  = tW;
+          this._pixCanvas.height = tH;
+        }
+        this._pixCtx.imageSmoothingEnabled = false;
+        this._pixCtx.drawImage(this._blurCanvas, bx, by, bw, bh, 0, 0, tW, tH);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(this._pixCanvas, 0, 0, tW, tH, bx, by, bw, bh);
+        ctx.imageSmoothingEnabled = true;
+      }
 
-    ctx.moveTo(expandedPts[0].x, expandedPts[0].y);
-    for (let i = 1; i < expandedPts.length; i++) {
-      ctx.lineTo(expandedPts[i].x, expandedPts[i].y);
+    } else if (this.censorMode === 'blackbar') {
+      // Black filled ellipse over eye region
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, (bw / 2) + ex * 0.5, (bh / 2) + ex * 0.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+    } else if (this.censorMode === 'shadow') {
+      // Radial dark gradient
+      const rad  = Math.max(bw, bh) * 0.7 + ex;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+      grad.addColorStop(0,   'rgba(0,0,0,0.97)');
+      grad.addColorStop(0.6, 'rgba(0,0,0,0.7)');
+      grad.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(bx - rad, by - rad, bw + rad*2, bh + rad*2);
+
+    } else if (this.censorMode === 'stripes') {
+      // Horizontal black stripes over eye region
+      const stripeW = Math.max(2, Math.floor(this.blurRadius / 3));
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, (bw/2) + ex, (bh/2) + ex * 0.6, 0, 0, Math.PI * 2);
+      ctx.clip();
+      for (let sy = by - ex; sy < by + bh + ex; sy += stripeW * 2) {
+        ctx.fillStyle = 'rgba(0,0,0,0.92)';
+        ctx.fillRect(bx - ex, sy, bw + ex*2, stripeW);
+      }
     }
-    ctx.closePath();
-    ctx.clip();
-
-    // Draw the pre-blurred canvas only within this clipped region
-    ctx.drawImage(this._blurCanvas, 0, 0);
 
     ctx.restore();
   }
