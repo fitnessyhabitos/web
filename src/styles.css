@@ -1620,3 +1620,241 @@ button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; poin
   color: var(--cyan);
   box-shadow: 0 0 8px var(--cyan-glow);
 }
+
+/* ── SOUNDS PANEL ── */
+.sounds-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.sounds-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+.sound-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-red);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 8px;
+  color: var(--text-muted);
+  transition: all var(--transition);
+  letter-spacing: 0.3px;
+}
+.sound-icon { font-size: 18px; line-height: 1; }
+.sound-tile:hover { border-color: var(--cyan); color: var(--cyan); }
+.sound-tile.active {
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
+  color: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan-glow);
+}
+.sound-tile.stop-btn {
+  display: flex;
+  flex-direction: row;
+  font-size: 12px;
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.35);
+}
+.sound-tile.stop-btn:hover { border-color: #ef4444; background: rgba(239,68,68,0.08); }
+
+/* ══════════════════════════════════════════════════════
+   MOBILE RESPONSIVE — iPhone 15 Pro & small screens
+   Layout switches: sidebar → bottom nav, panel → drawer
+══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  :root {
+    --header-h:   44px;
+    --sidebar-w:  0px;
+    --panel-w:    100vw;
+    --timeline-h: 110px;
+  }
+
+  /* Use dynamic viewport height on iOS (avoids Safari chrome overlap) */
+  #app { height: 100dvh; }
+
+  /* ── HEADER ── */
+  #app-header { padding: 0 10px; }
+  .logo-text { font-size: 15px; }
+  .ratio-btn { padding: 3px 8px; font-size: 10px; }
+  #btn-export { padding: 6px 12px; font-size: 11px; }
+  #fps-counter { display: none; }
+
+  /* ── WORKSPACE: stack vertically ── */
+  #workspace {
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR: becomes horizontal bottom nav ── */
+  #sidebar {
+    order: 3;
+    width: 100%;
+    height: 56px;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0 6px;
+    gap: 0;
+    border-right: none;
+    border-top: 1px solid var(--border-red);
+    flex-shrink: 0;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  #sidebar::-webkit-scrollbar { display: none; }
+
+  .tool-btn {
+    min-width: 56px;
+    height: 52px;
+    flex-direction: row;
+    gap: 4px;
+    padding: 0 10px;
+    font-size: 10px;
+    border-radius: 0;
+    flex-shrink: 0;
+  }
+  .tool-btn svg { width: 18px; height: 18px; }
+  .tool-divider {
+    width: 1px;
+    height: 28px;
+    margin: auto 4px;
+    align-self: center;
+  }
+
+  /* ── CANVAS AREA: fills remaining space ── */
+  #canvas-area {
+    order: 1;
+    flex: 1 1 0;
+    width: 100%;
+    min-height: 0;
+  }
+
+  /* ── PLAYBACK CONTROLS ── */
+  #playback-controls {
+    padding: 6px 10px;
+  }
+
+  /* ── RIGHT PANEL: slide-up bottom drawer ── */
+  #tool-panel {
+    order: 2;
+    position: fixed;
+    bottom: 56px; /* above bottom nav */
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 52vh;
+    z-index: 200;
+    border-left: none;
+    border-top: 1px solid var(--border-red);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(8, 0, 0, 0.96);
+    backdrop-filter: blur(24px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #tool-panel.mobile-open {
+    transform: translateY(0);
+  }
+
+  /* Drag handle indicator on panel */
+  #tool-panel::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--border-red);
+    border-radius: 2px;
+    margin: 10px auto 4px;
+    opacity: 0.6;
+  }
+
+  .panel-section {
+    overflow-y: auto;
+    max-height: calc(52vh - 60px);
+    padding-bottom: 16px;
+  }
+
+  /* MEDIA upload section shown inline */
+  #panel-upload { padding: 12px; }
+  .upload-card { height: 80px; }
+
+  /* ── TIMELINE ── */
+  #timeline-container {
+    height: var(--timeline-h);
+  }
+  .track-labels { display: none; }
+  #tl-scroll-area { left: 0; }
+
+  /* ── TOUCH TARGETS ── */
+  .effect-btn, .frame-preset-btn, .sticker-pick, .sound-tile,
+  .trim-action-btn, .censor-mode-btn {
+    min-height: 40px;
+  }
+
+  .neon-range {
+    height: 6px;
+    cursor: pointer;
+  }
+
+  /* Effects grid 3 cols on mobile */
+  .effects-grid { grid-template-columns: repeat(3, 1fr); }
+
+  /* Stickers 4 cols on mobile */
+  .stickers-grid { grid-template-columns: repeat(4, 1fr); }
+
+  /* Frames 2 cols on mobile */
+  .frames-presets-row { grid-template-columns: repeat(2, 1fr); }
+  .fp-preview { width: 100%; }
+}
+
+/* Extra small (iPhone SE etc) */
+@media (max-width: 390px) {
+  .tool-btn { min-width: 48px; padding: 0 6px; font-size: 9px; }
+  :root { --timeline-h: 90px; }
+}
+
+/* ══════════════════════════════════════════════════════
+   SAFE AREA INSETS — iPhone 15 Pro / 16 Pro
+   Handles Dynamic Island notch + Home indicator bar
+══════════════════════════════════════════════════════ */
+@supports (padding-top: env(safe-area-inset-top)) {
+  #app-header {
+    padding-top: env(safe-area-inset-top);
+    height: calc(var(--header-h) + env(safe-area-inset-top));
+  }
+
+  /* Bottom nav safe area (home indicator on 15/16 Pro) */
+  @media (max-width: 768px) {
+    #sidebar {
+      padding-bottom: env(safe-area-inset-bottom);
+      height: calc(56px + env(safe-area-inset-bottom));
+    }
+    #right-panel {
+      bottom: calc(56px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    /* Left/right notch insets for landscape */
+    #canvas-area {
+      padding-left:  env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+  }
+}
+
+/* iPhone 16 Pro specific (430px logical width) */
+@media (min-width: 391px) and (max-width: 430px) {
+  :root { --timeline-h: 105px; }
+  .tool-btn { min-width: 52px; }
+}

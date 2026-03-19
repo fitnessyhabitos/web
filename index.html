@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <meta name="description" content="CENSOR ENGINE PRO — Professional AI Video Editor">
   <title>CENSOR ENGINE PRO</title>
@@ -163,6 +163,14 @@
           </svg>
           <span>Frames</span>
         </button>
+        <button class="tool-btn" data-tool="sounds" title="Ambient Sounds">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18V5l12-2v13"/>
+            <path d="M6 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" fill="currentColor" opacity="0.4"/>
+            <path d="M18 13a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" fill="currentColor" opacity="0.4"/>
+          </svg>
+          <span>Sounds</span>
+        </button>
       </aside>
 
       <!-- CANVAS AREA -->
@@ -260,6 +268,18 @@
                 <button class="censor-mode-btn" data-mode="stripes">
                   <span class="cmb-icon">≡</span><span>Stripes</span>
                 </button>
+                <button class="censor-mode-btn" data-mode="frost">
+                  <span class="cmb-icon">❄️</span><span>Frost</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="warmglow">
+                  <span class="cmb-icon">🔆</span><span>Warm</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="coolglow">
+                  <span class="cmb-icon">💠</span><span>Cool</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="emoji">
+                  <span class="cmb-icon">😎</span><span>Emoji</span>
+                </button>
               </div>
             </div>
             <div class="control-group">
@@ -270,9 +290,9 @@
               </div>
             </div>
             <div class="control-group">
-              <label>Mask Expansion</label>
+              <label>Mask Size <small style="color:var(--text-muted);font-size:9px;font-weight:400">ojos → cara</small></label>
               <div class="slider-row">
-                <input type="range" id="mask-expand" min="0" max="40" value="10" class="neon-range">
+                <input type="range" id="mask-expand" min="0" max="220" value="10" class="neon-range">
                 <span id="mask-expand-val">10px</span>
               </div>
             </div>
@@ -664,6 +684,69 @@
           </div>
           <div id="active-frames-list" class="segments-list" style="margin-top:8px"></div>
           <button class="neon-btn-secondary" id="btn-clear-frames" style="margin-top:8px">Clear all frames</button>
+        </div>
+
+        <!-- SOUNDS PANEL -->
+        <div class="panel-section hidden" id="panel-sounds">
+          <div class="panel-title"><span>Ambient Sounds</span></div>
+
+          <div class="sounds-section-label">🌿 Nature</div>
+          <div class="sounds-grid">
+            <button class="sound-tile" data-sound="rain">
+              <span class="sound-icon">🌧️</span><span>Rain</span>
+            </button>
+            <button class="sound-tile" data-sound="ocean">
+              <span class="sound-icon">🌊</span><span>Ocean</span>
+            </button>
+            <button class="sound-tile" data-sound="wind">
+              <span class="sound-icon">🌬️</span><span>Wind</span>
+            </button>
+            <button class="sound-tile" data-sound="forest">
+              <span class="sound-icon">🌳</span><span>Forest</span>
+            </button>
+            <button class="sound-tile" data-sound="fire">
+              <span class="sound-icon">🔥</span><span>Fire</span>
+            </button>
+          </div>
+
+          <div class="sounds-section-label" style="margin-top:12px">🧘 Meditation</div>
+          <div class="sounds-grid">
+            <button class="sound-tile" data-sound="bowl">
+              <span class="sound-icon">🎑</span><span>Bowl</span>
+            </button>
+            <button class="sound-tile" data-sound="bells">
+              <span class="sound-icon">🔔</span><span>Bells</span>
+            </button>
+            <button class="sound-tile" data-sound="binaural">
+              <span class="sound-icon">💫</span><span>Binaural</span>
+            </button>
+            <button class="sound-tile" data-sound="om">
+              <span class="sound-icon">🙏</span><span>Om</span>
+            </button>
+          </div>
+
+          <div class="sounds-section-label" style="margin-top:12px">✨ Ambient</div>
+          <div class="sounds-grid">
+            <button class="sound-tile" data-sound="sensual">
+              <span class="sound-icon">🎷</span><span>Sensual</span>
+            </button>
+          </div>
+
+          <button class="sound-tile stop-btn" id="btn-stop-sound" style="margin-top:14px;width:100%;justify-content:center;gap:8px;padding:10px">
+            <span>⏹</span><span>Stop</span>
+          </button>
+
+          <div class="control-group" style="margin-top:14px">
+            <label>Volume</label>
+            <div class="slider-row">
+              <input type="range" id="sound-volume" min="0" max="100" value="55" class="neon-range">
+              <span id="sound-volume-val">55%</span>
+            </div>
+          </div>
+
+          <div class="hint-text" style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:10px;line-height:1.5">
+            Sonidos generados en tiempo real<br>con Web Audio API
+          </div>
         </div>
 
       </aside>

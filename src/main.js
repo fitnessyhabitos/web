@@ -8,6 +8,7 @@ import { WebGLEffectsEngine } from './webgl-effects.js';
 import { Timeline }           from './timeline.js';
 import { AudioMixer }         from './audio-mixer.js';
 import { VideoExporter }      from './exporter.js';
+import { ZenAudioEngine }    from './zen-audio.js';
 
 // ─── DOM References ──────────────────────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
@@ -92,6 +93,12 @@ const frameOpacityVal    = $('#frame-opacity-val');
 const activeFramesList   = $('#active-frames-list');
 const btnClearFrames     = $('#btn-clear-frames');
 
+// Sound controls
+const soundTiles          = document.querySelectorAll('.sound-tile[data-sound]');
+const btnStopSound        = $('#btn-stop-sound');
+const soundVolume         = $('#sound-volume');
+const soundVolumeVal      = $('#sound-volume-val');
+
 // Censor controls
 const toggleCensor       = $('#toggle-censor');
 const blurRadiusSlider   = $('#blur-radius');
@@ -164,6 +171,7 @@ const inputMusic2        = $('#input-music2');
 // ─── Module Instances ────────────────────────────────────────────────────────
 const faceCensor  = new FaceCensorEngine();
 const webglFx     = new WebGLEffectsEngine(displayCanvas);
+const zenAudio    = new ZenAudioEngine();
 const audioMixer  = new AudioMixer();
 const exporter    = new VideoExporter();
 let   timeline    = null;
@@ -1288,6 +1296,43 @@ function bindEvents() {
     }
   });
 
+  // ─── Sounds panel ────────────────────────────────────────────────────────
+  soundTiles.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const soundId = btn.dataset.sound;
+      if (zenAudio.currentSound === soundId) {
+        zenAudio.stop();
+        soundTiles.forEach(b => b.classList.remove('active'));
+      } else {
+        zenAudio.play(soundId);
+        soundTiles.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    });
+  });
+
+  btnStopSound?.addEventListener('click', () => {
+    zenAudio.stop();
+    soundTiles.forEach(b => b.classList.remove('active'));
+  });
+
+  soundVolume?.addEventListener('input', () => {
+    const v = parseInt(soundVolume.value) / 100;
+    soundVolumeVal.textContent = `${soundVolume.value}%`;
+    zenAudio.setVolume(v);
+  });
+
+  // Mobile: close panel when tapping canvas
+  displayCanvas.addEventListener('touchend', (e) => {
+    if (window.innerWidth <= 768) {
+      const rp = document.getElementById('tool-panel');
+      if (rp?.classList.contains('mobile-open')) {
+        // Only close if tap was on canvas itself, not a button
+        rp.classList.remove('mobile-open');
+      }
+    }
+  });
+
   // ─── Keyboard shortcuts ───────────────────────────────────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -1321,8 +1366,9 @@ function bindEvents() {
 // UTILITY
 // ══════════════════════════════════════════════════════════════════════════════
 function showPanel(name) {
+  const panelSounds = $('#panel-sounds');
   [panelUpload, panelCensor, panelEffects, panelColor, panelText, panelMusic,
-   panelTrim, panelStickers, panelFrames].forEach(p => {
+   panelTrim, panelStickers, panelFrames, panelSounds].forEach(p => {
     p?.classList.add('hidden');
   });
   const map = {
@@ -1335,6 +1381,7 @@ function showPanel(name) {
     trim:     panelTrim,
     stickers: panelStickers,
     frames:   panelFrames,
+    sounds:   panelSounds,
   };
   map[name]?.classList.remove('hidden');
 
@@ -1346,6 +1393,13 @@ function showPanel(name) {
     canvasWrapper.classList.add('mode-flare');
   } else {
     canvasWrapper.classList.add('mode-default');
+  }
+
+  // Mobile: show/hide right panel as bottom drawer
+  const rightPanel = document.getElementById('tool-panel');
+  if (rightPanel && window.innerWidth <= 768) {
+    const isMediaPanel = (name === 'upload');
+    rightPanel.classList.toggle('mobile-open', !isMediaPanel);
   }
 }
 
