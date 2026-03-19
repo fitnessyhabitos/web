@@ -246,25 +246,9 @@ async function init() {
   setTimeout(() => {
     splashScreen.style.display = 'none';
     app.classList.remove('hidden');
-    // Re-run resize after layout paints so offsetWidth/Height are real
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (state.videoLoaded) {
-          resizeDisplayCanvas(compositeCanvas.width, compositeCanvas.height);
-        }
-      });
-    });
   }, 650);
 
   bindEvents();
-
-  // ResizeObserver: recalculate canvas whenever the workspace is resized
-  new ResizeObserver(() => {
-    if (state.videoLoaded) {
-      resizeDisplayCanvas(compositeCanvas.width, compositeCanvas.height);
-    }
-  }).observe(canvasWrapper);
-
   setAspectRatio('9:16');
   showPanel('upload');
   updateToolActive('upload');
@@ -674,9 +658,6 @@ async function loadVideo(file) {
   headerFilename.textContent = file.name;
   btnPlayPause.disabled = false;
   state.videoLoaded = true;
-
-  // Force two rAF passes so the DOM has fully painted before measuring wrapper
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   resizeDisplayCanvas(vw, vh);
 
   // Init trim segments
@@ -704,35 +685,10 @@ async function loadVideo(file) {
 
 function resizeDisplayCanvas(vw, vh) {
   if (!vw || !vh) return;
-
-  // offsetWidth forces reflow — reliable after layout
-  const ww = canvasWrapper.offsetWidth;
-  const wh = canvasWrapper.offsetHeight;
-
-  // If workspace hasn't laid out yet, retry after next paint
-  if (!ww || !wh) {
-    requestAnimationFrame(() => resizeDisplayCanvas(vw, vh));
-    return;
-  }
-
-  const aspect  = vw / vh;
-  const availW  = ww - 24;
-  const availH  = wh - 24;
-  let canW, canH;
-
-  if (availW / availH > aspect) {
-    // Height-constrained
-    canH = availH;
-    canW = Math.round(canH * aspect);
-  } else {
-    // Width-constrained
-    canW = availW;
-    canH = Math.round(canW / aspect);
-  }
-
-  displayCanvas.style.width  = `${canW}px`;
-  displayCanvas.style.height = `${canH}px`;
-  // Internal resolution stays at full video resolution for quality
+  // Set CSS aspect-ratio so the browser auto-sizes within the flex container.
+  // max-width:100% / max-height:100% (set in CSS) clamp it to the available space.
+  displayCanvas.style.aspectRatio = `${vw} / ${vh}`;
+  // Internal resolution = full video resolution for maximum render quality.
   displayCanvas.width  = vw;
   displayCanvas.height = vh;
 }
