@@ -221,6 +221,9 @@ const state = {
   selectedSticker:  null,     // emoji string currently selected for placement
   activeFrames:     [],       // [{id, type, opacity}]
   flareTrackEyes:   false,
+  bgBlurActive:     false,
+  drawingZone:      false,    // zone draw mode active
+  zoneCounter:      0,        // for labeling
   recBlinkState:    true,
   recBlinkTimer:    0,
   frameCount:       0,
@@ -321,18 +324,32 @@ function startRenderLoop() {
     const W = compositeCanvas.width;
     const H = compositeCanvas.height;
 
-    // ── Step 1: Draw video to composite canvas (with CSS filter for CC) ──
-    compCtx.filter = webglFx.buildCSSFilter();
-    compCtx.drawImage(videoEl, 0, 0, W, H);
-    compCtx.filter = 'none';
+    // ── Step 1: Background blur (if active, replaces normal video draw) ──
+    const needsFaceMesh = (state.censorActive || state.bgBlurActive || state.flareTrackEyes || faceCensor.manualZones.length > 0) && state.faceMeshReady;
 
-    // ── Step 2: Apply eye blur + optional eye tracking for flare ──
-    const needsFaceMesh = (state.censorActive || state.flareTrackEyes) && state.faceMeshReady;
+    if (state.bgBlurActive && state.faceMeshReady) {
+      // processFrame handled below; here we draw blurred bg
+      compCtx.filter = webglFx.buildCSSFilter();
+      faceCensor.applyBgBlur(compCtx, videoEl, W, H);
+      compCtx.filter = 'none';
+    } else {
+      // ── Normal video draw ──
+      compCtx.filter = webglFx.buildCSSFilter();
+      compCtx.drawImage(videoEl, 0, 0, W, H);
+      compCtx.filter = 'none';
+    }
+
+    // ── Step 2: FaceMesh processing + AI eye censor ──
     if (needsFaceMesh) {
       await faceCensor.processFrame(videoEl);
       if (state.censorActive) {
         faceCensor.applyBlurMask(compCtx, videoEl, W, H);
       }
+    }
+
+    // ── Step 2c: Manual zone censoring ──
+    if (faceCensor.manualZones.length > 0) {
+      faceCensor.applyManualZones(compCtx, videoEl, W, H);
     }
 
     // ── Step 2b: Flare eye tracking ──
@@ -1593,6 +1610,172 @@ function bindEvents() {
     zenAudio.setVolume(v);
   });
 
+  // ─── Background Blur ──────────────────────────────────────────────────────
+  const toggleBgBlur    = $('#toggle-bg-blur');
+  const bgBlurControls  = $('#bg-blur-controls');
+  const bgBlurRadius    = $('#bg-blur-radius');
+  const bgBlurRadiusVal = $('#bg-blur-radius-val');
+
+  toggleBgBlur?.addEventListener('change', () => {
+    state.bgBlurActive      = toggleBgBlur.checked;
+    faceCensor.bgBlurActive = toggleBgBlur.checked;
+    // bgBlur needs FaceMesh active even if eye censor is off
+    if (toggleBgBlur.checked && !faceCensor.isActive) {
+      faceCensor.isActive = true;
+    } else if (!toggleBgBlur.checked && !state.censorActive) {
+      faceCensor.isActive = false;
+    }
+    if (bgBlurControls) bgBlurControls.style.display = toggleBgBlur.checked ? 'block' : 'none';
+  });
+
+  bgBlurRadius?.addEventListener('input', () => {
+    const v = parseInt(bgBlurRadius.value);
+    bgBlurRadiusVal.textContent = `${v}px`;
+    faceCensor.setBgBlurRadius(v);
+  });
+
+  // ─── Manual Zone Drawing ──────────────────────────────────────────────────
+  const btnDrawZone   = $('#btn-draw-zone');
+  const btnClearZones = $('#btn-clear-zones');
+  const zoneModeHint  = $('#zone-mode-hint');
+  const zoneList      = $('#zone-list');
+
+  function renderZoneList() {
+    if (!zoneList) return;
+    zoneList.innerHTML = '';
+    faceCensor.manualZones.forEach(zone => {
+      const item = document.createElement('div');
+      item.className = 'zone-item';
+      item.innerHTML = `<span>🎯 Zona ${zone.id} — ${zone.mode}</span>
+        <button class="zone-del" data-id="${zone.id}" title="Eliminar">✕</button>`;
+      zoneList.appendChild(item);
+    });
+    if (btnClearZones) {
+      btnClearZones.style.display = faceCensor.manualZones.length ? 'flex' : 'none';
+    }
+  }
+
+  zoneList?.addEventListener('click', (e) => {
+    const del = e.target.closest('.zone-del');
+    if (del) {
+      faceCensor.removeManualZone(parseInt(del.dataset.id));
+      renderZoneList();
+    }
+  });
+
+  btnClearZones?.addEventListener('click', () => {
+    faceCensor.clearManualZones();
+    renderZoneList();
+  });
+
+  btnDrawZone?.addEventListener('click', () => {
+    state.drawingZone = !state.drawingZone;
+    btnDrawZone.classList.toggle('active', state.drawingZone);
+    if (zoneModeHint) zoneModeHint.style.display = state.drawingZone ? 'block' : 'none';
+    if (state.drawingZone) {
+      initZoneDrawing();
+    } else {
+      removeZoneDrawing();
+    }
+  });
+
+  // Zone drawing overlay logic
+  let _zoneOverlay = null, _zonePreview = null;
+  let _zoneStart   = null;
+
+  function initZoneDrawing() {
+    removeZoneDrawing();
+    _zoneOverlay = document.createElement('div');
+    _zoneOverlay.id = 'zone-draw-overlay';
+    canvasWrapper.style.position = 'relative';
+    canvasWrapper.appendChild(_zoneOverlay);
+
+    _zonePreview = document.createElement('div');
+    _zonePreview.className = 'zone-rect-preview';
+    _zonePreview.style.display = 'none';
+    _zoneOverlay.appendChild(_zonePreview);
+
+    const getPos = (e) => {
+      const rect = _zoneOverlay.getBoundingClientRect();
+      const touch = e.touches?.[0] ?? e;
+      return {
+        x: (touch.clientX - rect.left) / rect.width,
+        y: (touch.clientY - rect.top)  / rect.height,
+      };
+    };
+
+    const onStart = (e) => {
+      e.preventDefault();
+      _zoneStart = getPos(e);
+      _zonePreview.style.display = 'block';
+    };
+
+    const onMove = (e) => {
+      e.preventDefault();
+      if (!_zoneStart) return;
+      const cur = getPos(e);
+      const x   = Math.min(_zoneStart.x, cur.x);
+      const y   = Math.min(_zoneStart.y, cur.y);
+      const w   = Math.abs(cur.x - _zoneStart.x);
+      const h   = Math.abs(cur.y - _zoneStart.y);
+      _zonePreview.style.left   = `${x * 100}%`;
+      _zonePreview.style.top    = `${y * 100}%`;
+      _zonePreview.style.width  = `${w * 100}%`;
+      _zonePreview.style.height = `${h * 100}%`;
+    };
+
+    const onEnd = (e) => {
+      e.preventDefault();
+      if (!_zoneStart) return;
+      const cur = getPos(e.changedTouches?.[0] ?? e);
+      const W   = compositeCanvas.width;
+      const H   = compositeCanvas.height;
+      const x   = Math.min(_zoneStart.x, cur.x);
+      const y   = Math.min(_zoneStart.y, cur.y);
+      const w   = Math.abs(cur.x - _zoneStart.x);
+      const h   = Math.abs(cur.y - _zoneStart.y);
+
+      if (w > 0.02 && h > 0.02) {
+        // Convert normalized coords to pixel half-extents
+        const W2 = compositeCanvas.width;
+        const H2 = compositeCanvas.height;
+        const cx = (x + w / 2) * W2;
+        const cy = (y + h / 2) * H2;
+        const rW = (w / 2) * W2;
+        const rH = (h / 2) * H2;
+        faceCensor.addManualZone(cx, cy, rW, rH, faceCensor.censorMode);
+        // Ensure FaceMesh engine is active for template tracking
+        if (!faceCensor.isActive) faceCensor.isActive = true;
+        state.zoneCounter++;
+        renderZoneList();
+      }
+      _zoneStart = null;
+      _zonePreview.style.display = 'none';
+      // Exit draw mode after placing zone
+      state.drawingZone = false;
+      btnDrawZone?.classList.remove('active');
+      if (zoneModeHint) zoneModeHint.style.display = 'none';
+      removeZoneDrawing();
+    };
+
+    _zoneOverlay.addEventListener('mousedown',  onStart);
+    _zoneOverlay.addEventListener('mousemove',  onMove);
+    _zoneOverlay.addEventListener('mouseup',    onEnd);
+    _zoneOverlay.addEventListener('touchstart', onStart, { passive: false });
+    _zoneOverlay.addEventListener('touchmove',  onMove,  { passive: false });
+    _zoneOverlay.addEventListener('touchend',   onEnd,   { passive: false });
+
+    _zoneOverlay._handlers = { onStart, onMove, onEnd };
+  }
+
+  function removeZoneDrawing() {
+    if (_zoneOverlay) {
+      _zoneOverlay.remove();
+      _zoneOverlay = null;
+      _zonePreview = null;
+    }
+  }
+
   // Mobile: close panel when tapping canvas
   displayCanvas.addEventListener('touchend', (e) => {
     if (window.innerWidth <= 768) {
@@ -1758,13 +1941,20 @@ async function renderSingleFrame() {
   const W = compositeCanvas.width;
   const H = compositeCanvas.height;
 
-  compCtx.filter = webglFx.buildCSSFilter();
-  compCtx.drawImage(videoEl, 0, 0, W, H);
-  compCtx.filter = 'none';
+  if (state.bgBlurActive && state.faceMeshReady) {
+    compCtx.filter = webglFx.buildCSSFilter();
+    faceCensor.applyBgBlur(compCtx, videoEl, W, H);
+    compCtx.filter = 'none';
+  } else {
+    compCtx.filter = webglFx.buildCSSFilter();
+    compCtx.drawImage(videoEl, 0, 0, W, H);
+    compCtx.filter = 'none';
+  }
 
-  if (state.censorActive && state.faceMeshReady) {
+  if ((state.censorActive || state.bgBlurActive || faceCensor.manualZones.length > 0) && state.faceMeshReady) {
     await faceCensor.processFrame(videoEl);
-    faceCensor.applyBlurMask(compCtx, videoEl, W, H);
+    if (state.censorActive) faceCensor.applyBlurMask(compCtx, videoEl, W, H);
+    if (faceCensor.manualZones.length > 0) faceCensor.applyManualZones(compCtx, videoEl, W, H);
   }
 
   drawTextLayers(compCtx, W, H);

@@ -1598,6 +1598,79 @@ button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; poin
   opacity: 0.4;
 }
 
+/* ── CENSOR SECTION LABEL ── */
+.censor-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 14px 0 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-red);
+}
+
+/* ── CENSOR ACTION BUTTONS ── */
+.censor-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-red);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--text-dim);
+  transition: all var(--transition);
+  letter-spacing: 0.3px;
+}
+.censor-action-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.censor-action-btn.active {
+  border-color: #f59e0b;
+  background: rgba(245,158,11,0.12);
+  color: #f59e0b;
+  box-shadow: 0 0 8px rgba(245,158,11,0.3);
+}
+.censor-action-btn.danger { border-color: var(--red); color: var(--red); }
+.censor-action-btn.danger:hover { background: rgba(180,20,20,0.15); }
+
+/* ── ZONE LIST ITEMS ── */
+.zone-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-red);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.zone-item .zone-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 13px; padding: 0 2px;
+}
+.zone-item .zone-del:hover { color: var(--red); }
+
+/* ── ZONE DRAW OVERLAY ── */
+#zone-draw-overlay {
+  position: absolute;
+  inset: 0;
+  cursor: crosshair;
+  z-index: 50;
+  touch-action: none;
+}
+.zone-rect-preview {
+  position: absolute;
+  border: 2px dashed #f59e0b;
+  background: rgba(245,158,11,0.12);
+  pointer-events: none;
+  border-radius: 3px;
+}
+
 /* ── CENSOR MODE GRID ── */
 .censor-mode-grid {
   display: grid;

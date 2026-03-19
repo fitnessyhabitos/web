@@ -260,6 +260,8 @@
             </label>
           </div>
           <div class="panel-body" id="censor-controls">
+
+            <!-- AI EYE CENSOR MODES -->
             <div class="control-group">
               <label>Censor Mode</label>
               <div class="censor-mode-grid" id="censor-mode-grid">
@@ -269,8 +271,14 @@
                 <button class="censor-mode-btn" data-mode="pixelate">
                   <span class="cmb-icon">▦</span><span>Pixel</span>
                 </button>
+                <button class="censor-mode-btn" data-mode="mosaic">
+                  <span class="cmb-icon">⊞</span><span>Mosaico</span>
+                </button>
                 <button class="censor-mode-btn" data-mode="blackbar">
                   <span class="cmb-icon">█</span><span>Black</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="whiteout">
+                  <span class="cmb-icon">□</span><span>White</span>
                 </button>
                 <button class="censor-mode-btn" data-mode="shadow">
                   <span class="cmb-icon">◉</span><span>Shadow</span>
@@ -282,10 +290,10 @@
                   <span class="cmb-icon">❄️</span><span>Frost</span>
                 </button>
                 <button class="censor-mode-btn" data-mode="warmglow">
-                  <span class="cmb-icon">🔆</span><span>Warm</span>
+                  <span class="cmb-icon">🟠</span><span>Warm</span>
                 </button>
                 <button class="censor-mode-btn" data-mode="coolglow">
-                  <span class="cmb-icon">💠</span><span>Cool</span>
+                  <span class="cmb-icon">🔵</span><span>Cool</span>
                 </button>
                 <button class="censor-mode-btn" data-mode="emoji">
                   <span class="cmb-icon">😎</span><span>Emoji</span>
@@ -295,8 +303,8 @@
             <div class="control-group">
               <label id="censor-radius-label">Blur Radius</label>
               <div class="slider-row">
-                <input type="range" id="blur-radius" min="5" max="60" value="20" class="neon-range">
-                <span id="blur-radius-val">20px</span>
+                <input type="range" id="blur-radius" min="5" max="80" value="30" class="neon-range">
+                <span id="blur-radius-val">30px</span>
               </div>
             </div>
             <div class="control-group">
@@ -316,28 +324,64 @@
                 </select>
               </div>
             </div>
-          <div class="control-group">
-            <label>Effect Opacity</label>
-            <div class="slider-row">
-              <input type="range" id="censor-opacity" min="0" max="100" value="100" class="neon-range">
-              <span id="censor-opacity-val">100%</span>
+            <div class="control-group">
+              <label>Effect Opacity</label>
+              <div class="slider-row">
+                <input type="range" id="censor-opacity" min="0" max="100" value="100" class="neon-range">
+                <span id="censor-opacity-val">100%</span>
+              </div>
             </div>
-          </div>
-          <div class="control-group">
-            <label>Width (X scale)</label>
-            <div class="slider-row">
-              <input type="range" id="mask-scale-x" min="30" max="600" value="100" class="neon-range">
-              <span id="mask-scale-x-val">1.0×</span>
+            <div class="control-group">
+              <label>Width (X scale)</label>
+              <div class="slider-row">
+                <input type="range" id="mask-scale-x" min="30" max="600" value="100" class="neon-range">
+                <span id="mask-scale-x-val">1.0×</span>
+              </div>
             </div>
-          </div>
-          <div class="control-group">
-            <label>Height (Y scale)</label>
-            <div class="slider-row">
-              <input type="range" id="mask-scale-y" min="30" max="600" value="100" class="neon-range">
-              <span id="mask-scale-y-val">1.0×</span>
+            <div class="control-group">
+              <label>Height (Y scale)</label>
+              <div class="slider-row">
+                <input type="range" id="mask-scale-y" min="30" max="600" value="100" class="neon-range">
+                <span id="mask-scale-y-val">1.0×</span>
+              </div>
             </div>
-          </div>
-            <div id="censor-status" class="status-indicator">
+
+            <!-- BACKGROUND BLUR -->
+            <div class="censor-section-label">🌫️ Fondo Difuminado</div>
+            <div class="wm-toggle-row">
+              <span style="font-size:11px;color:var(--text-dim)">Difuminar fondo</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-bg-blur">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="bg-blur-controls" style="display:none">
+              <div class="control-group" style="margin-top:6px">
+                <label>Intensidad fondo</label>
+                <div class="slider-row">
+                  <input type="range" id="bg-blur-radius" min="4" max="60" value="18" class="neon-range">
+                  <span id="bg-blur-radius-val">18px</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- MANUAL ZONE TRACKING -->
+            <div class="censor-section-label">🎯 Zona Manual (tracking)</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;line-height:1.4">
+              Dibuja un rectángulo en el video. Se censurará y seguirá automáticamente.
+            </div>
+            <button id="btn-draw-zone" class="censor-action-btn" style="width:100%">
+              ✏️ Dibujar Zona
+            </button>
+            <div id="zone-mode-hint" style="display:none;font-size:10px;color:#f59e0b;margin:6px 0;text-align:center">
+              Toca y arrastra sobre el video para marcar la zona
+            </div>
+            <div id="zone-list" style="margin-top:8px"></div>
+            <button id="btn-clear-zones" class="censor-action-btn danger" style="width:100%;margin-top:4px;display:none">
+              🗑 Limpiar zonas
+            </button>
+
+            <div id="censor-status" class="status-indicator" style="margin-top:10px">
               <span class="status-dot"></span>
               <span class="status-text">Censor inactive</span>
             </div>
@@ -834,102 +878,123 @@
 
         <!-- SOUNDS PANEL -->
         <div class="panel-section hidden" id="panel-sounds">
-          <div class="panel-title"><span>Ambient Sounds</span></div>
+          <div class="panel-title"><span>🎵 Música Ambiental</span></div>
 
-          <div class="sounds-section-label">🌿 Nature</div>
-          <div class="sounds-grid">
-            <button class="sound-tile" data-sound="rain">
-              <span class="sound-icon">🌧️</span><span>Rain</span>
+          <!-- MÚSICA ACÚSTICA -->
+          <div class="sounds-section-label">🎸 Guitarra &amp; Acústica</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(4,1fr)">
+            <button class="sound-tile" data-sound="guitar">
+              <span class="sound-icon">🎸</span><span>Guitarra</span>
             </button>
-            <button class="sound-tile" data-sound="ocean">
-              <span class="sound-icon">🌊</span><span>Ocean</span>
+            <button class="sound-tile" data-sound="guitar_flamenco">
+              <span class="sound-icon">💃</span><span>Flamenko</span>
             </button>
-            <button class="sound-tile" data-sound="wind">
-              <span class="sound-icon">🌬️</span><span>Wind</span>
+            <button class="sound-tile" data-sound="flute">
+              <span class="sound-icon">🪈</span><span>Flauta</span>
             </button>
-            <button class="sound-tile" data-sound="forest">
-              <span class="sound-icon">🌳</span><span>Forest</span>
-            </button>
-            <button class="sound-tile" data-sound="fire">
-              <span class="sound-icon">🔥</span><span>Fire</span>
+            <button class="sound-tile" data-sound="bells">
+              <span class="sound-icon">🔔</span><span>Campanas</span>
             </button>
           </div>
 
-          <div class="sounds-section-label" style="margin-top:12px">🧘 Meditation</div>
-          <div class="sounds-grid">
-            <button class="sound-tile" data-sound="bowl">
-              <span class="sound-icon">🎑</span><span>Bowl</span>
+          <!-- PIANO -->
+          <div class="sounds-section-label" style="margin-top:10px">🎹 Piano</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(3,1fr)">
+            <button class="sound-tile" data-sound="piano">
+              <span class="sound-icon">🎹</span><span>Piano</span>
             </button>
-            <button class="sound-tile" data-sound="bells">
-              <span class="sound-icon">🔔</span><span>Bells</span>
+            <button class="sound-tile" data-sound="piano_lofi">
+              <span class="sound-icon">☁️</span><span>Lo-Fi Piano</span>
+            </button>
+            <button class="sound-tile" data-sound="lofi">
+              <span class="sound-icon">🎧</span><span>Lo-Fi Beat</span>
+            </button>
+          </div>
+
+          <!-- AMBIENT PAD -->
+          <div class="sounds-section-label" style="margin-top:10px">🌊 Ambiental</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(4,1fr)">
+            <button class="sound-tile" data-sound="ambient">
+              <span class="sound-icon">🌌</span><span>Pad</span>
+            </button>
+            <button class="sound-tile" data-sound="om">
+              <span class="sound-icon">🙏</span><span>Om Drone</span>
             </button>
             <button class="sound-tile" data-sound="binaural">
               <span class="sound-icon">💫</span><span>Binaural</span>
             </button>
-            <button class="sound-tile" data-sound="om">
-              <span class="sound-icon">🙏</span><span>Om</span>
+            <button class="sound-tile" data-sound="hz528">
+              <span class="sound-icon">✨</span><span>528 Hz</span>
             </button>
           </div>
 
-          <div class="sounds-section-label" style="margin-top:12px">✨ Ambient</div>
-          <div class="sounds-grid">
-            <button class="sound-tile" data-sound="sensual">
-              <span class="sound-icon">🎷</span><span>Sensual</span>
-            </button>
-          </div>
-
-          <button class="sound-tile stop-btn" id="btn-stop-sound" style="margin-top:14px;width:100%;justify-content:center;gap:8px;padding:10px">
-            <span>⏹</span><span>Stop</span>
-          </button>
-
-          <div class="control-group" style="margin-top:14px">
-            <label>Volume</label>
-            <div class="slider-row">
-              <input type="range" id="sound-volume" min="0" max="100" value="55" class="neon-range">
-              <span id="sound-volume-val">55%</span>
-            </div>
-          </div>
-
-          <div class="sounds-section-label" style="margin-top:12px">🔊 Noise &amp; Relax</div>
-          <div class="sounds-grid" style="grid-template-columns:repeat(5,1fr)">
-            <button class="sound-tile" data-sound="whitenoise">
-              <span class="sound-icon">〰️</span><span>White</span>
-            </button>
-            <button class="sound-tile" data-sound="pinknoise">
-              <span class="sound-icon">🌸</span><span>Pink</span>
-            </button>
-            <button class="sound-tile" data-sound="thunder">
-              <span class="sound-icon">⛈️</span><span>Thunder</span>
-            </button>
-            <button class="sound-tile" data-sound="stream">
-              <span class="sound-icon">🏞️</span><span>Stream</span>
-            </button>
-            <button class="sound-tile" data-sound="night">
-              <span class="sound-icon">🦗</span><span>Night</span>
-            </button>
-          </div>
-
-          <div class="sounds-section-label" style="margin-top:12px">🌌 Deep Focus</div>
-          <div class="sounds-grid" style="grid-template-columns:repeat(5,1fr)">
-            <button class="sound-tile" data-sound="space">
-              <span class="sound-icon">🌌</span><span>Space</span>
+          <!-- MEDITACIÓN -->
+          <div class="sounds-section-label" style="margin-top:10px">🧘 Meditación</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(4,1fr)">
+            <button class="sound-tile" data-sound="bowl">
+              <span class="sound-icon">🎑</span><span>Cuencos</span>
             </button>
             <button class="sound-tile" data-sound="breath">
-              <span class="sound-icon">🫁</span><span>Breath</span>
+              <span class="sound-icon">🫁</span><span>Respirar</span>
             </button>
-            <button class="sound-tile" data-sound="crystal">
-              <span class="sound-icon">🔮</span><span>Crystal</span>
-            </button>
-            <button class="sound-tile" data-sound="hz528">
-              <span class="sound-icon">✨</span><span>528Hz</span>
+            <button class="sound-tile" data-sound="space">
+              <span class="sound-icon">🪐</span><span>Cosmos</span>
             </button>
             <button class="sound-tile" data-sound="cafe">
               <span class="sound-icon">☕</span><span>Café</span>
             </button>
           </div>
 
+          <!-- NATURALEZA -->
+          <div class="sounds-section-label" style="margin-top:10px">🌿 Naturaleza</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(5,1fr)">
+            <button class="sound-tile" data-sound="rain">
+              <span class="sound-icon">🌧️</span><span>Lluvia</span>
+            </button>
+            <button class="sound-tile" data-sound="ocean">
+              <span class="sound-icon">🌊</span><span>Océano</span>
+            </button>
+            <button class="sound-tile" data-sound="forest">
+              <span class="sound-icon">🌳</span><span>Bosque</span>
+            </button>
+            <button class="sound-tile" data-sound="stream">
+              <span class="sound-icon">🏞️</span><span>Arroyo</span>
+            </button>
+            <button class="sound-tile" data-sound="thunder">
+              <span class="sound-icon">⛈️</span><span>Tormenta</span>
+            </button>
+            <button class="sound-tile" data-sound="wind">
+              <span class="sound-icon">🌬️</span><span>Viento</span>
+            </button>
+            <button class="sound-tile" data-sound="fire">
+              <span class="sound-icon">🔥</span><span>Fuego</span>
+            </button>
+            <button class="sound-tile" data-sound="night">
+              <span class="sound-icon">🦗</span><span>Noche</span>
+            </button>
+            <button class="sound-tile" data-sound="whitenoise">
+              <span class="sound-icon">〰️</span><span>Blanco</span>
+            </button>
+            <button class="sound-tile" data-sound="pinknoise">
+              <span class="sound-icon">🌸</span><span>Rosa</span>
+            </button>
+          </div>
+
+          <button class="sound-tile stop-btn" id="btn-stop-sound" style="margin-top:14px;width:100%;justify-content:center;gap:8px;padding:10px">
+            <span>⏹</span><span>Parar música</span>
+          </button>
+
+          <div class="control-group" style="margin-top:12px">
+            <label>Volumen</label>
+            <div class="slider-row">
+              <input type="range" id="sound-volume" min="0" max="100" value="55" class="neon-range">
+              <span id="sound-volume-val">55%</span>
+            </div>
+          </div>
+
           <div class="hint-text" style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:10px;line-height:1.5">
-            Sonidos generados en tiempo real<br>con Web Audio API
+            Guitarra Karplus-Strong · Piano ADSR · Reverb<br>
+            Sintetizado en tiempo real · Sin copyright
           </div>
         </div>
 
