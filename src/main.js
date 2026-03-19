@@ -246,9 +246,25 @@ async function init() {
   setTimeout(() => {
     splashScreen.style.display = 'none';
     app.classList.remove('hidden');
+    // Re-run resize after layout paints so offsetWidth/Height are real
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (state.videoLoaded) {
+          resizeDisplayCanvas(compositeCanvas.width, compositeCanvas.height);
+        }
+      });
+    });
   }, 650);
 
   bindEvents();
+
+  // ResizeObserver: recalculate canvas whenever the workspace is resized
+  new ResizeObserver(() => {
+    if (state.videoLoaded) {
+      resizeDisplayCanvas(compositeCanvas.width, compositeCanvas.height);
+    }
+  }).observe(canvasWrapper);
+
   setAspectRatio('9:16');
   showPanel('upload');
   updateToolActive('upload');
@@ -658,6 +674,10 @@ async function loadVideo(file) {
   headerFilename.textContent = file.name;
   btnPlayPause.disabled = false;
   state.videoLoaded = true;
+
+  // Force two rAF passes so the DOM has fully painted before measuring wrapper
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  resizeDisplayCanvas(vw, vh);
 
   // Init trim segments
   initSegments(videoEl.duration);
