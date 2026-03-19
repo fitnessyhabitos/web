@@ -562,6 +562,47 @@ html, body {
   cursor: pointer;
 }
 .seek-bar-range:disabled { opacity: 0.3; pointer-events: none; }
+
+/* Background effect mode grid */
+.bg-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.bg-mode-btn {
+  padding: 6px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px solid var(--border-red);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+  touch-action: manipulation;
+}
+.bg-mode-btn:hover { border-color: var(--cyan); color: var(--text); }
+.bg-mode-btn.active {
+  background: rgba(25,249,249,0.12);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan-glow);
+}
+
+/* Speed button in canvas controls */
+.speed-btn {
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 36px;
+  letter-spacing: 0.5px;
+  color: var(--cyan);
+}
+.speed-btn.active { background: rgba(25,249,249,0.15); border-color: var(--cyan); }
+
 @media (max-width: 768px) {
   .seek-bar-range {
     height: 6px;
@@ -1873,13 +1914,18 @@ button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; poin
   /* ── Playback controls ── */
   #playback-controls { padding: 5px 12px; }
 
-  /* ── Timeline: compact ── */
+  /* ── Timeline: hidden on mobile (seek bar replaces it) ── */
   #timeline-container {
-    height: 80px;
-    flex-shrink: 0;
+    display: none;
   }
   .track-labels { display: none; }
   #tl-scroll-area { left: 0; }
+
+  /* ── Canvas controls: compact + safe-area sides ── */
+  #canvas-controls {
+    padding: 6px max(12px, env(safe-area-inset-left, 0px)) 6px max(12px, env(safe-area-inset-right, 0px));
+    gap: 8px;
+  }
 
   /* ── BOTTOM NAV — fixed, always visible, InShot style ── */
   #sidebar {
@@ -2012,6 +2058,7 @@ button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; poin
 
   /* Grids adjusted for mobile width */
   .effects-grid           { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .bg-mode-grid           { grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .stickers-grid          { grid-template-columns: repeat(4, 1fr); }
   .sounds-grid            { grid-template-columns: repeat(5, 1fr); }
   .frames-presets-row     { grid-template-columns: repeat(3, 1fr); }

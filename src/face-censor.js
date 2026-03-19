@@ -64,6 +64,7 @@ export class FaceCensorEngine {
     this.censorTarget   = 'eyes';   // 'eyes' | 'face' | 'head'
     this.bgBlurActive   = false;
     this.bgBlurRadius   = 18;
+    this.bgBlurMode     = 'blur';  // 'blur'|'pixelate'|'noir'|'vintage'|'neon'|'dark'|'frosted'|'glitch'|'mirror'|'zoom'
 
     // Manual zones: [{id, cx, cy, rW, rH, mode, _faceAnchored, _offX, _offY}]
     this.manualZones    = [];
@@ -169,40 +170,26 @@ export class FaceCensorEngine {
   // BACKGROUND BLUR
   // ══════════════════════════════════════════════════════
   applyBgBlur(ctx, video, width, height) {
-    // ── 1. Resize helper canvases ──────────────────────────────────────────
+    // Resize helper canvases
     for (const c of [this._bgCanvas, this._personCanvas]) {
       if (c.width !== width || c.height !== height) { c.width = width; c.height = height; }
     }
 
-    // ── 2. Build blurred background via downsample ─────────────────────────
-    const scale = Math.max(0.03, 1 / (1 + this.bgBlurRadius * 0.18));
-    const sw = Math.max(4, Math.round(width * scale));
-    const sh = Math.max(4, Math.round(height * scale));
-    if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
-      this._smallCanvas.width = sw; this._smallCanvas.height = sh;
-    }
-    this._smallCtx.drawImage(video, 0, 0, sw, sh);
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    // Draw blurred background first
-    ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+    // Draw the background effect
+    this._drawBgEffect(ctx, video, width, height);
 
-    // ── 3a. Portrait mode — segmentation available ─────────────────────────
+    // ── Portrait mode — segmentation available ─────────────────────────
     if (this._segReady && this._lastSegMask) {
-      // Draw sharp video to personCanvas
       this._personCtx.clearRect(0, 0, width, height);
       this._personCtx.drawImage(video, 0, 0, width, height);
-      // Clip to person using mask (white = person, black = background)
-      // destination-in keeps only pixels where mask is opaque
       this._personCtx.globalCompositeOperation = 'destination-in';
       this._personCtx.drawImage(this._lastSegMask, 0, 0, width, height);
       this._personCtx.globalCompositeOperation = 'source-over';
-      // Composite sharp person over blurred background
       ctx.drawImage(this._personCanvas, 0, 0);
       return;
     }
 
-    // ── 3b. Fallback — face-oval only (no segmentation yet) ───────────────
+    // ── Fallback — face-oval only (no segmentation yet) ───────────────
     const lms = this.lastResults?.multiFaceLandmarks;
     if (lms?.length > 0) {
       this._updateFaceBbox(lms[0], width, height);
@@ -212,7 +199,6 @@ export class FaceCensorEngine {
       this._faceBbox.cy += this._faceVelocity.cy; this._faceVelocity.cy *= 0.88;
     }
     if (this._faceBbox && (lms?.length > 0 || this._facePersist > 0)) {
-      // Save a sharp copy then clip-draw it
       this._bgCtx.drawImage(video, 0, 0, width, height);
       const fb = this._faceBbox;
       ctx.save();
@@ -222,6 +208,162 @@ export class FaceCensorEngine {
       ctx.drawImage(this._bgCanvas, 0, 0);
       ctx.restore();
     }
+  }
+
+  /** Draw the configured background effect to ctx */
+  _drawBgEffect(ctx, video, width, height) {
+    const mode = this.bgBlurMode || 'blur';
+
+    // Compute downsample size (used by most modes for blur)
+    const blurScale = Math.max(0.03, 1 / (1 + this.bgBlurRadius * 0.18));
+    const sw = Math.max(4, Math.round(width  * blurScale));
+    const sh = Math.max(4, Math.round(height * blurScale));
+
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    switch (mode) {
+      default:
+      case 'blur': {
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        break;
+      }
+
+      case 'pixelate': {
+        // Extra-small canvas → upscale without smoothing → block pixels
+        const ps = Math.max(0.008, 1 / (1 + this.bgBlurRadius * 0.55));
+        const pw = Math.max(2, Math.round(width  * ps));
+        const ph = Math.max(2, Math.round(height * ps));
+        if (this._smallCanvas.width !== pw || this._smallCanvas.height !== ph) {
+          this._smallCanvas.width = pw; this._smallCanvas.height = ph;
+        }
+        this._smallCtx.imageSmoothingEnabled = false;
+        this._smallCtx.drawImage(video, 0, 0, pw, ph);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(this._smallCanvas, 0, 0, pw, ph, 0, 0, width, height);
+        ctx.imageSmoothingEnabled = true;
+        break;
+      }
+
+      case 'noir': {
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.filter = 'grayscale(1) contrast(1.25) brightness(0.8)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        break;
+      }
+
+      case 'vintage': {
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.filter = 'sepia(0.9) contrast(1.1) brightness(0.85) saturate(1.3)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        break;
+      }
+
+      case 'neon': {
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.filter = 'saturate(5) hue-rotate(40deg) contrast(1.2) brightness(0.8)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        break;
+      }
+
+      case 'warm': {
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.filter = 'sepia(0.4) saturate(2) hue-rotate(-10deg) brightness(0.9)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        break;
+      }
+
+      case 'dark': {
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        const darkAlpha = 0.35 + (this.bgBlurRadius / 60) * 0.45;
+        ctx.fillStyle = `rgba(0,0,0,${darkAlpha.toFixed(2)})`;
+        ctx.fillRect(0, 0, width, height);
+        break;
+      }
+
+      case 'frosted': {
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.fillStyle = 'rgba(180,215,255,0.28)';
+        ctx.fillRect(0, 0, width, height);
+        break;
+      }
+
+      case 'glitch': {
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        // Base frame
+        ctx.filter = 'saturate(1.5) contrast(1.05)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        // Red channel shifted left
+        ctx.globalAlpha = 0.45;
+        ctx.filter = 'sepia(1) hue-rotate(-30deg) saturate(8) brightness(0.75)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, -10, 0, width, height);
+        // Cyan channel shifted right
+        ctx.filter = 'sepia(1) hue-rotate(150deg) saturate(8) brightness(0.75)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 10, 0, width, height);
+        ctx.globalAlpha = 1;
+        ctx.filter = 'none';
+        break;
+      }
+
+      case 'mirror': {
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.translate(width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        break;
+      }
+
+      case 'zoom': {
+        // Zoom into blurred BG — bokeh-like
+        const zf  = 1.25 + (this.bgBlurRadius / 60) * 0.5;
+        const zsw = Math.max(4, Math.round(width  * blurScale / zf));
+        const zsh = Math.max(4, Math.round(height * blurScale / zf));
+        if (this._smallCanvas.width !== zsw || this._smallCanvas.height !== zsh) {
+          this._smallCanvas.width = zsw; this._smallCanvas.height = zsh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, zsw, zsh);
+        const zw = width * zf, zh = height * zf;
+        ctx.drawImage(this._smallCanvas, 0, 0, zsw, zsh, (width - zw) / 2, (height - zh) / 2, zw, zh);
+        break;
+      }
+    }
+    ctx.restore();
   }
 
   _updateFaceBbox(lm, w, h) {
@@ -538,6 +680,7 @@ export class FaceCensorEngine {
   setMaskScaleX(v)    { this.maskScaleX   = Math.max(0.3, Math.min(v, 6)); }
   setMaskScaleY(v)    { this.maskScaleY   = Math.max(0.3, Math.min(v, 6)); }
   setBgBlurRadius(r)  { this.bgBlurRadius  = Math.max(4, Math.min(r, 60)); }
+  setBgBlurMode(m)    { this.bgBlurMode = m; }
   setCensorTarget(t)  {
     this.censorTarget = t;
     this._smoothBbox  = null;  // reset so it re-lerps from new target shape

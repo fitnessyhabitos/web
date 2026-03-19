@@ -1707,6 +1707,37 @@ function bindEvents() {
     faceCensor.setBgBlurRadius(v);
   });
 
+  // BG mode buttons
+  document.querySelectorAll('.bg-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.bg-mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      faceCensor.setBgBlurMode(btn.dataset.bgmode);
+    });
+  });
+
+  // Screenshot / frame capture
+  const btnScreenshot = $('#btn-screenshot');
+  btnScreenshot?.addEventListener('click', () => {
+    if (!state.videoLoaded) return;
+    const link = document.createElement('a');
+    link.download = `frame-${Date.now()}.png`;
+    link.href = displayCanvas.toDataURL('image/png');
+    link.click();
+  });
+
+  // Playback speed toggle
+  const btnSpeed   = $('#btn-speed');
+  const speedSteps = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3];
+  let   speedIdx   = 3; // default 1×
+  btnSpeed?.addEventListener('click', () => {
+    speedIdx = (speedIdx + 1) % speedSteps.length;
+    const spd = speedSteps[speedIdx];
+    videoEl.playbackRate = spd;
+    btnSpeed.textContent = spd === 1 ? '1×' : `${spd}×`;
+    btnSpeed.classList.toggle('active', spd !== 1);
+  });
+
   // ─── Manual Zone Drawing ──────────────────────────────────────────────────
   const btnDrawZone   = $('#btn-draw-zone');
   const btnClearZones = $('#btn-clear-zones');
