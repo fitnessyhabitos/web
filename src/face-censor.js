@@ -37,6 +37,13 @@ export class FaceCensorEngine {
     this._trkScale    = 0.125;
     this._frameIdx    = 0;
 
+    // SelfieSegmentation — portrait-mode background blur
+    this._selfieSegmentation = null;
+    this._segReady           = false;
+    this._lastSegMask        = null;   // ImageBitmap mask from MediaPipe
+    this._personCanvas       = document.createElement('canvas');
+    this._personCtx          = this._personCanvas.getContext('2d');
+
     // Eye / face bbox (smooth)
     this._smoothBbox    = null;
     this._persistFrames = 0;
@@ -98,6 +105,37 @@ export class FaceCensorEngine {
     try { await this.faceMesh.send({ image: src }); } catch(_) {}
   }
 
+  // ── SelfieSegmentation (portrait-mode BG blur) ───────────────────────────
+  async initSelfieSegmentation() {
+    if (typeof SelfieSegmentation === 'undefined') {
+      console.warn('SelfieSegmentation not loaded');
+      return;
+    }
+    try {
+      this._selfieSegmentation = new SelfieSegmentation({
+        locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${f}`
+      });
+      // modelSelection 1 = landscape (faster + more accurate for full body)
+      this._selfieSegmentation.setOptions({ modelSelection: 1 });
+      this._selfieSegmentation.onResults(r => {
+        this._lastSegMask = r.segmentationMask;
+      });
+      // Warm-up with 1-pixel dummy
+      const dummy = document.createElement('canvas');
+      dummy.width = dummy.height = 1;
+      await this._selfieSegmentation.send({ image: dummy });
+      this._segReady = true;
+      console.log('SelfieSegmentation ready');
+    } catch (e) {
+      console.warn('SelfieSegmentation init failed:', e);
+    }
+  }
+
+  async processSegmentation(src) {
+    if (!this._segReady || !this._selfieSegmentation) return;
+    try { await this._selfieSegmentation.send({ image: src }); } catch(_) {}
+  }
+
   // ══════════════════════════════════════════════════════
   // BLUR HELPERS — downsample-based (works everywhere)
   // ══════════════════════════════════════════════════════
@@ -131,13 +169,12 @@ export class FaceCensorEngine {
   // BACKGROUND BLUR
   // ══════════════════════════════════════════════════════
   applyBgBlur(ctx, video, width, height) {
-    if (this._bgCanvas.width !== width || this._bgCanvas.height !== height) {
-      this._bgCanvas.width = width; this._bgCanvas.height = height;
+    // ── 1. Resize helper canvases ──────────────────────────────────────────
+    for (const c of [this._bgCanvas, this._personCanvas]) {
+      if (c.width !== width || c.height !== height) { c.width = width; c.height = height; }
     }
-    // Capture sharp frame
-    this._bgCtx.drawImage(video, 0, 0, width, height);
 
-    // Draw blurred background to main ctx
+    // ── 2. Build blurred background via downsample ─────────────────────────
     const scale = Math.max(0.03, 1 / (1 + this.bgBlurRadius * 0.18));
     const sw = Math.max(4, Math.round(width * scale));
     const sh = Math.max(4, Math.round(height * scale));
@@ -147,9 +184,25 @@ export class FaceCensorEngine {
     this._smallCtx.drawImage(video, 0, 0, sw, sh);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
+    // Draw blurred background first
     ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
 
-    // Update face bbox
+    // ── 3a. Portrait mode — segmentation available ─────────────────────────
+    if (this._segReady && this._lastSegMask) {
+      // Draw sharp video to personCanvas
+      this._personCtx.clearRect(0, 0, width, height);
+      this._personCtx.drawImage(video, 0, 0, width, height);
+      // Clip to person using mask (white = person, black = background)
+      // destination-in keeps only pixels where mask is opaque
+      this._personCtx.globalCompositeOperation = 'destination-in';
+      this._personCtx.drawImage(this._lastSegMask, 0, 0, width, height);
+      this._personCtx.globalCompositeOperation = 'source-over';
+      // Composite sharp person over blurred background
+      ctx.drawImage(this._personCanvas, 0, 0);
+      return;
+    }
+
+    // ── 3b. Fallback — face-oval only (no segmentation yet) ───────────────
     const lms = this.lastResults?.multiFaceLandmarks;
     if (lms?.length > 0) {
       this._updateFaceBbox(lms[0], width, height);
@@ -158,8 +211,9 @@ export class FaceCensorEngine {
       this._faceBbox.cx += this._faceVelocity.cx; this._faceVelocity.cx *= 0.88;
       this._faceBbox.cy += this._faceVelocity.cy; this._faceVelocity.cy *= 0.88;
     }
-    // Draw sharp face on top
     if (this._faceBbox && (lms?.length > 0 || this._facePersist > 0)) {
+      // Save a sharp copy then clip-draw it
+      this._bgCtx.drawImage(video, 0, 0, width, height);
       const fb = this._faceBbox;
       ctx.save();
       ctx.beginPath();
@@ -283,16 +337,27 @@ export class FaceCensorEngine {
   }
 
   /** Core censor rendering (shared between AI censor and manual zones) */
-  _drawCensorEffect(ctx, mode, cx, cy, rW, rH, bx, by, bw, bh, W, H) {
+  /** clipShape: 'ellipse' (default, AI censor) | 'rect' (manual zones) */
+  _drawCensorEffect(ctx, mode, cx, cy, rW, rH, bx, by, bw, bh, W, H, clipShape = 'ellipse') {
+    const radius = Math.min(bw, bh) * 0.15;  // rounded corner for rect
+    const _clip = () => {
+      ctx.beginPath();
+      if (clipShape === 'rect') {
+        ctx.roundRect(bx, by, bw, bh, radius);
+      } else {
+        ctx.ellipse(cx, cy, rW, rH, 0, 0, Math.PI * 2);
+      }
+      ctx.clip();
+    };
     ctx.save();
     switch (mode) {
       case 'blur': {
-        ctx.beginPath(); ctx.ellipse(cx,cy,rW,rH,0,0,Math.PI*2); ctx.clip();
+        _clip();
         ctx.drawImage(this._blurCanvas, 0, 0, W, H);
         break;
       }
       case 'pixelate': {
-        ctx.beginPath(); ctx.ellipse(cx,cy,rW,rH,0,0,Math.PI*2); ctx.clip();
+        _clip();
         const bs = Math.max(6, Math.round(bw * 0.08));
         const pW = Math.max(1,Math.floor(bw/bs)), pH = Math.max(1,Math.floor(bh/bs));
         if (this._pixCanvas.width!==pW||this._pixCanvas.height!==pH){
@@ -305,7 +370,7 @@ export class FaceCensorEngine {
         break;
       }
       case 'mosaic': {
-        ctx.beginPath(); ctx.ellipse(cx,cy,rW,rH,0,0,Math.PI*2); ctx.clip();
+        _clip();
         const bs = Math.max(20, Math.round(bw * 0.18));
         const pW = Math.max(1,Math.floor(bw/bs)), pH = Math.max(1,Math.floor(bh/bs));
         if (this._pixCanvas.width!==pW||this._pixCanvas.height!==pH){
@@ -318,19 +383,19 @@ export class FaceCensorEngine {
         break;
       }
       case 'frost': {
-        ctx.beginPath(); ctx.ellipse(cx,cy,rW,rH,0,0,Math.PI*2); ctx.clip();
+        _clip();
         ctx.drawImage(this._blurCanvas, 0, 0, W, H);
         ctx.fillStyle='rgba(220,235,255,0.80)'; ctx.fillRect(bx,by,bw,bh);
         break;
       }
       case 'warmglow': {
-        ctx.beginPath(); ctx.ellipse(cx,cy,rW,rH,0,0,Math.PI*2); ctx.clip();
+        _clip();
         ctx.drawImage(this._blurCanvas, 0, 0, W, H);
         ctx.fillStyle='rgba(255,60,0,0.88)'; ctx.fillRect(bx,by,bw,bh);
         break;
       }
       case 'coolglow': {
-        ctx.beginPath(); ctx.ellipse(cx,cy,rW,rH,0,0,Math.PI*2); ctx.clip();
+        _clip();
         ctx.drawImage(this._blurCanvas, 0, 0, W, H);
         ctx.fillStyle='rgba(0,120,255,0.88)'; ctx.fillRect(bx,by,bw,bh);
         break;
@@ -341,7 +406,12 @@ export class FaceCensorEngine {
         break;
       }
       case 'whiteout': {
-        ctx.beginPath(); ctx.ellipse(cx,cy,rW,rH,0,0,Math.PI*2);
+        ctx.beginPath();
+        if (clipShape === 'rect') {
+          ctx.roundRect(bx, by, bw, bh, radius);
+        } else {
+          ctx.ellipse(cx, cy, rW, rH, 0, 0, Math.PI * 2);
+        }
         ctx.fillStyle='rgba(255,255,255,0.97)'; ctx.fill();
         break;
       }
@@ -456,7 +526,7 @@ export class FaceCensorEngine {
 
       ctx.save();
       ctx.globalAlpha = this.censorOpacity / 100;
-      this._drawCensorEffect(ctx, zone.mode, zone.cx, zone.cy, rW, rH, bx, by, bw, bh, width, height);
+      this._drawCensorEffect(ctx, zone.mode, zone.cx, zone.cy, rW, rH, bx, by, bw, bh, width, height, 'rect');
       ctx.restore();
     }
   }

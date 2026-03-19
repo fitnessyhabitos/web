@@ -276,6 +276,9 @@ async function init() {
     censorStatusDot.classList.add('error');
   }
 
+  // Init SelfieSegmentation in background (portrait-mode BG blur)
+  faceCensor.initSelfieSegmentation().catch(e => console.warn('SelfieSeg:', e));
+
   // Register face results callback
   faceCensor.onResults((results) => {
     faceCountDisplay.textContent = `Faces: ${results.multiFaceLandmarks?.length ?? 0}`;
@@ -328,10 +331,14 @@ function startRenderLoop() {
     const W = compositeCanvas.width;
     const H = compositeCanvas.height;
 
-    // ── Step 1: FaceMesh processing FIRST (populates lastResults for bgBlur + censor) ──
+    // ── Step 1: AI processing FIRST ──────────────────────────────────────────
     const needsFaceMesh = (state.censorActive || state.bgBlurActive || state.flareTrackEyes || faceCensor.manualZones.length > 0) && state.faceMeshReady;
     if (needsFaceMesh) {
       await faceCensor.processFrame(videoEl);
+    }
+    // Segmentation for portrait-mode BG blur (runs independently of FaceMesh)
+    if (state.bgBlurActive) {
+      faceCensor.processSegmentation(videoEl).catch(() => {});
     }
 
     // ── Step 2: Draw background (blurred or normal) ──
@@ -2010,6 +2017,9 @@ async function renderSingleFrame() {
   // processFrame first to populate lastResults for bgBlur face-sharp overlay
   if ((state.censorActive || state.bgBlurActive || faceCensor.manualZones.length > 0) && state.faceMeshReady) {
     await faceCensor.processFrame(videoEl);
+  }
+  if (state.bgBlurActive) {
+    await faceCensor.processSegmentation(videoEl).catch(() => {});
   }
 
   compCtx.filter = webglFx.buildCSSFilter();
