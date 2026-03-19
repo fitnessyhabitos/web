@@ -1,333 +1,550 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FitDataPro - Cyberpunk Edition</title>
-    <style>
-        /* --- CSS Variables & Design System --- */
-        :root {
-            --cyber-black: #050505;
-            --cyber-dark-gray: #121212;
-            --cyber-red-neon: #ff1f3d;
-            --cyber-red-dim: rgba(255, 31, 61, 0.3);
-            --cyber-white: #ffffff;
-            --cyber-text-gray: #a0a0a0;
-            
-            /* Liquid Glass Effect Variables */
-            --glass-bg: rgba(20, 20, 20, 0.65);
-            --glass-border: 1px solid rgba(255, 31, 61, 0.2);
-            --glass-highlight: rgba(255, 255, 255, 0.1);
-            --glass-blur: blur(12px);
-            
-            --nav-height: 70px;
-            --safe-area-bottom: env(safe-area-inset-bottom, 20px);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="CENSOR ENGINE PRO — Professional AI Video Editor">
+  <title>CENSOR ENGINE PRO</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="src/styles.css">
 
-        /* Reset & Base Styles */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            /* Desactivar resaltado de tap en móviles */
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--cyber-black);
-            /* Sutil patrón de fondo cyberpunk */
-            background-image: 
-                radial-gradient(circle at 10% 20%, var(--cyber-red-dim) 0%, transparent 20%),
-                linear-gradient(to bottom, var(--cyber-black), var(--cyber-dark-gray));
-            color: var(--cyber-white);
-            min-height: 100vh;
-            padding-bottom: calc(var(--nav-height) + var(--safe-area-bottom) + 20px);
-            overscroll-behavior-y: none; /* Previene rubber-banding en el body */
-        }
-
-        /* --- Utility Classes (Glassmorphism Mixin) --- */
-        .liquid-glass {
-            background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur); /* Safari Support */
-            border: var(--glass-border);
-            box-shadow: 
-                0 4px 20px rgba(0,0,0,0.5), /* Sombra profunda */
-                inset 0 1px 1px var(--glass-highlight); /* Reflejo superior */
-            border-radius: 16px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        /* --- Layout & Components --- */
-        .container {
-            padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Header */
-        header {
-            padding-top: 20px;
-            margin-bottom: 30px;
-        }
-        h1 {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-        .highlight-red {
-            color: var(--cyber-red-neon);
-            text-shadow: 0 0 10px var(--cyber-red-dim);
-        }
-
-        /* Section Titles */
-        h2 {
-            font-size: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .see-all {
-            font-size: 14px;
-            color: var(--cyber-red-neon);
-            text-decoration: none;
-        }
-
-        /* Date Picker (Simplified Visual) */
-        .date-scroller {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            padding: 10px 0;
-        }
-        .date-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px 14px;
-            border-radius: 12px;
-            color: var(--cyber-text-gray);
-        }
-        .date-item.active {
-            background: var(--cyber-red-neon);
-            color: var(--cyber-white);
-            box-shadow: 0 0 15px var(--cyber-red-neon);
-            font-weight: bold;
-        }
-        .day-name { font-size: 12px; margin-bottom: 4px; }
-        .day-num { font-size: 18px; }
-
-        /* Cards / Containers */
-        .content-card {
-            padding: 25px;
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--cyber-text-gray);
-            font-style: italic;
-            margin-bottom: 30px;
-            position: relative;
-        }
-        /* Efecto de "escaneo" sutil en las tarjetas */
-        .content-card::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--cyber-red-neon), transparent);
-            opacity: 0.4;
-        }
-
-        /* --- Bottom Navigation (Fixed & Glassy) --- */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: calc(var(--nav-height) + var(--safe-area-bottom));
-            padding-bottom: var(--safe-area-bottom);
-            
-            background: rgba(10, 10, 10, 0.85); /* Más oscuro para contraste */
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 31, 61, 0.3);
-            
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--cyber-text-gray);
-            font-size: 11px;
-            flex: 1;
-            height: 100%;
-            cursor: pointer; /* touch-action: manipulation en JS */
-            transition: color 0.2s ease;
-        }
-
-        /* Iconos SVG inline para asegurar carga rápida */
-        .nav-icon {
-            width: 24px;
-            height: 24px;
-            margin-bottom: 4px;
-            fill: currentColor;
-        }
-
-        .nav-item.active {
-            color: var(--cyber-red-neon);
-        }
-        .nav-item.active .nav-icon {
-            filter: drop-shadow(0 0 5px var(--cyber-red-neon));
-        }
-
-        /* FAB Button (Centro) */
-        .fab-container {
-            position: relative;
-            top: -20px;
-        }
-        .fab-button {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--cyber-red-neon);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-            border: none;
-            /* Glow intenso para el botón principal */
-            box-shadow: 
-                0 5px 20px rgba(255, 31, 61, 0.5),
-                inset 0 2px 3px rgba(255, 255, 255, 0.3);
-        }
-        .fab-button:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 10px rgba(255, 31, 61, 0.4);
-        }
-
-        /* Fallback para navegadores que no soportan backdrop-filter */
-        @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-            .liquid-glass, .bottom-nav {
-                background: rgba(20, 20, 20, 0.95); /* Fondo casi sólido */
-            }
-        }
-    </style>
+  <!-- MediaPipe Face Mesh CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>¡Buenos días, <span class="highlight-red">ANTONI!</span></h1>
-        </header>
+  <!-- ═══════════════════════════════════════════════════════
+       SPLASH SCREEN
+  ═══════════════════════════════════════════════════════ -->
+  <div id="splash-screen">
+    <div class="splash-inner">
+      <div class="splash-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="40" r="36" stroke="#940a0a" stroke-width="2"/>
+            <circle cx="40" cy="40" r="28" stroke="#19f9f9" stroke-width="1" opacity="0.5"/>
+            <ellipse cx="28" cy="36" rx="9" ry="5" fill="#940a0a" opacity="0.9"/>
+            <ellipse cx="52" cy="36" rx="9" ry="5" fill="#940a0a" opacity="0.9"/>
+            <path d="M28 48 Q40 56 52 48" stroke="#19f9f9" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <circle cx="28" cy="36" r="3" fill="#000" opacity="0.8"/>
+            <circle cx="52" cy="36" r="3" fill="#000" opacity="0.8"/>
+            <line x1="4" y1="40" x2="16" y2="40" stroke="#19f9f9" stroke-width="1.5" opacity="0.6"/>
+            <line x1="64" y1="40" x2="76" y2="40" stroke="#19f9f9" stroke-width="1.5" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-main">CENSOR ENGINE</span>
+          <span class="logo-pro">PRO</span>
+        </div>
+      </div>
+      <div class="splash-tagline">AI-Powered Video Editor · RTX Optimized</div>
+      <div class="splash-progress-container">
+        <div class="splash-progress-bar">
+          <div id="splash-progress-fill"></div>
+        </div>
+        <div id="splash-progress-label">Initializing AI models…</div>
+      </div>
+      <div class="splash-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
 
-        <section>
-            <h2>Mis actividades</h2>
-            <div class="date-scroller">
-                <div class="date-item"><span class="day-name">LUN.</span><span class="day-num">16</span></div>
-                <div class="date-item"><span class="day-name">MAR.</span><span class="day-num">17</span></div>
-                <div class="date-item"><span class="day-name">MIÉ.</span><span class="day-num">18</span></div>
-                <div class="date-item active liquid-glass"><span class="day-name">JUE.</span><span class="day-num">19</span></div>
-                <div class="date-item"><span class="day-name">VIE.</span><span class="day-num">20</span></div>
-            </div>
+  <!-- ═══════════════════════════════════════════════════════
+       MAIN APP
+  ═══════════════════════════════════════════════════════ -->
+  <div id="app" class="hidden">
 
-            <div class="content-card liquid-glass">
-                Sin eventos hoy
-            </div>
-        </section>
+    <!-- HEADER -->
+    <header id="app-header">
+      <div class="header-left">
+        <div class="header-logo">
+          <span class="hl-icon">⬤</span>
+          <span class="hl-text">CENSOR<span class="hl-pro">PRO</span></span>
+        </div>
+        <div class="header-aspect-ratio">
+          <button class="ar-btn active" data-ar="9:16" title="Portrait (9:16)">9:16</button>
+          <button class="ar-btn" data-ar="16:9" title="Landscape (16:9)">16:9</button>
+          <button class="ar-btn" data-ar="1:1" title="Square (1:1)">1:1</button>
+        </div>
+      </div>
+      <div class="header-center">
+        <span id="header-filename">No video loaded</span>
+      </div>
+      <div class="header-right">
+        <div id="fps-counter" class="fps-counter">-- fps</div>
+        <button id="btn-preview-toggle" class="header-btn" title="Play / Pause">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button id="btn-export" class="header-btn header-btn--export" title="Export Video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Export
+        </button>
+      </div>
+    </header>
 
-        <section>
-            <h2>
-                Mis planes de entrenamiento
-                <a href="#" class="see-all">Ver todo</a>
-            </h2>
-            <div class="content-card liquid-glass">
-                Sin planes asignados. Carga tu rutina.
-            </div>
-        </section>
+    <!-- MAIN WORKSPACE -->
+    <div id="workspace">
 
-         <section>
-            <h2>
-                Mis planes de nutrición
-                <a href="#" class="see-all">Ver todo</a>
-            </h2>
-            <div class="content-card liquid-glass">
-               Calculando macros...
+      <!-- LEFT SIDEBAR -->
+      <aside id="sidebar">
+        <button class="tool-btn" data-tool="upload" title="Load Video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span>Video</span>
+        </button>
+        <button class="tool-btn" data-tool="music" title="Load Music">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18V5l12-2v13"/>
+            <circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+          <span>Music</span>
+        </button>
+        <div class="tool-divider"></div>
+        <button class="tool-btn" data-tool="censor" title="AI Eye Censor">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+            <line x1="3" y1="3" x2="21" y2="21" stroke="#940a0a"/>
+          </svg>
+          <span>Censor</span>
+        </button>
+        <button class="tool-btn" data-tool="effects" title="Visual Effects">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span>Effects</span>
+        </button>
+        <button class="tool-btn" data-tool="color" title="Color Grade">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 2a10 10 0 010 20" fill="rgba(148,10,10,0.4)"/>
+          </svg>
+          <span>Color</span>
+        </button>
+        <button class="tool-btn" data-tool="text" title="Add Text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 7 4 4 20 4 20 7"/>
+            <line x1="9" y1="20" x2="15" y2="20"/>
+            <line x1="12" y1="4" x2="12" y2="20"/>
+          </svg>
+          <span>Text</span>
+        </button>
+      </aside>
+
+      <!-- CANVAS AREA -->
+      <main id="canvas-area">
+        <div id="canvas-wrapper">
+          <!-- Hidden: raw video source -->
+          <video id="video-element" crossorigin="anonymous" playsinline></video>
+          <!-- Hidden: 2D compositing canvas (video + eye blur) -->
+          <canvas id="composite-canvas"></canvas>
+          <!-- Visible: WebGL effects output -->
+          <canvas id="display-canvas"></canvas>
+          <!-- Drop zone overlay -->
+          <div id="drop-overlay">
+            <div class="drop-inner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <p>Drop video here</p>
+              <span>MP4, WebM, MOV supported</span>
             </div>
-        </section>
+          </div>
+        </div>
+
+        <!-- Canvas Controls -->
+        <div id="canvas-controls">
+          <button id="btn-play-pause" class="canvas-ctrl-btn" disabled>
+            <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
+          <span id="time-display">0:00 / 0:00</span>
+          <div class="canvas-ctrl-spacer"></div>
+          <button id="btn-fullscreen" class="canvas-ctrl-btn" title="Fullscreen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+              <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+            </svg>
+          </button>
+        </div>
+      </main>
+
+      <!-- RIGHT TOOL PANEL -->
+      <aside id="tool-panel">
+
+        <!-- UPLOAD PANEL -->
+        <div class="panel-section" id="panel-upload">
+          <div class="panel-title">
+            <span>Media</span>
+          </div>
+          <div class="upload-zone" id="upload-video-zone">
+            <input type="file" id="input-video" accept="video/*" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="2" width="20" height="20" rx="2"/>
+              <polygon points="10 8 16 12 10 16 10 8"/>
+            </svg>
+            <p>Click or drag video</p>
+            <span>MP4 · MOV · WebM · MKV</span>
+          </div>
+          <div class="upload-zone" id="upload-music-zone">
+            <input type="file" id="input-music" accept="audio/*" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+            </svg>
+            <p>Click or drag music</p>
+            <span>MP3 · WAV · OGG · M4A</span>
+          </div>
+        </div>
+
+        <!-- CENSOR PANEL -->
+        <div class="panel-section hidden" id="panel-censor">
+          <div class="panel-title">
+            <span>AI Eye Censor</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-censor">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="panel-body" id="censor-controls">
+            <div class="control-group">
+              <label>Blur Radius</label>
+              <div class="slider-row">
+                <input type="range" id="blur-radius" min="5" max="60" value="20" class="neon-range">
+                <span id="blur-radius-val">20px</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Mask Expansion</label>
+              <div class="slider-row">
+                <input type="range" id="mask-expand" min="0" max="40" value="10" class="neon-range">
+                <span id="mask-expand-val">10px</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Max Faces</label>
+              <div class="select-row">
+                <select id="max-faces" class="neon-select">
+                  <option value="1">1 face</option>
+                  <option value="2" selected>2 faces</option>
+                  <option value="4">4 faces</option>
+                </select>
+              </div>
+            </div>
+            <div id="censor-status" class="status-indicator">
+              <span class="status-dot"></span>
+              <span class="status-text">Censor inactive</span>
+            </div>
+            <div id="face-count-display" class="face-count">Faces: 0</div>
+          </div>
+        </div>
+
+        <!-- EFFECTS PANEL -->
+        <div class="panel-section hidden" id="panel-effects">
+          <div class="panel-title"><span>Visual Effects</span></div>
+          <div class="effects-grid">
+            <button class="effect-btn active" data-effect="none">
+              <div class="effect-preview ep-none"></div>
+              <span>None</span>
+            </button>
+            <button class="effect-btn" data-effect="cinematic">
+              <div class="effect-preview ep-cinematic"></div>
+              <span>Cinematic</span>
+            </button>
+            <button class="effect-btn" data-effect="warm">
+              <div class="effect-preview ep-warm"></div>
+              <span>Warm</span>
+            </button>
+            <button class="effect-btn" data-effect="cold">
+              <div class="effect-preview ep-cold"></div>
+              <span>Cold</span>
+            </button>
+            <button class="effect-btn" data-effect="flare">
+              <div class="effect-preview ep-flare"></div>
+              <span>Lens Flare</span>
+            </button>
+            <button class="effect-btn" data-effect="neon">
+              <div class="effect-preview ep-neon"></div>
+              <span>Neon</span>
+            </button>
+            <button class="effect-btn" data-effect="bokeh">
+              <div class="effect-preview ep-bokeh"></div>
+              <span>Bokeh</span>
+            </button>
+            <button class="effect-btn" data-effect="vhs">
+              <div class="effect-preview ep-vhs"></div>
+              <span>VHS</span>
+            </button>
+            <button class="effect-btn" data-effect="noir">
+              <div class="effect-preview ep-noir"></div>
+              <span>Noir</span>
+            </button>
+          </div>
+          <div class="control-group" style="margin-top:16px">
+            <label>Effect Intensity</label>
+            <div class="slider-row">
+              <input type="range" id="effect-intensity" min="0" max="100" value="80" class="neon-range">
+              <span id="effect-intensity-val">80%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Flare Position X</label>
+            <div class="slider-row">
+              <input type="range" id="flare-x" min="0" max="100" value="75" class="neon-range">
+              <span id="flare-x-val">75%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Flare Position Y</label>
+            <div class="slider-row">
+              <input type="range" id="flare-y" min="0" max="100" value="25" class="neon-range">
+              <span id="flare-y-val">25%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLOR PANEL -->
+        <div class="panel-section hidden" id="panel-color">
+          <div class="panel-title"><span>Color Grade</span></div>
+          <div class="control-group">
+            <label>Brightness</label>
+            <div class="slider-row">
+              <input type="range" id="cc-brightness" min="-100" max="100" value="0" class="neon-range">
+              <span id="cc-brightness-val">0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Contrast</label>
+            <div class="slider-row">
+              <input type="range" id="cc-contrast" min="-100" max="100" value="0" class="neon-range">
+              <span id="cc-contrast-val">0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Saturation</label>
+            <div class="slider-row">
+              <input type="range" id="cc-saturation" min="-100" max="100" value="0" class="neon-range">
+              <span id="cc-saturation-val">0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Exposure</label>
+            <div class="slider-row">
+              <input type="range" id="cc-exposure" min="-100" max="100" value="0" class="neon-range">
+              <span id="cc-exposure-val">0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Vignette</label>
+            <div class="slider-row">
+              <input type="range" id="cc-vignette" min="0" max="100" value="0" class="neon-range">
+              <span id="cc-vignette-val">0%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Sharpen</label>
+            <div class="slider-row">
+              <input type="range" id="cc-sharpen" min="0" max="100" value="0" class="neon-range">
+              <span id="cc-sharpen-val">0%</span>
+            </div>
+          </div>
+          <button class="neon-btn-secondary" id="btn-reset-color" style="margin-top:12px">Reset All</button>
+        </div>
+
+        <!-- TEXT PANEL -->
+        <div class="panel-section hidden" id="panel-text">
+          <div class="panel-title"><span>Text Overlay</span></div>
+          <div class="control-group">
+            <label>Text Content</label>
+            <textarea id="text-content" class="neon-textarea" placeholder="Enter text…" rows="3"></textarea>
+          </div>
+          <div class="control-group">
+            <label>Font Size</label>
+            <div class="slider-row">
+              <input type="range" id="text-size" min="16" max="120" value="48" class="neon-range">
+              <span id="text-size-val">48px</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Color</label>
+            <div class="color-row">
+              <input type="color" id="text-color" value="#ffffff" class="neon-color">
+              <input type="color" id="text-stroke-color" value="#000000" class="neon-color">
+              <span>Fill / Stroke</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Position X / Y</label>
+            <div class="slider-row">
+              <input type="range" id="text-x" min="0" max="100" value="50" class="neon-range">
+              <span id="text-x-val">50%</span>
+            </div>
+            <div class="slider-row" style="margin-top:6px">
+              <input type="range" id="text-y" min="0" max="100" value="80" class="neon-range">
+              <span id="text-y-val">80%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Opacity</label>
+            <div class="slider-row">
+              <input type="range" id="text-opacity" min="0" max="100" value="100" class="neon-range">
+              <span id="text-opacity-val">100%</span>
+            </div>
+          </div>
+          <button class="neon-btn-secondary" id="btn-add-text">Add Text</button>
+        </div>
+
+        <!-- MUSIC PANEL -->
+        <div class="panel-section hidden" id="panel-music">
+          <div class="panel-title"><span>Audio Mixer</span></div>
+          <div id="music-info" class="music-info">No music loaded</div>
+          <div class="control-group">
+            <label>Video Volume</label>
+            <div class="slider-row">
+              <input type="range" id="vol-video" min="0" max="100" value="100" class="neon-range">
+              <span id="vol-video-val">100%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Music Volume</label>
+            <div class="slider-row">
+              <input type="range" id="vol-music" min="0" max="100" value="50" class="neon-range">
+              <span id="vol-music-val">50%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Music Start (sec)</label>
+            <div class="slider-row">
+              <input type="range" id="music-start" min="0" max="300" value="0" class="neon-range">
+              <span id="music-start-val">0s</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Fade Out (sec)</label>
+            <div class="slider-row">
+              <input type="range" id="music-fade" min="0" max="10" value="2" class="neon-range" step="0.5">
+              <span id="music-fade-val">2s</span>
+            </div>
+          </div>
+          <div class="upload-zone mini" id="upload-music-zone2">
+            <input type="file" id="input-music2" accept="audio/*" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+            </svg>
+            <p>Load music file</p>
+          </div>
+        </div>
+
+      </aside>
+
+    </div><!-- /workspace -->
+
+    <!-- TIMELINE -->
+    <div id="timeline-container">
+      <div id="timeline-header">
+        <div class="tl-controls">
+          <button id="tl-zoom-out" class="tl-btn" title="Zoom Out">−</button>
+          <span id="tl-zoom-label">1×</span>
+          <button id="tl-zoom-in" class="tl-btn" title="Zoom In">+</button>
+        </div>
+        <div id="tl-time-ruler-wrapper">
+          <canvas id="tl-ruler"></canvas>
+        </div>
+      </div>
+      <div id="timeline-tracks">
+        <div class="track-labels">
+          <div class="track-label">Video</div>
+          <div class="track-label">Effects</div>
+          <div class="track-label">Audio</div>
+        </div>
+        <div id="tl-scroll-area">
+          <canvas id="timeline-canvas"></canvas>
+          <div id="tl-playhead"></div>
+        </div>
+      </div>
     </div>
 
-    <nav class="bottom-nav">
-        <div class="nav-item" data-target="menu">
-            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-            <span>Menú</span>
+  </div><!-- /app -->
+
+  <!-- EXPORT MODAL -->
+  <div id="export-modal" class="modal hidden">
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>Export Video</h2>
+        <button class="modal-close" id="btn-close-export">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="export-options">
+          <div class="export-option-group">
+            <label>Resolution</label>
+            <select id="export-resolution" class="neon-select">
+              <option value="1920x1080">1920×1080 (Full HD)</option>
+              <option value="1080x1920">1080×1920 (Portrait HD)</option>
+              <option value="1080x1080">1080×1080 (Square)</option>
+              <option value="3840x2160">3840×2160 (4K)</option>
+            </select>
+          </div>
+          <div class="export-option-group">
+            <label>Format</label>
+            <select id="export-format" class="neon-select">
+              <option value="video/webm;codecs=vp9,opus">WebM VP9 (Best quality)</option>
+              <option value="video/webm;codecs=vp8,opus">WebM VP8</option>
+              <option value="video/mp4">MP4 (if supported)</option>
+            </select>
+          </div>
+          <div class="export-option-group">
+            <label>Bitrate</label>
+            <select id="export-bitrate" class="neon-select">
+              <option value="8000000">8 Mbps</option>
+              <option value="15000000" selected>15 Mbps (Recommended)</option>
+              <option value="25000000">25 Mbps (High)</option>
+              <option value="50000000">50 Mbps (Ultra)</option>
+            </select>
+          </div>
         </div>
-        <div class="nav-item active" data-target="iforce">
-            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 17 22.71 22.71 17z"/></svg>
-            <span>iForce</span>
+        <div id="export-progress-area" class="hidden">
+          <div class="export-progress-bar">
+            <div id="export-progress-fill"></div>
+          </div>
+          <div id="export-progress-label">Preparing export…</div>
         </div>
-        
-        <div class="fab-container">
-            <button class="fab-button">+</button>
+        <div class="export-warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>Keep this tab open during export. The video will download automatically.</span>
         </div>
+      </div>
+      <div class="modal-footer">
+        <button class="neon-btn-secondary" id="btn-cancel-export">Cancel</button>
+        <button class="neon-btn-primary" id="btn-start-export">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="10 8 16 12 10 16 10 8"/>
+          </svg>
+          Start Export
+        </button>
+      </div>
+    </div>
+  </div>
 
-        <div class="nav-item" data-target="progreso">
-             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
-            <span>Progreso</span>
-        </div>
-        <div class="nav-item" data-target="mensajeria">
-            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-            <span>Mensajes</span>
-        </div>
-    </nav>
+  <!-- Hidden file inputs -->
+  <input type="file" id="input-video-main" accept="video/*" hidden>
 
-    <script>
-        /**
-         * Senior JS: Manejo de eventos optimizado para móvil.
-         * Usamos delegación de eventos en el nav para eficiencia.
-         */
-        document.addEventListener('DOMContentLoaded', () => {
-            const nav = document.querySelector('.bottom-nav');
-
-            // Usamos 'pointerup' para una respuesta más rápida que 'click' en móviles
-            nav.addEventListener('pointerup', (e) => {
-                // Encuentra el elemento .nav-item más cercano al punto de contacto
-                const clickedItem = e.target.closest('.nav-item');
-                
-                // Si no es un nav-item (ej. el espacio entre iconos), ignoramos
-                if (!clickedItem) return;
-
-                // Lógica de cambio de pestaña activa (Visual Only para la demo)
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                clickedItem.classList.add('active');
-
-                // Feedback háptico sutil si el dispositivo lo soporta
-                if (navigator.vibrate) {
-                    navigator.vibrate(10); 
-                }
-
-                console.log(`Navegando a: ${clickedItem.dataset.target}`);
-                // Aquí iría la lógica de enrutamiento de la SPA
-            });
-
-             // FAB Button interaction (separado porque tiene un comportamiento distinto)
-             const fab = document.querySelector('.fab-button');
-             fab.addEventListener('pointerup', () => {
-                 if (navigator.vibrate) navigator.vibrate(20);
-                 alert('Acción principal: Añadir entrenamiento');
-             });
-        });
-    </script>
+  <!-- Main Application -->
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>

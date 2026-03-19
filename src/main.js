@@ -1,0 +1,853 @@
+/**
+ * CENSOR ENGINE PRO — Main Application
+ * Orchestrates: FaceCensor + WebGLEffects + Timeline + AudioMixer + Exporter
+ */
+
+import { FaceCensorEngine }   from './face-censor.js';
+import { WebGLEffectsEngine } from './webgl-effects.js';
+import { Timeline }           from './timeline.js';
+import { AudioMixer }         from './audio-mixer.js';
+import { VideoExporter }      from './exporter.js';
+
+// ─── DOM References ──────────────────────────────────────────────────────────
+const $ = (sel) => document.querySelector(sel);
+
+const splashScreen       = $('#splash-screen');
+const progressFill       = $('#splash-progress-fill');
+const progressLabel      = $('#splash-progress-label');
+const app                = $('#app');
+
+const videoEl            = $('#video-element');
+const compositeCanvas    = $('#composite-canvas');
+const displayCanvas      = $('#display-canvas');
+
+const dropOverlay        = $('#drop-overlay');
+const canvasWrapper      = $('#canvas-wrapper');
+
+const btnPlayPause       = $('#btn-play-pause');
+const iconPlay           = $('#icon-play');
+const iconPause          = $('#icon-pause');
+const btnPreviewToggle   = $('#btn-preview-toggle');
+const timeDisplay        = $('#time-display');
+const headerFilename     = $('#header-filename');
+const fpsCounter         = $('#fps-counter');
+const btnExport          = $('#btn-export');
+const btnFullscreen      = $('#btn-fullscreen');
+
+const exportModal        = $('#export-modal');
+const btnCloseExport     = $('#btn-close-export');
+const btnCancelExport    = $('#btn-cancel-export');
+const btnStartExport     = $('#btn-start-export');
+const exportResolution   = $('#export-resolution');
+const exportFormat       = $('#export-format');
+const exportBitrate      = $('#export-bitrate');
+const exportProgressArea = $('#export-progress-area');
+const exportProgressFill = $('#export-progress-fill');
+const exportProgressLabel= $('#export-progress-label');
+
+const tlCanvas           = $('#timeline-canvas');
+const tlRuler            = $('#tl-ruler');
+const tlPlayhead         = $('#tl-playhead');
+const tlScrollArea       = $('#tl-scroll-area');
+const tlZoomIn           = $('#tl-zoom-in');
+const tlZoomOut          = $('#tl-zoom-out');
+const tlZoomLabel        = $('#tl-zoom-label');
+
+// Tool buttons & panels
+const toolBtns           = document.querySelectorAll('.tool-btn');
+const panelUpload        = $('#panel-upload');
+const panelCensor        = $('#panel-censor');
+const panelEffects       = $('#panel-effects');
+const panelColor         = $('#panel-color');
+const panelText          = $('#panel-text');
+const panelMusic         = $('#panel-music');
+
+// Censor controls
+const toggleCensor       = $('#toggle-censor');
+const blurRadiusSlider   = $('#blur-radius');
+const blurRadiusVal      = $('#blur-radius-val');
+const maskExpandSlider   = $('#mask-expand');
+const maskExpandVal      = $('#mask-expand-val');
+const maxFacesSelect     = $('#max-faces');
+const censorStatus       = $('#censor-status');
+const censorStatusDot    = censorStatus.querySelector('.status-dot');
+const censorStatusText   = censorStatus.querySelector('.status-text');
+const faceCountDisplay   = $('#face-count-display');
+const censorControls     = $('#censor-controls');
+
+// Effects controls
+const effectBtns         = document.querySelectorAll('.effect-btn');
+const effectIntensity    = $('#effect-intensity');
+const effectIntensityVal = $('#effect-intensity-val');
+const flareX             = $('#flare-x');
+const flareXVal          = $('#flare-x-val');
+const flareY             = $('#flare-y');
+const flareYVal          = $('#flare-y-val');
+
+// Color correction
+const ccBrightness       = $('#cc-brightness');
+const ccContrast         = $('#cc-contrast');
+const ccSaturation       = $('#cc-saturation');
+const ccExposure         = $('#cc-exposure');
+const ccVignette         = $('#cc-vignette');
+const ccSharpen          = $('#cc-sharpen');
+const btnResetColor      = $('#btn-reset-color');
+
+// Text controls
+const textContent        = $('#text-content');
+const textSize           = $('#text-size');
+const textSizeVal        = $('#text-size-val');
+const textColor          = $('#text-color');
+const textStrokeColor    = $('#text-stroke-color');
+const textX              = $('#text-x');
+const textXVal           = $('#text-x-val');
+const textY              = $('#text-y');
+const textYVal           = $('#text-y-val');
+const textOpacity        = $('#text-opacity');
+const textOpacityVal     = $('#text-opacity-val');
+const btnAddText         = $('#btn-add-text');
+
+// Audio
+const volVideo           = $('#vol-video');
+const volVideoVal        = $('#vol-video-val');
+const volMusic           = $('#vol-music');
+const volMusicVal        = $('#vol-music-val');
+const musicStart         = $('#music-start');
+const musicStartVal      = $('#music-start-val');
+const musicFade          = $('#music-fade');
+const musicFadeVal       = $('#music-fade-val');
+const musicInfo          = $('#music-info');
+
+// Aspect ratio
+const arBtns             = document.querySelectorAll('.ar-btn');
+
+// Upload inputs
+const inputVideo         = $('#input-video');
+const inputMusic         = $('#input-music');
+const inputMusic2        = $('#input-music2');
+
+// ─── Module Instances ────────────────────────────────────────────────────────
+const faceCensor  = new FaceCensorEngine();
+const webglFx     = new WebGLEffectsEngine(displayCanvas);
+const audioMixer  = new AudioMixer();
+const exporter    = new VideoExporter();
+let   timeline    = null;
+
+// ─── App State ───────────────────────────────────────────────────────────────
+const state = {
+  videoLoaded:      false,
+  playing:          false,
+  currentTool:      'upload',
+  aspectRatio:      '9:16',   // '9:16' | '16:9' | '1:1'
+  censorActive:     false,
+  currentEffect:    'none',
+  faceMeshReady:    false,
+  audioInitialized: false,
+  textLayers:       [],       // [{id, text, x, y, size, color, stroke, opacity}]
+  frameCount:       0,
+  lastFpsTime:      0,
+  fps:              0,
+  rafId:            null,
+};
+
+// ─── Canvas 2D composite context ─────────────────────────────────────────────
+let compCtx = null;  // compositeCanvas 2D context
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INITIALIZATION
+// ══════════════════════════════════════════════════════════════════════════════
+async function init() {
+  setSplashProgress(5, 'Initializing WebGL…');
+
+  try {
+    webglFx.init();
+  } catch (err) {
+    console.error('WebGL init failed:', err);
+    setSplashProgress(10, 'WebGL failed — using 2D fallback');
+  }
+
+  setSplashProgress(15, 'Setting up timeline…');
+  timeline = new Timeline(tlCanvas, tlRuler, tlPlayhead, tlScrollArea);
+  timeline.onSeek((t) => {
+    if (state.videoLoaded) {
+      videoEl.currentTime = t;
+      audioMixer.onVideoSeeked(t);
+    }
+  });
+
+  setSplashProgress(25, 'Loading AI models…');
+
+  try {
+    await faceCensor.init(2, (pct, label) => {
+      setSplashProgress(25 + pct * 0.7, label);
+    });
+    state.faceMeshReady = true;
+    setSplashProgress(95, 'AI ready');
+  } catch (err) {
+    console.warn('FaceMesh init failed:', err);
+    setSplashProgress(95, 'AI unavailable (offline mode)');
+    censorStatusText.textContent = 'AI model unavailable';
+    censorStatusDot.classList.add('error');
+  }
+
+  // Register face results callback
+  faceCensor.onResults((results) => {
+    faceCountDisplay.textContent = `Faces: ${results.multiFaceLandmarks?.length ?? 0}`;
+    if (results.multiFaceLandmarks?.length > 0) {
+      censorStatusDot.className = 'status-dot active';
+      censorStatusText.textContent = `Censoring ${results.multiFaceLandmarks.length} face(s)`;
+    } else if (state.censorActive) {
+      censorStatusDot.className = 'status-dot processing';
+      censorStatusText.textContent = 'Scanning for faces…';
+    }
+  });
+
+  setSplashProgress(100, 'Ready');
+  await delay(600);
+
+  splashScreen.classList.add('fade-out');
+  setTimeout(() => {
+    splashScreen.style.display = 'none';
+    app.classList.remove('hidden');
+  }, 650);
+
+  bindEvents();
+  setAspectRatio('9:16');
+  showPanel('upload');
+  updateToolActive('upload');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RENDER LOOP
+// ══════════════════════════════════════════════════════════════════════════════
+function startRenderLoop() {
+  if (state.rafId) return;
+
+  async function frame() {
+    state.rafId = requestAnimationFrame(frame);
+
+    if (!state.videoLoaded || videoEl.readyState < 2) return;
+
+    const W = compositeCanvas.width;
+    const H = compositeCanvas.height;
+
+    // ── Step 1: Draw video to composite canvas (with CSS filter for CC) ──
+    compCtx.filter = webglFx.buildCSSFilter();
+    compCtx.drawImage(videoEl, 0, 0, W, H);
+    compCtx.filter = 'none';
+
+    // ── Step 2: Apply eye blur if censor active ──
+    if (state.censorActive && state.faceMeshReady) {
+      await faceCensor.processFrame(videoEl);
+      faceCensor.applyBlurMask(compCtx, videoEl, W, H);
+    }
+
+    // ── Step 3: Draw text layers ──
+    drawTextLayers(compCtx, W, H);
+
+    // ── Step 4: WebGL effect pass ──
+    webglFx.renderFrame(compositeCanvas);
+
+    // ── Step 5: Vignette (if CC vignette > 0) ──
+    drawVignette(W, H);
+
+    // ── Step 6: Update timeline ──
+    timeline.setTime(videoEl.currentTime);
+    audioMixer.tick(videoEl.currentTime, videoEl.duration);
+    updateTimeDisplay();
+
+    // ── FPS counter ──
+    state.frameCount++;
+    const now = performance.now();
+    if (now - state.lastFpsTime >= 1000) {
+      state.fps        = Math.round(state.frameCount * 1000 / (now - state.lastFpsTime));
+      fpsCounter.textContent = `${state.fps} fps`;
+      state.frameCount = 0;
+      state.lastFpsTime = now;
+    }
+  }
+
+  state.lastFpsTime = performance.now();
+  state.rafId = requestAnimationFrame(frame);
+}
+
+function stopRenderLoop() {
+  if (state.rafId) {
+    cancelAnimationFrame(state.rafId);
+    state.rafId = null;
+  }
+}
+
+// ─── Vignette pass directly on WebGL canvas via 2D overlay ──────────────────
+function drawVignette(w, h) {
+  const vig = parseInt(ccVignette.value) / 100;
+  if (vig <= 0) return;
+  // We'll draw a radial gradient vignette using a temporary canvas drawn on top
+  // via an overlay canvas — we use the composite canvas for this
+  const ctx = compCtx;
+  const cx  = w / 2;
+  const cy  = h / 2;
+  const r   = Math.sqrt(cx * cx + cy * cy);
+  const grad = ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, r);
+  grad.addColorStop(0, 'transparent');
+  grad.addColorStop(1, `rgba(0,0,0,${vig.toFixed(2)})`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+}
+
+// ─── Text layer rendering ────────────────────────────────────────────────────
+function drawTextLayers(ctx, w, h) {
+  for (const layer of state.textLayers) {
+    const x   = (layer.x / 100) * w;
+    const y   = (layer.y / 100) * h;
+    const sz  = layer.size;
+    ctx.save();
+    ctx.globalAlpha = layer.opacity / 100;
+    ctx.font        = `bold ${sz}px 'SF Pro Display', system-ui, sans-serif`;
+    ctx.textAlign   = 'center';
+    ctx.textBaseline= 'middle';
+    ctx.lineWidth   = sz / 12;
+    ctx.strokeStyle = layer.stroke;
+    ctx.fillStyle   = layer.color;
+    ctx.strokeText(layer.text, x, y);
+    ctx.fillText(layer.text, x, y);
+    ctx.restore();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VIDEO LOADING
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadVideo(file) {
+  const url = URL.createObjectURL(file);
+  videoEl.src = url;
+
+  await new Promise((resolve, reject) => {
+    videoEl.onloadedmetadata = resolve;
+    videoEl.onerror          = reject;
+  });
+
+  // Set canvas dimensions from video
+  const vw = videoEl.videoWidth;
+  const vh = videoEl.videoHeight;
+  compositeCanvas.width  = vw;
+  compositeCanvas.height = vh;
+  compCtx = compositeCanvas.getContext('2d');
+
+  // Apply aspect ratio letterboxing
+  resizeDisplayCanvas(vw, vh);
+
+  // Hide drop zone
+  dropOverlay.classList.add('hidden');
+  headerFilename.textContent = file.name;
+  btnPlayPause.disabled = false;
+  state.videoLoaded = true;
+
+  // Init audio (needs user gesture — already had one via file pick)
+  if (!state.audioInitialized) {
+    try {
+      await audioMixer.init(videoEl);
+      state.audioInitialized = true;
+    } catch (err) {
+      console.warn('AudioMixer init failed:', err);
+    }
+  }
+
+  // Load timeline thumbnails (async, non-blocking)
+  timeline.loadVideo(videoEl);
+
+  startRenderLoop();
+}
+
+function resizeDisplayCanvas(vw, vh) {
+  const wrapper = canvasWrapper;
+  const ww      = wrapper.clientWidth;
+  const wh      = wrapper.clientHeight;
+
+  let canW, canH;
+  const aspect = vw / vh;
+
+  // Fit to wrapper maintaining aspect ratio
+  if (ww / wh > aspect) {
+    canH = Math.min(wh - 20, 1080);
+    canW = Math.round(canH * aspect);
+  } else {
+    canW = Math.min(ww - 20, 1920);
+    canH = Math.round(canW / aspect);
+  }
+
+  displayCanvas.style.width  = `${canW}px`;
+  displayCanvas.style.height = `${canH}px`;
+  displayCanvas.width  = vw;
+  displayCanvas.height = vh;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PLAYBACK
+// ══════════════════════════════════════════════════════════════════════════════
+async function togglePlayPause() {
+  if (!state.videoLoaded) return;
+
+  await audioMixer.resume();
+
+  if (state.playing) {
+    videoEl.pause();
+    audioMixer.stopMusic();
+    state.playing = false;
+    iconPlay.classList.remove('hidden');
+    iconPause.classList.add('hidden');
+    // Update preview toggle icon
+    btnPreviewToggle.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+  } else {
+    try {
+      await videoEl.play();
+      if (audioMixer.musicBuffer) {
+        audioMixer.startMusic(videoEl.currentTime);
+      }
+      state.playing = true;
+      iconPlay.classList.add('hidden');
+      iconPause.classList.remove('hidden');
+      btnPreviewToggle.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+    } catch (err) {
+      console.warn('Playback error:', err);
+    }
+  }
+}
+
+function updateTimeDisplay() {
+  const cur = videoEl.currentTime || 0;
+  const dur = videoEl.duration    || 0;
+  timeDisplay.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ASPECT RATIO
+// ══════════════════════════════════════════════════════════════════════════════
+function setAspectRatio(ar) {
+  state.aspectRatio = ar;
+  arBtns.forEach(b => b.classList.toggle('active', b.dataset.ar === ar));
+
+  if (state.videoLoaded) {
+    resizeDisplayCanvas(compositeCanvas.width, compositeCanvas.height);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EVENT BINDINGS
+// ══════════════════════════════════════════════════════════════════════════════
+function bindEvents() {
+  // ─── Tool sidebar ─────────────────────────────────────────────────────────
+  toolBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tool = btn.dataset.tool;
+      if (tool === 'upload') {
+        // open file picker
+        inputVideo.click();
+        showPanel('upload');
+        updateToolActive('upload');
+        return;
+      }
+      if (tool === 'music') {
+        showPanel('music');
+        updateToolActive('music');
+        return;
+      }
+      showPanel(tool);
+      updateToolActive(tool);
+    });
+  });
+
+  // ─── Drag & drop on canvas area ──────────────────────────────────────────
+  canvasWrapper.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropOverlay.classList.remove('hidden');
+    dropOverlay.classList.add('drag-active');
+  });
+
+  canvasWrapper.addEventListener('dragleave', () => {
+    dropOverlay.classList.remove('drag-active');
+    if (state.videoLoaded) dropOverlay.classList.add('hidden');
+  });
+
+  canvasWrapper.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    dropOverlay.classList.remove('drag-active');
+    const file = e.dataTransfer.files[0];
+    if (file?.type.startsWith('video/')) {
+      await loadVideo(file);
+    }
+  });
+
+  dropOverlay.addEventListener('click', () => inputVideo.click());
+
+  // ─── File inputs ─────────────────────────────────────────────────────────
+  inputVideo.addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    if (f) await loadVideo(f);
+    inputVideo.value = '';
+  });
+
+  const loadMusicFile = async (file) => {
+    if (!file) return;
+    musicInfo.textContent = `Loading: ${file.name}…`;
+    try {
+      if (!state.audioInitialized) {
+        // Can't init without video element — show error
+        musicInfo.textContent = 'Load a video first, then add music.';
+        return;
+      }
+      const buf = await audioMixer.loadMusicFile(file);
+      musicInfo.textContent = `♪ ${file.name} (${buf.duration.toFixed(1)}s)`;
+      musicStart.max = Math.floor(buf.duration);
+      // Load waveform into timeline
+      timeline.loadAudioData(buf);
+    } catch (err) {
+      musicInfo.textContent = `Error: ${err.message}`;
+    }
+  };
+
+  inputMusic.addEventListener('change',  async (e) => { await loadMusicFile(e.target.files[0]); inputMusic.value = ''; });
+  inputMusic2.addEventListener('change', async (e) => { await loadMusicFile(e.target.files[0]); inputMusic2.value = ''; });
+
+  // Upload zone clicks
+  $('#upload-video-zone').addEventListener('click', () => inputVideo.click());
+  $('#upload-music-zone').addEventListener('click', () => inputMusic.click());
+  $('#upload-music-zone2').addEventListener('click', () => inputMusic2.click());
+
+  // ─── Playback controls ────────────────────────────────────────────────────
+  btnPlayPause.addEventListener('click', togglePlayPause);
+  btnPreviewToggle.addEventListener('click', togglePlayPause);
+
+  videoEl.addEventListener('ended', () => {
+    state.playing = false;
+    iconPlay.classList.remove('hidden');
+    iconPause.classList.add('hidden');
+    audioMixer.stopMusic();
+  });
+
+  videoEl.addEventListener('seeked', () => {
+    // Force a single frame render when paused + seeked
+    if (!state.playing && state.videoLoaded) {
+      renderSingleFrame();
+    }
+  });
+
+  btnFullscreen.addEventListener('click', () => {
+    canvasWrapper.requestFullscreen?.() || canvasWrapper.webkitRequestFullscreen?.();
+  });
+
+  // ─── Aspect ratio ─────────────────────────────────────────────────────────
+  arBtns.forEach(b => b.addEventListener('click', () => setAspectRatio(b.dataset.ar)));
+
+  // ─── Censor controls ──────────────────────────────────────────────────────
+  toggleCensor.addEventListener('change', () => {
+    state.censorActive = toggleCensor.checked;
+    faceCensor.setActive(state.censorActive);
+    censorControls.classList.toggle('inactive', !state.censorActive);
+    if (state.censorActive) {
+      censorStatusDot.className  = 'status-dot processing';
+      censorStatusText.textContent = 'Scanning for faces…';
+    } else {
+      censorStatusDot.className  = 'status-dot';
+      censorStatusText.textContent = 'Censor inactive';
+      faceCountDisplay.textContent = 'Faces: 0';
+    }
+  });
+
+  blurRadiusSlider.addEventListener('input', () => {
+    const v = parseInt(blurRadiusSlider.value);
+    blurRadiusVal.textContent = `${v}px`;
+    faceCensor.setBlurRadius(v);
+  });
+
+  maskExpandSlider.addEventListener('input', () => {
+    const v = parseInt(maskExpandSlider.value);
+    maskExpandVal.textContent = `${v}px`;
+    faceCensor.setMaskExpand(v);
+  });
+
+  maxFacesSelect.addEventListener('change', async () => {
+    await faceCensor.setMaxFaces(parseInt(maxFacesSelect.value));
+  });
+
+  // ─── Effects ─────────────────────────────────────────────────────────────
+  effectBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      effectBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.currentEffect = btn.dataset.effect;
+      webglFx.setEffect(state.currentEffect);
+      // Add effect marker to timeline
+      if (state.videoLoaded && state.currentEffect !== 'none') {
+        timeline.addEffectMarker(videoEl.currentTime, state.currentEffect);
+      }
+    });
+  });
+
+  effectIntensity.addEventListener('input', () => {
+    const v = parseInt(effectIntensity.value);
+    effectIntensityVal.textContent = `${v}%`;
+    webglFx.setIntensity(v / 100);
+  });
+
+  flareX.addEventListener('input', () => {
+    const v = parseInt(flareX.value);
+    flareXVal.textContent = `${v}%`;
+    webglFx.setFlareX(v / 100);
+  });
+
+  flareY.addEventListener('input', () => {
+    const v = parseInt(flareY.value);
+    flareYVal.textContent = `${v}%`;
+    webglFx.setFlareY(v / 100);
+  });
+
+  // ─── Color correction ─────────────────────────────────────────────────────
+  const ccSliders = [
+    [ccBrightness, '#cc-brightness-val', 'brightness'],
+    [ccContrast,   '#cc-contrast-val',   'contrast'],
+    [ccSaturation, '#cc-saturation-val', 'saturation'],
+    [ccExposure,   '#cc-exposure-val',   'exposure'],
+    [ccVignette,   '#cc-vignette-val',   'vignette', '%'],
+    [ccSharpen,    '#cc-sharpen-val',    'sharpen',  '%'],
+  ];
+
+  ccSliders.forEach(([el, valSel, key, suffix = '']) => {
+    el.addEventListener('input', () => {
+      const v = parseInt(el.value);
+      $(valSel).textContent = `${v}${suffix}`;
+      webglFx.setColorCorrection(key, v);
+    });
+  });
+
+  btnResetColor.addEventListener('click', () => {
+    ccSliders.forEach(([el, valSel, , suffix = '']) => {
+      el.value = 0;
+      $(valSel).textContent = `0${suffix}`;
+    });
+    webglFx.resetColorCorrection();
+  });
+
+  // ─── Text overlay ─────────────────────────────────────────────────────────
+  const makeSliderLive = (slider, valEl, suffix = '') => {
+    slider.addEventListener('input', () => {
+      valEl.textContent = `${slider.value}${suffix}`;
+    });
+  };
+
+  makeSliderLive(textSize,    textSizeVal,    'px');
+  makeSliderLive(textX,       textXVal,       '%');
+  makeSliderLive(textY,       textYVal,       '%');
+  makeSliderLive(textOpacity, textOpacityVal, '%');
+
+  btnAddText.addEventListener('click', () => {
+    const text = textContent.value.trim();
+    if (!text) return;
+    state.textLayers.push({
+      id:      Date.now(),
+      text,
+      x:       parseInt(textX.value),
+      y:       parseInt(textY.value),
+      size:    parseInt(textSize.value),
+      color:   textColor.value,
+      stroke:  textStrokeColor.value,
+      opacity: parseInt(textOpacity.value),
+    });
+    textContent.value = '';
+  });
+
+  // ─── Audio mixer ──────────────────────────────────────────────────────────
+  volVideo.addEventListener('input', () => {
+    const v = parseInt(volVideo.value);
+    volVideoVal.textContent = `${v}%`;
+    audioMixer.setVideoVolume(v / 100);
+  });
+
+  volMusic.addEventListener('input', () => {
+    const v = parseInt(volMusic.value);
+    volMusicVal.textContent = `${v}%`;
+    audioMixer.setMusicVolume(v / 100);
+  });
+
+  musicStart.addEventListener('input', () => {
+    const v = parseInt(musicStart.value);
+    musicStartVal.textContent = `${v}s`;
+    audioMixer.setMusicStart(v);
+  });
+
+  musicFade.addEventListener('input', () => {
+    const v = parseFloat(musicFade.value);
+    musicFadeVal.textContent = `${v}s`;
+    audioMixer.setMusicFade(v);
+  });
+
+  // ─── Timeline zoom ────────────────────────────────────────────────────────
+  tlZoomIn.addEventListener('click',  () => { timeline.zoomIn();  tlZoomLabel.textContent = `${timeline.zoom}×`; });
+  tlZoomOut.addEventListener('click', () => { timeline.zoomOut(); tlZoomLabel.textContent = `${timeline.zoom}×`; });
+
+  // ─── Export ───────────────────────────────────────────────────────────────
+  btnExport.addEventListener('click', () => {
+    if (!state.videoLoaded) return;
+    exportProgressArea.classList.add('hidden');
+    exportModal.classList.remove('hidden');
+  });
+
+  btnCloseExport.addEventListener('click',  () => exportModal.classList.add('hidden'));
+  btnCancelExport.addEventListener('click', () => {
+    exporter.cancel();
+    exportModal.classList.add('hidden');
+    videoEl.pause();
+    state.playing = false;
+  });
+
+  $('#modal-backdrop')?.addEventListener('click', () => exportModal.classList.add('hidden'));
+
+  btnStartExport.addEventListener('click', async () => {
+    if (!state.videoLoaded) return;
+
+    btnStartExport.disabled = true;
+    exportProgressArea.classList.remove('hidden');
+
+    // Was playing? pause first so we can rewind
+    const wasPlaying = state.playing;
+    if (wasPlaying) await togglePlayPause();
+
+    exporter.onProgress = (pct, label) => {
+      exportProgressFill.style.width = `${pct}%`;
+      exportProgressLabel.textContent = label;
+    };
+
+    exporter.onComplete = (blob, url) => {
+      exportProgressLabel.textContent = `✓ Saved (${(blob.size / 1_048_576).toFixed(1)} MB)`;
+      btnStartExport.disabled = false;
+      setTimeout(() => exportModal.classList.add('hidden'), 2000);
+    };
+
+    exporter.onError = (err) => {
+      exportProgressLabel.textContent = `Error: ${err.message}`;
+      btnStartExport.disabled = false;
+    };
+
+    const audioStream = audioMixer.getAudioStream();
+
+    await exporter.start(
+      displayCanvas,
+      audioStream,
+      videoEl,
+      {
+        mimeType: exportFormat.value,
+        bitrate:  parseInt(exportBitrate.value),
+      }
+    );
+
+    // Restart render loop during recording
+    startRenderLoop();
+  });
+
+  // ─── Keyboard shortcuts ───────────────────────────────────────────────────
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    switch (e.code) {
+      case 'Space': e.preventDefault(); togglePlayPause(); break;
+      case 'ArrowLeft':
+        if (state.videoLoaded) {
+          videoEl.currentTime = Math.max(0, videoEl.currentTime - 5);
+        }
+        break;
+      case 'ArrowRight':
+        if (state.videoLoaded) {
+          videoEl.currentTime = Math.min(videoEl.duration, videoEl.currentTime + 5);
+        }
+        break;
+      case 'KeyC': toggleCensor.click(); break;
+      case 'Escape': exportModal.classList.add('hidden'); break;
+    }
+  });
+
+  // ─── Window resize ────────────────────────────────────────────────────────
+  window.addEventListener('resize', () => {
+    if (state.videoLoaded) {
+      resizeDisplayCanvas(compositeCanvas.width, compositeCanvas.height);
+    }
+    timeline._resize();
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// UTILITY
+// ══════════════════════════════════════════════════════════════════════════════
+function showPanel(name) {
+  [panelUpload, panelCensor, panelEffects, panelColor, panelText, panelMusic].forEach(p => {
+    p.classList.add('hidden');
+  });
+  const map = {
+    upload: panelUpload,
+    censor: panelCensor,
+    effects: panelEffects,
+    color: panelColor,
+    text: panelText,
+    music: panelMusic,
+  };
+  map[name]?.classList.remove('hidden');
+}
+
+function updateToolActive(activeTool) {
+  toolBtns.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tool === activeTool);
+  });
+  state.currentTool = activeTool;
+}
+
+function setSplashProgress(pct, label) {
+  progressFill.style.width       = `${pct}%`;
+  progressLabel.textContent      = label;
+}
+
+function formatTime(sec) {
+  if (!isFinite(sec)) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/** Render a single frame (used when paused + seeked) */
+async function renderSingleFrame() {
+  if (!compCtx) return;
+  const W = compositeCanvas.width;
+  const H = compositeCanvas.height;
+
+  compCtx.filter = webglFx.buildCSSFilter();
+  compCtx.drawImage(videoEl, 0, 0, W, H);
+  compCtx.filter = 'none';
+
+  if (state.censorActive && state.faceMeshReady) {
+    await faceCensor.processFrame(videoEl);
+    faceCensor.applyBlurMask(compCtx, videoEl, W, H);
+  }
+
+  drawTextLayers(compCtx, W, H);
+  webglFx.renderFrame(compositeCanvas);
+  drawVignette(W, H);
+  updateTimeDisplay();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SERVICE WORKER REGISTRATION
+// ══════════════════════════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // SW registration failure is non-critical
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════════════════════════
+init().catch(err => {
+  console.error('Fatal init error:', err);
+  progressLabel.textContent = `Init error: ${err.message}`;
+});
