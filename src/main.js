@@ -61,6 +61,36 @@ const panelEffects       = $('#panel-effects');
 const panelColor         = $('#panel-color');
 const panelText          = $('#panel-text');
 const panelMusic         = $('#panel-music');
+const panelTrim          = $('#panel-trim');
+const panelStickers      = $('#panel-stickers');
+const panelFrames        = $('#panel-frames');
+
+// Trim controls
+const btnSplit           = $('#btn-split');
+const btnDeleteSegment   = $('#btn-delete-segment');
+const btnResetTrim       = $('#btn-reset-trim');
+const trimStart          = $('#trim-start');
+const trimStartVal       = $('#trim-start-val');
+const trimEnd            = $('#trim-end');
+const trimEndVal         = $('#trim-end-val');
+const segmentsList       = $('#segments-list');
+
+// Sticker controls
+const stickersGrid       = document.querySelectorAll('.sticker-pick');
+const stickerSize        = $('#sticker-size');
+const stickerSizeVal     = $('#sticker-size-val');
+const stickerOpacity     = $('#sticker-opacity');
+const stickerOpacityVal  = $('#sticker-opacity-val');
+const selectedStickerLabel = $('#selected-sticker-label');
+const stickersPlacedList = $('#stickers-placed-list');
+const btnClearStickers   = $('#btn-clear-stickers');
+
+// Frame controls
+const framePresetBtns    = document.querySelectorAll('.frame-preset-btn');
+const frameOpacity       = $('#frame-opacity');
+const frameOpacityVal    = $('#frame-opacity-val');
+const activeFramesList   = $('#active-frames-list');
+const btnClearFrames     = $('#btn-clear-frames');
 
 // Censor controls
 const toggleCensor       = $('#toggle-censor');
@@ -144,6 +174,13 @@ const state = {
   faceMeshReady:    false,
   audioInitialized: false,
   textLayers:       [],       // [{id, text, x, y, size, color, stroke, opacity}]
+  segments:         [],       // [{id, start, end, deleted}]
+  selectedSegment:  0,
+  stickers:         [],       // [{id, emoji, x, y, size, opacity}]
+  selectedSticker:  null,     // emoji string currently selected for placement
+  activeFrames:     [],       // [{id, type, opacity}]
+  recBlinkState:    true,
+  recBlinkTimer:    0,
   frameCount:       0,
   lastFpsTime:      0,
   fps:              0,
@@ -242,8 +279,14 @@ function startRenderLoop() {
       faceCensor.applyBlurMask(compCtx, videoEl, W, H);
     }
 
-    // ── Step 3: Draw text layers ──
+    // ── Step 3: Draw text layers, stickers, frames ──
     drawTextLayers(compCtx, W, H);
+    drawStickers(compCtx, W, H);
+    drawFrames(compCtx, W, H);
+
+    // ── Step 3b: REC blink timer ──
+    state.recBlinkTimer += 1;
+    if (state.recBlinkTimer > 30) { state.recBlinkState = !state.recBlinkState; state.recBlinkTimer = 0; }
 
     // ── Step 4: WebGL effect pass ──
     webglFx.renderFrame(compositeCanvas);
@@ -315,6 +358,279 @@ function drawTextLayers(ctx, w, h) {
   }
 }
 
+// ─── Sticker rendering ───────────────────────────────────────────────────────
+function drawStickers(ctx, w, h) {
+  for (const s of state.stickers) {
+    ctx.save();
+    ctx.globalAlpha = s.opacity / 100;
+    ctx.font        = `${s.size}px serif`;
+    ctx.textAlign   = 'center';
+    ctx.textBaseline= 'middle';
+    ctx.fillText(s.emoji, (s.x / 100) * w, (s.y / 100) * h);
+    ctx.restore();
+  }
+}
+
+// ─── Frame / overlay rendering ───────────────────────────────────────────────
+function drawFrames(ctx, w, h) {
+  const opacity = parseInt(frameOpacity?.value ?? 90) / 100;
+
+  for (const frame of state.activeFrames) {
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    switch (frame.type) {
+
+      case 'bars21': {
+        // 2.35:1 cinematic letterbox bars
+        const barH = Math.round(h * 0.115);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, w, barH);
+        ctx.fillRect(0, h - barH, w, barH);
+        break;
+      }
+
+      case 'bars169': {
+        // 16:9 crop on a 9:16 canvas (pillarbox for portrait)
+        if (w < h) {
+          const barH = Math.round((h - w * 9/16) / 2);
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, w, barH);
+          ctx.fillRect(0, h - barH, w, barH);
+        }
+        break;
+      }
+
+      case 'vhs-frame': {
+        // VHS UI: timecode + noise lines
+        ctx.globalAlpha = opacity * 0.7;
+        for (let y = 0; y < h; y += 4) {
+          ctx.fillStyle = `rgba(25,249,249,${Math.random() * 0.03})`;
+          ctx.fillRect(0, y, w, 1);
+        }
+        ctx.globalAlpha = opacity;
+        ctx.font        = `bold ${Math.round(w * 0.04)}px 'SF Mono', monospace`;
+        ctx.fillStyle   = 'rgba(25,249,249,0.75)';
+        ctx.textAlign   = 'left';
+        ctx.textBaseline= 'top';
+        ctx.fillText('▶ PLAY', w * 0.04, h * 0.04);
+        ctx.textAlign   = 'right';
+        const d = new Date();
+        ctx.fillText(
+          `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`,
+          w * 0.96, h * 0.04
+        );
+        break;
+      }
+
+      case 'neon-border': {
+        const thick = Math.round(w * 0.015);
+        ctx.strokeStyle = '#940a0a';
+        ctx.lineWidth   = thick;
+        ctx.shadowColor = '#940a0a';
+        ctx.shadowBlur  = thick * 3;
+        ctx.strokeRect(thick / 2, thick / 2, w - thick, h - thick);
+        ctx.strokeStyle = '#19f9f9';
+        ctx.lineWidth   = 1;
+        ctx.shadowColor = '#19f9f9';
+        ctx.shadowBlur  = 8;
+        ctx.strokeRect(thick * 1.5, thick * 1.5, w - thick * 3, h - thick * 3);
+        ctx.shadowBlur  = 0;
+        break;
+      }
+
+      case 'film-strip': {
+        const holeR = Math.round(w * 0.025);
+        const edgeW = holeR * 2.5;
+        ctx.fillStyle   = 'rgba(0,0,0,0.85)';
+        ctx.fillRect(0, 0, edgeW, h);
+        ctx.fillRect(w - edgeW, 0, edgeW, h);
+        // Film holes
+        ctx.fillStyle = '#222';
+        for (let y = holeR; y < h - holeR; y += holeR * 3) {
+          ctx.beginPath();
+          ctx.roundRect(edgeW * 0.3, y, holeR, holeR * 1.5, 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.roundRect(w - edgeW * 0.3 - holeR, y, holeR, holeR * 1.5, 2);
+          ctx.fill();
+        }
+        break;
+      }
+
+      case 'glow-frame': {
+        const grad = ctx.createRadialGradient(w/2, h/2, h*0.2, w/2, h/2, h*0.75);
+        grad.addColorStop(0, 'transparent');
+        grad.addColorStop(0.7, 'transparent');
+        grad.addColorStop(1, 'rgba(148,10,10,0.7)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+        break;
+      }
+
+      case 'leak-orange': {
+        const g = ctx.createLinearGradient(0, 0, w * 0.6, h * 0.6);
+        g.addColorStop(0, 'rgba(255,140,0,0.55)');
+        g.addColorStop(0.4, 'rgba(255,80,0,0.25)');
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        break;
+      }
+
+      case 'leak-blue': {
+        const g = ctx.createLinearGradient(w, h, w * 0.3, h * 0.3);
+        g.addColorStop(0, 'rgba(0,100,255,0.55)');
+        g.addColorStop(0.4, 'rgba(0,200,255,0.25)');
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        break;
+      }
+
+      case 'leak-rainbow': {
+        const g = ctx.createLinearGradient(0, 0, w, h);
+        g.addColorStop(0,   'rgba(255,0,0,0.3)');
+        g.addColorStop(0.25,'rgba(255,165,0,0.2)');
+        g.addColorStop(0.5, 'transparent');
+        g.addColorStop(0.75,'rgba(0,200,255,0.2)');
+        g.addColorStop(1,   'rgba(150,0,255,0.3)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        break;
+      }
+
+      case 'rec': drawRecIndicator(ctx, w, h, 'REC');    break;
+      case 'live': drawRecIndicator(ctx, w, h, 'LIVE');  break;
+      case 'cam':  drawRecIndicator(ctx, w, h, '📷 CAM'); break;
+    }
+    ctx.restore();
+  }
+}
+
+function drawRecIndicator(ctx, w, h, label) {
+  const fs   = Math.round(w * 0.045);
+  const pad  = fs * 0.5;
+  const blink= state.recBlinkState;
+
+  ctx.font        = `bold ${fs}px 'SF Mono', monospace`;
+  ctx.textAlign   = 'left';
+  ctx.textBaseline= 'top';
+
+  const dotR  = fs * 0.35;
+  const x     = w * 0.04;
+  const y     = h * 0.04;
+
+  // Background pill
+  const textW = ctx.measureText(label).width;
+  const pillW = dotR * 2 + pad + textW + pad * 2;
+  const pillH = fs + pad * 2;
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.beginPath();
+  ctx.roundRect(x - pad, y - pad * 0.5, pillW, pillH, 6);
+  ctx.fill();
+
+  // Blinking dot
+  if (blink || label === 'LIVE') {
+    ctx.fillStyle   = '#ef4444';
+    ctx.shadowColor = '#ef4444';
+    ctx.shadowBlur  = 8;
+    ctx.beginPath();
+    ctx.arc(x + dotR, y + fs / 2, dotR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur  = 0;
+  }
+
+  // Label text
+  ctx.fillStyle = '#fff';
+  ctx.fillText(label, x + dotR * 2 + pad * 0.5, y);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TRIM / CUT ENGINE
+// ══════════════════════════════════════════════════════════════════════════════
+function initSegments(duration) {
+  state.segments = [{ id: 1, start: 0, end: duration, deleted: false }];
+  state.selectedSegment = 0;
+  renderSegmentsList();
+}
+
+function splitAtPlayhead() {
+  if (!state.videoLoaded) return;
+  const t = videoEl.currentTime;
+  const idx = state.segments.findIndex(s => !s.deleted && t > s.start + 0.05 && t < s.end - 0.05);
+  if (idx === -1) return;
+  const seg = state.segments[idx];
+  const nextId = Date.now();
+  state.segments.splice(idx, 1,
+    { id: seg.id,  start: seg.start, end: t,       deleted: false },
+    { id: nextId,  start: t,         end: seg.end,  deleted: false }
+  );
+  state.selectedSegment = idx;
+  renderSegmentsList();
+  timeline.render();
+}
+
+function deleteSelectedSegment() {
+  const activeSegs = state.segments.filter(s => !s.deleted);
+  if (activeSegs.length <= 1) return; // keep at least one
+  const t    = videoEl.currentTime;
+  const idx  = state.segments.findIndex(s => !s.deleted && t >= s.start && t < s.end);
+  if (idx === -1) return;
+  state.segments[idx].deleted = true;
+  // Jump to next valid segment
+  const next = state.segments.find(s => !s.deleted && s.start >= state.segments[idx].end);
+  const prev = [...state.segments].reverse().find(s => !s.deleted && s.end <= state.segments[idx].start);
+  const dest = next || prev;
+  if (dest) videoEl.currentTime = dest.start;
+  renderSegmentsList();
+}
+
+function resetTrim() {
+  if (state.videoLoaded) initSegments(videoEl.duration);
+}
+
+function renderSegmentsList() {
+  segmentsList.innerHTML = '';
+  state.segments.forEach((seg, i) => {
+    const div = document.createElement('div');
+    div.className = `segment-item${seg.deleted ? ' deleted' : ''}${i === state.selectedSegment ? ' active' : ''}`;
+    div.innerHTML = `
+      <span>#${i+1} &nbsp; ${formatTime(seg.start)} → ${formatTime(seg.end)}</span>
+      ${!seg.deleted ? `<button class="segment-del-btn" data-idx="${i}" title="Delete this segment">✕</button>` : '<span style="font-size:9px;color:#ef4444">DELETED</span>'}
+    `;
+    div.querySelector('span')?.addEventListener('click', () => {
+      state.selectedSegment = i;
+      if (!seg.deleted) videoEl.currentTime = seg.start;
+      renderSegmentsList();
+    });
+    div.querySelector('.segment-del-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(e.target.dataset.idx);
+      const activeSegs = state.segments.filter(s => !s.deleted);
+      if (activeSegs.length <= 1) return;
+      state.segments[idx].deleted = true;
+      renderSegmentsList();
+    });
+    segmentsList.appendChild(div);
+  });
+}
+
+// Segment skip logic: called from timeupdate
+function handleSegmentSkip() {
+  if (!state.segments.length) return;
+  const t = videoEl.currentTime;
+  const inValid = state.segments.some(s => !s.deleted && t >= s.start && t < s.end);
+  if (!inValid) {
+    const next = state.segments.find(s => !s.deleted && s.start >= t);
+    if (next) {
+      videoEl.currentTime = next.start;
+    } else {
+      videoEl.pause();
+      state.playing = false;
+    }
+  }
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // VIDEO LOADING
 // ══════════════════════════════════════════════════════════════════════════════
@@ -343,6 +659,13 @@ async function loadVideo(file) {
   btnPlayPause.disabled = false;
   state.videoLoaded = true;
 
+  // Init trim segments
+  initSegments(videoEl.duration);
+
+  // Update trim sliders range
+  if (trimEnd) { trimEnd.max = videoEl.duration; trimEnd.value = videoEl.duration; trimEndVal.textContent = formatTime(videoEl.duration); }
+  if (trimStart) { trimStart.max = videoEl.duration; trimStartVal.textContent = '0s'; }
+
   // Init audio (needs user gesture — already had one via file pick)
   if (!state.audioInitialized) {
     try {
@@ -360,24 +683,36 @@ async function loadVideo(file) {
 }
 
 function resizeDisplayCanvas(vw, vh) {
-  const wrapper = canvasWrapper;
-  const ww      = wrapper.clientWidth;
-  const wh      = wrapper.clientHeight;
+  if (!vw || !vh) return;
 
+  // offsetWidth forces reflow — reliable after layout
+  const ww = canvasWrapper.offsetWidth;
+  const wh = canvasWrapper.offsetHeight;
+
+  // If workspace hasn't laid out yet, retry after next paint
+  if (!ww || !wh) {
+    requestAnimationFrame(() => resizeDisplayCanvas(vw, vh));
+    return;
+  }
+
+  const aspect  = vw / vh;
+  const availW  = ww - 24;
+  const availH  = wh - 24;
   let canW, canH;
-  const aspect = vw / vh;
 
-  // Fit to wrapper maintaining aspect ratio
-  if (ww / wh > aspect) {
-    canH = Math.min(wh - 20, 1080);
+  if (availW / availH > aspect) {
+    // Height-constrained
+    canH = availH;
     canW = Math.round(canH * aspect);
   } else {
-    canW = Math.min(ww - 20, 1920);
+    // Width-constrained
+    canW = availW;
     canH = Math.round(canW / aspect);
   }
 
   displayCanvas.style.width  = `${canW}px`;
   displayCanvas.style.height = `${canH}px`;
+  // Internal resolution stays at full video resolution for quality
   displayCanvas.width  = vw;
   displayCanvas.height = vh;
 }
@@ -577,6 +912,13 @@ function bindEvents() {
       btn.classList.add('active');
       state.currentEffect = btn.dataset.effect;
       webglFx.setEffect(state.currentEffect);
+      // Flare cursor mode
+      canvasWrapper.classList.remove('mode-sticker', 'mode-flare', 'mode-default');
+      canvasWrapper.classList.add(state.currentEffect === 'flare' ? 'mode-flare' : 'mode-default');
+      if (state.currentEffect === 'flare') {
+        document.title = 'Click canvas to set flare position — CENSOR ENGINE PRO';
+        setTimeout(() => { document.title = 'CENSOR ENGINE PRO'; }, 2000);
+      }
       // Add effect marker to timeline
       if (state.videoLoaded && state.currentEffect !== 'none') {
         timeline.addEffectMarker(videoEl.currentTime, state.currentEffect);
@@ -744,6 +1086,118 @@ function bindEvents() {
     startRenderLoop();
   });
 
+  // ─── Segment skip on timeupdate ──────────────────────────────────────────
+  videoEl.addEventListener('timeupdate', handleSegmentSkip);
+
+  // ─── Trim panel ──────────────────────────────────────────────────────────
+  btnSplit?.addEventListener('click', splitAtPlayhead);
+  btnDeleteSegment?.addEventListener('click', deleteSelectedSegment);
+  btnResetTrim?.addEventListener('click', resetTrim);
+
+  trimStart?.addEventListener('input', () => {
+    const v = parseFloat(trimStart.value);
+    trimStartVal.textContent = formatTime(v);
+    // Apply as a cut: remove everything before v
+    if (state.segments.length && state.videoLoaded) {
+      state.segments[0].start = v;
+      if (videoEl.currentTime < v) videoEl.currentTime = v;
+      renderSegmentsList();
+    }
+  });
+
+  trimEnd?.addEventListener('input', () => {
+    const v = parseFloat(trimEnd.value);
+    trimEndVal.textContent = formatTime(v);
+    if (state.segments.length && state.videoLoaded) {
+      state.segments[state.segments.length - 1].end = v;
+      renderSegmentsList();
+    }
+  });
+
+  // ─── Sticker panel ───────────────────────────────────────────────────────
+  stickersGrid.forEach(btn => {
+    btn.addEventListener('click', () => {
+      stickersGrid.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.selectedSticker = btn.dataset.sticker;
+      selectedStickerLabel.style.display = 'block';
+      canvasWrapper.classList.remove('mode-default', 'mode-flare');
+      canvasWrapper.classList.add('mode-sticker');
+    });
+  });
+
+  stickerSize?.addEventListener('input', () => {
+    stickerSizeVal.textContent = `${stickerSize.value}px`;
+  });
+
+  stickerOpacity?.addEventListener('input', () => {
+    stickerOpacityVal.textContent = `${stickerOpacity.value}%`;
+  });
+
+  btnClearStickers?.addEventListener('click', () => {
+    state.stickers = [];
+    stickersPlacedList.innerHTML = '';
+    stickersGrid.forEach(b => b.classList.remove('active'));
+    state.selectedSticker = null;
+    selectedStickerLabel.style.display = 'none';
+    canvasWrapper.classList.remove('mode-sticker');
+    canvasWrapper.classList.add('mode-default');
+  });
+
+  // ─── Frame panel ─────────────────────────────────────────────────────────
+  framePresetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.frame;
+      const exists = state.activeFrames.findIndex(f => f.type === type);
+      if (exists !== -1) {
+        // Toggle off
+        state.activeFrames.splice(exists, 1);
+        btn.classList.remove('active');
+      } else {
+        state.activeFrames.push({ id: Date.now(), type });
+        btn.classList.add('active');
+      }
+      renderActiveFramesList();
+    });
+  });
+
+  frameOpacity?.addEventListener('input', () => {
+    frameOpacityVal.textContent = `${frameOpacity.value}%`;
+  });
+
+  btnClearFrames?.addEventListener('click', () => {
+    state.activeFrames = [];
+    framePresetBtns.forEach(b => b.classList.remove('active'));
+    renderActiveFramesList();
+  });
+
+  // ─── Canvas click: sticker placement + flare position ────────────────────
+  displayCanvas.addEventListener('click', (e) => {
+    const rect  = displayCanvas.getBoundingClientRect();
+    const xPct  = ((e.clientX - rect.left) / rect.width)  * 100;
+    const yPct  = ((e.clientY - rect.top)  / rect.height) * 100;
+
+    if (state.selectedSticker && state.currentTool === 'stickers') {
+      const s = {
+        id:      Date.now(),
+        emoji:   state.selectedSticker,
+        x:       xPct,
+        y:       yPct,
+        size:    parseInt(stickerSize?.value ?? 80),
+        opacity: parseInt(stickerOpacity?.value ?? 100),
+      };
+      state.stickers.push(s);
+      renderPlacedStickersList();
+    }
+
+    if (state.currentEffect === 'flare') {
+      webglFx.setFlareX(xPct / 100);
+      webglFx.setFlareY(yPct / 100);
+      if (flareX) { flareX.value = Math.round(xPct); flareXVal.textContent = `${Math.round(xPct)}%`; }
+      if (flareY) { flareY.value = Math.round(yPct); flareYVal.textContent = `${Math.round(yPct)}%`; }
+    }
+  });
+
   // ─── Keyboard shortcuts ───────────────────────────────────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -777,18 +1231,32 @@ function bindEvents() {
 // UTILITY
 // ══════════════════════════════════════════════════════════════════════════════
 function showPanel(name) {
-  [panelUpload, panelCensor, panelEffects, panelColor, panelText, panelMusic].forEach(p => {
-    p.classList.add('hidden');
+  [panelUpload, panelCensor, panelEffects, panelColor, panelText, panelMusic,
+   panelTrim, panelStickers, panelFrames].forEach(p => {
+    p?.classList.add('hidden');
   });
   const map = {
-    upload: panelUpload,
-    censor: panelCensor,
-    effects: panelEffects,
-    color: panelColor,
-    text: panelText,
-    music: panelMusic,
+    upload:   panelUpload,
+    censor:   panelCensor,
+    effects:  panelEffects,
+    color:    panelColor,
+    text:     panelText,
+    music:    panelMusic,
+    trim:     panelTrim,
+    stickers: panelStickers,
+    frames:   panelFrames,
   };
   map[name]?.classList.remove('hidden');
+
+  // Cursor mode
+  canvasWrapper.classList.remove('mode-sticker', 'mode-flare', 'mode-default');
+  if (name === 'stickers' && state.selectedSticker) {
+    canvasWrapper.classList.add('mode-sticker');
+  } else if (name === 'effects' && state.currentEffect === 'flare') {
+    canvasWrapper.classList.add('mode-flare');
+  } else {
+    canvasWrapper.classList.add('mode-default');
+  }
 }
 
 function updateToolActive(activeTool) {
@@ -796,6 +1264,40 @@ function updateToolActive(activeTool) {
     btn.classList.toggle('active', btn.dataset.tool === activeTool);
   });
   state.currentTool = activeTool;
+}
+
+function renderPlacedStickersList() {
+  if (!stickersPlacedList) return;
+  stickersPlacedList.innerHTML = '';
+  state.stickers.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'segment-item';
+    div.innerHTML = `<span>${s.emoji} at ${s.x.toFixed(0)}%, ${s.y.toFixed(0)}%</span>
+      <button class="segment-del-btn" data-idx="${i}">✕</button>`;
+    div.querySelector('.segment-del-btn').addEventListener('click', () => {
+      state.stickers.splice(i, 1);
+      renderPlacedStickersList();
+    });
+    stickersPlacedList.appendChild(div);
+  });
+}
+
+function renderActiveFramesList() {
+  if (!activeFramesList) return;
+  activeFramesList.innerHTML = '';
+  state.activeFrames.forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'segment-item active';
+    div.innerHTML = `<span>${f.type}</span>
+      <button class="segment-del-btn" data-idx="${i}">✕</button>`;
+    div.querySelector('.segment-del-btn').addEventListener('click', () => {
+      state.activeFrames.splice(i, 1);
+      // Deactivate the corresponding preset button
+      framePresetBtns.forEach(b => { if (b.dataset.frame === f.type) b.classList.remove('active'); });
+      renderActiveFramesList();
+    });
+    activeFramesList.appendChild(div);
+  });
 }
 
 function setSplashProgress(pct, label) {
@@ -828,6 +1330,8 @@ async function renderSingleFrame() {
   }
 
   drawTextLayers(compCtx, W, H);
+  drawStickers(compCtx, W, H);
+  drawFrames(compCtx, W, H);
   webglFx.renderFrame(compositeCanvas);
   drawVignette(W, H);
   updateTimeDisplay();

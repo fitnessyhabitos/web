@@ -1249,6 +1249,267 @@ html, body {
 /* Disabled state */
 button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; pointer-events: none; }
 
+/* ──────────────────────────────────────────────
+   TRIM PANEL
+────────────────────────────────────────────── */
+.trim-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trim-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-red);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  letter-spacing: 0.3px;
+}
+.trim-action-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+.trim-action-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.trim-action-btn.danger:hover { border-color: #ef4444; color: #ef4444; }
+
+.segments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.segment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-red);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-family: 'SF Mono', monospace;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.segment-item:hover { border-color: var(--cyan); color: var(--text); }
+.segment-item.active { border-color: var(--cyan); background: var(--cyan-dim); color: var(--cyan); }
+.segment-item.deleted { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: rgba(239,68,68,0.6); text-decoration: line-through; }
+
+.segment-del-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  opacity: 0.6;
+}
+.segment-del-btn:hover { opacity: 1; }
+
+/* ──────────────────────────────────────────────
+   STICKERS PANEL
+────────────────────────────────────────────── */
+.sticker-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.stickers-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.sticker-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-red);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 20px;
+  transition: all var(--transition);
+  line-height: 1;
+}
+.sticker-pick span { font-size: 8px; color: var(--text-muted); letter-spacing: 0.3px; }
+.sticker-pick:hover { border-color: var(--cyan); transform: scale(1.05); }
+.sticker-pick.active {
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
+  box-shadow: 0 0 10px var(--cyan-glow);
+  transform: scale(1.08);
+}
+
+/* ──────────────────────────────────────────────
+   FRAMES PANEL
+────────────────────────────────────────────── */
+.frames-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.frames-presets-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.frame-preset-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 4px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-red);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  color: var(--text-dim);
+}
+.frame-preset-btn span { font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; }
+.frame-preset-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.frame-preset-btn.active {
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
+  color: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan-glow);
+}
+
+/* Frame preview thumbnails */
+.fp-preview {
+  width: 64px;
+  height: 36px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  overflow: hidden;
+  position: relative;
+}
+
+.fp-rec {
+  background: rgba(10,0,0,0.9);
+  color: #ef4444;
+  gap: 4px;
+  border: 1px solid rgba(239,68,68,0.4);
+}
+.rec-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+  animation: pulse-green 1s infinite;
+}
+.fp-live {
+  background: rgba(0,0,10,0.9);
+  color: #ef4444;
+  font-size: 8px;
+  border: 1px solid rgba(239,68,68,0.4);
+}
+.fp-cam {
+  background: rgba(5,5,5,0.9);
+  color: var(--text-dim);
+  font-size: 9px;
+  border: 1px solid var(--border-red);
+}
+
+.fp-bars21 {
+  background: linear-gradient(to bottom, #000 0%, #000 22%, #222 22%, #222 78%, #000 78%, #000 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.fp-bars169 {
+  background: #111;
+  border: 2px solid #000;
+  box-shadow: inset 0 6px 0 #000, inset 0 -6px 0 #000;
+}
+.fp-vhs-frame {
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(25,249,249,0.05) 3px, rgba(25,249,249,0.05) 4px), #0a000a;
+  color: rgba(25,249,249,0.6);
+  font-size: 7px;
+  border: 1px solid rgba(25,249,249,0.2);
+}
+.fp-neon-border {
+  background: #050005;
+  border: 2px solid #940a0a;
+  box-shadow: inset 0 0 8px rgba(148,10,10,0.3), 0 0 8px rgba(25,249,249,0.2);
+  outline: 1px solid rgba(25,249,249,0.2);
+  outline-offset: -4px;
+}
+.fp-film {
+  background: repeating-linear-gradient(90deg, #111 0, #111 8px, #222 8px, #222 10px);
+  border-top: 4px solid #333;
+  border-bottom: 4px solid #333;
+}
+.fp-glow {
+  background: radial-gradient(ellipse at center, #1a0a00 30%, #000 100%);
+  border: 1px solid rgba(148,10,10,0.5);
+  box-shadow: inset 0 0 15px rgba(148,10,10,0.4);
+}
+.fp-leak-orange {
+  background: linear-gradient(135deg, rgba(255,120,0,0.8) 0%, transparent 60%);
+  background-color: #050000;
+}
+.fp-leak-blue {
+  background: linear-gradient(315deg, rgba(0,80,255,0.8) 0%, transparent 60%);
+  background-color: #000008;
+}
+.fp-leak-rainbow {
+  background: linear-gradient(135deg, rgba(255,0,0,0.4) 0%, rgba(255,165,0,0.3) 25%, rgba(0,200,255,0.4) 75%, rgba(150,0,255,0.4) 100%);
+  background-color: #050005;
+}
+
+/* ──────────────────────────────────────────────
+   CANVAS CURSOR MODES
+────────────────────────────────────────────── */
+#canvas-wrapper.mode-sticker  { cursor: crosshair; }
+#canvas-wrapper.mode-flare    { cursor: cell; }
+#canvas-wrapper.mode-default  { cursor: default; }
+
+/* ──────────────────────────────────────────────
+   CANVAS SIZING FIX — ensure wrapper fills flex space
+────────────────────────────────────────────── */
+#canvas-area {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+#canvas-wrapper {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+}
+
+#display-canvas {
+  position: relative;
+  z-index: 1;
+}
+
 /* Recording indicator */
 .recording-indicator {
   display: inline-flex;
