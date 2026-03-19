@@ -380,6 +380,10 @@ html, body {
   transition: opacity var(--transition);
 }
 
+/* Export/screenshot shortcuts — only in mobile sidebar */
+.tool-btn--export-mob,
+.tool-btn--shot-mob { display: none; }
+
 .tool-btn:hover {
   border-color: var(--border-red);
   color: var(--text);
@@ -1924,7 +1928,16 @@ button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; poin
   .logo-text { font-size: 15px; }
   .ratio-btn  { padding: 3px 8px; font-size: 10px; }
   #fps-counter { display: none; }
-  #btn-export  { padding: 6px 12px; font-size: 11px; }
+  /* Header export: icon-only on mobile to save space */
+  #btn-export  { padding: 5px 8px; font-size: 0; gap: 0; min-width: 34px; }
+  #btn-export svg { width: 18px; height: 18px; }
+  /* header-aspect-ratio hidden on mobile — AR buttons live only in sidebar panel */
+  .header-aspect-ratio { display: none; }
+  /* canvas-controls: hide fullscreen on mobile (saves space) */
+  #btn-fullscreen { display: none; }
+  /* Screenshot/speed already in canvas-controls — smaller on mobile */
+  #btn-screenshot { width: 28px; height: 28px; }
+  .speed-btn { min-width: 30px; font-size: 10px; }
 
   /* ── Workspace: fills screen between header and bottom nav ── */
   #workspace {
@@ -2094,6 +2107,23 @@ button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; poin
   .stickers-grid          { grid-template-columns: repeat(4, 1fr); }
   .sounds-grid            { grid-template-columns: repeat(5, 1fr); }
   .frames-presets-row     { grid-template-columns: repeat(3, 1fr); }
+
+  /* ── Export & Screenshot — visible in mobile sidebar ── */
+  .tool-btn--export-mob {
+    display: flex;
+    color: #ff6060;
+    flex-shrink: 0;
+  }
+  .tool-btn--export-mob svg { stroke: #ff6060; }
+  .tool-btn--export-mob span { color: #ff6060; }
+
+  .tool-btn--shot-mob {
+    display: flex;
+    color: var(--cyan);
+    flex-shrink: 0;
+  }
+  .tool-btn--shot-mob svg { stroke: var(--cyan); }
+  .tool-btn--shot-mob span { color: var(--cyan); }
 
   /* ── Backdrop — closes panel when tapped ── */
   #mobile-backdrop {

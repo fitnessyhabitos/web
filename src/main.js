@@ -1388,10 +1388,20 @@ function bindEvents() {
   tlZoomOut.addEventListener('click', () => { timeline.zoomOut(); tlZoomLabel.textContent = `${timeline.zoom}×`; });
 
   // ─── Export ───────────────────────────────────────────────────────────────
-  btnExport.addEventListener('click', () => {
+  const openExportModal = () => {
     if (!state.videoLoaded) return;
     exportProgressArea.classList.add('hidden');
     exportModal.classList.remove('hidden');
+  };
+  btnExport.addEventListener('click', openExportModal);
+  // Mobile sidebar export & screenshot buttons
+  $('#btn-export-mob')?.addEventListener('click', openExportModal);
+  $('#btn-shot-mob')?.addEventListener('click', () => {
+    if (!state.videoLoaded) return;
+    const link = document.createElement('a');
+    link.download = `frame-${Date.now()}.png`;
+    link.href = displayCanvas.toDataURL('image/png');
+    link.click();
   });
 
   btnCloseExport.addEventListener('click',  () => exportModal.classList.add('hidden'));
