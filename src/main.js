@@ -105,6 +105,12 @@ const blurRadiusSlider   = $('#blur-radius');
 const blurRadiusVal      = $('#blur-radius-val');
 const maskExpandSlider   = $('#mask-expand');
 const maskExpandVal      = $('#mask-expand-val');
+const censorOpacitySlider = $('#censor-opacity');
+const censorOpacityVal    = $('#censor-opacity-val');
+const maskScaleX          = $('#mask-scale-x');
+const maskScaleXVal       = $('#mask-scale-x-val');
+const maskScaleY          = $('#mask-scale-y');
+const maskScaleYVal       = $('#mask-scale-y-val');
 const maxFacesSelect     = $('#max-faces');
 const censorStatus       = $('#censor-status');
 const censorStatusDot    = censorStatus.querySelector('.status-dot');
@@ -980,6 +986,24 @@ function bindEvents() {
     const v = parseInt(blurRadiusSlider.value);
     blurRadiusVal.textContent = `${v}px`;
     faceCensor.setBlurRadius(v);
+  });
+
+  censorOpacitySlider?.addEventListener('input', () => {
+    const v = parseInt(censorOpacitySlider.value);
+    censorOpacityVal.textContent = `${v}%`;
+    faceCensor.setCensorOpacity(v);
+  });
+
+  maskScaleX?.addEventListener('input', () => {
+    const v = parseInt(maskScaleX.value) / 100;
+    maskScaleXVal.textContent = `${v.toFixed(1)}×`;
+    faceCensor.setMaskScaleX(v);
+  });
+
+  maskScaleY?.addEventListener('input', () => {
+    const v = parseInt(maskScaleY.value) / 100;
+    maskScaleYVal.textContent = `${v.toFixed(1)}×`;
+    faceCensor.setMaskScaleY(v);
   });
 
   maskExpandSlider.addEventListener('input', () => {

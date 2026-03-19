@@ -306,6 +306,27 @@
                 </select>
               </div>
             </div>
+          <div class="control-group">
+            <label>Effect Opacity</label>
+            <div class="slider-row">
+              <input type="range" id="censor-opacity" min="0" max="100" value="100" class="neon-range">
+              <span id="censor-opacity-val">100%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Width (X scale)</label>
+            <div class="slider-row">
+              <input type="range" id="mask-scale-x" min="30" max="600" value="100" class="neon-range">
+              <span id="mask-scale-x-val">1.0×</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Height (Y scale)</label>
+            <div class="slider-row">
+              <input type="range" id="mask-scale-y" min="30" max="600" value="100" class="neon-range">
+              <span id="mask-scale-y-val">1.0×</span>
+            </div>
+          </div>
             <div id="censor-status" class="status-indicator">
               <span class="status-dot"></span>
               <span class="status-text">Censor inactive</span>
@@ -353,6 +374,38 @@
             <button class="effect-btn" data-effect="noir">
               <div class="effect-preview ep-noir"></div>
               <span>Noir</span>
+            </button>
+            <button class="effect-btn" data-effect="glitch">
+              <div class="effect-preview ep-glitch"></div>
+              <span>Glitch</span>
+            </button>
+            <button class="effect-btn" data-effect="dream">
+              <div class="effect-preview ep-dream"></div>
+              <span>Dream</span>
+            </button>
+            <button class="effect-btn" data-effect="sepia">
+              <div class="effect-preview ep-sepia"></div>
+              <span>Sepia</span>
+            </button>
+            <button class="effect-btn" data-effect="negative">
+              <div class="effect-preview ep-negative"></div>
+              <span>Negative</span>
+            </button>
+            <button class="effect-btn" data-effect="matrix">
+              <div class="effect-preview ep-matrix"></div>
+              <span>Matrix</span>
+            </button>
+            <button class="effect-btn" data-effect="sunset">
+              <div class="effect-preview ep-sunset"></div>
+              <span>Sunset</span>
+            </button>
+            <button class="effect-btn" data-effect="infrared">
+              <div class="effect-preview ep-infrared"></div>
+              <span>Infrared</span>
+            </button>
+            <button class="effect-btn" data-effect="sketch">
+              <div class="effect-preview ep-sketch"></div>
+              <span>Sketch</span>
             </button>
           </div>
           <div class="control-group" style="margin-top:16px">
@@ -742,6 +795,44 @@
               <input type="range" id="sound-volume" min="0" max="100" value="55" class="neon-range">
               <span id="sound-volume-val">55%</span>
             </div>
+          </div>
+
+          <div class="sounds-section-label" style="margin-top:12px">🔊 Noise &amp; Relax</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(5,1fr)">
+            <button class="sound-tile" data-sound="whitenoise">
+              <span class="sound-icon">〰️</span><span>White</span>
+            </button>
+            <button class="sound-tile" data-sound="pinknoise">
+              <span class="sound-icon">🌸</span><span>Pink</span>
+            </button>
+            <button class="sound-tile" data-sound="thunder">
+              <span class="sound-icon">⛈️</span><span>Thunder</span>
+            </button>
+            <button class="sound-tile" data-sound="stream">
+              <span class="sound-icon">🏞️</span><span>Stream</span>
+            </button>
+            <button class="sound-tile" data-sound="night">
+              <span class="sound-icon">🦗</span><span>Night</span>
+            </button>
+          </div>
+
+          <div class="sounds-section-label" style="margin-top:12px">🌌 Deep Focus</div>
+          <div class="sounds-grid" style="grid-template-columns:repeat(5,1fr)">
+            <button class="sound-tile" data-sound="space">
+              <span class="sound-icon">🌌</span><span>Space</span>
+            </button>
+            <button class="sound-tile" data-sound="breath">
+              <span class="sound-icon">🫁</span><span>Breath</span>
+            </button>
+            <button class="sound-tile" data-sound="crystal">
+              <span class="sound-icon">🔮</span><span>Crystal</span>
+            </button>
+            <button class="sound-tile" data-sound="hz528">
+              <span class="sound-icon">✨</span><span>528Hz</span>
+            </button>
+            <button class="sound-tile" data-sound="cafe">
+              <span class="sound-icon">☕</span><span>Café</span>
+            </button>
           </div>
 
           <div class="hint-text" style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:10px;line-height:1.5">

@@ -833,6 +833,14 @@ html, body {
 .ep-bokeh { background: radial-gradient(circle at 30% 40%, #fff4 0%, #0008 60%), radial-gradient(circle at 70% 60%, #fff2 0%, transparent 40%); }
 .ep-vhs { background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(25,249,249,0.05) 2px, rgba(25,249,249,0.05) 4px), linear-gradient(135deg, #1a001a 0%, #001a00 100%); }
 .ep-noir { background: linear-gradient(135deg, #000 0%, #222 50%, #000 100%); }
+.ep-glitch   { background: linear-gradient(90deg, #f00 33%, #0f0 33% 66%, #00f 66%); image-rendering: pixelated; filter: contrast(1.5); }
+.ep-dream    { background: radial-gradient(ellipse, rgba(255,220,255,0.9) 0%, rgba(180,160,255,0.7) 60%, rgba(100,80,180,0.5) 100%); }
+.ep-sepia    { background: linear-gradient(135deg, #c4a882, #8b6f4e, #6b5030); }
+.ep-negative { background: linear-gradient(135deg, #000 0%, #0ff 40%, #f0f 70%, #ff0 100%); }
+.ep-matrix   { background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,255,80,0.15) 3px, rgba(0,255,80,0.15) 4px), #001400; }
+.ep-sunset   { background: linear-gradient(to bottom, #ff7518, #ff3d7f, #4b0082); }
+.ep-infrared { background: linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000, #ffffff); }
+.ep-sketch   { background: #f0ece4; border: 1px solid #888; }
 
 /* Upload zones */
 .upload-zone {

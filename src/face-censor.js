@@ -30,6 +30,14 @@ export class FaceCensorEngine {
     // Smooth bounding box for stable tracking
     this._smoothBbox    = null;
     this._persistFrames = 0;
+    // Velocity tracking for predictive motion during face loss
+    this._velocity      = { cx: 0, cy: 0 };
+    this._prevSmooth    = null;
+    this._persistMax    = 60;   // ~1s at 60fps
+    // Censor appearance controls
+    this.censorOpacity  = 100;  // 0-100 %
+    this.maskScaleX     = 1.0;  // horizontal oval multiplier
+    this.maskScaleY     = 1.0;  // vertical oval multiplier
 
     // Censor mode: 'blur' | 'pixelate' | 'blackbar' | 'shadow' | 'stripes'
     this.censorMode     = 'blur';
@@ -112,7 +120,6 @@ export class FaceCensorEngine {
    * @param {number}                   height - canvas height
    */
   applyBlurMask(ctx, video, width, height) {
-    // Ensure processing canvas matches output size
     if (this._blurCanvas.width !== width || this._blurCanvas.height !== height) {
       this._blurCanvas.width  = width;
       this._blurCanvas.height = height;
@@ -121,24 +128,40 @@ export class FaceCensorEngine {
     const hasDetection = this.lastResults?.multiFaceLandmarks?.length > 0;
 
     if (!hasDetection) {
-      // ── Persistence fallback: keep rendering for ~25 frames after face is lost ──
       if (this._smoothBbox && this._persistFrames > 0) {
         this._persistFrames--;
-        if (this.censorMode === 'blur') {
+
+        // ── Predictive motion: carry last velocity, then decay ──
+        this._smoothBbox.cx += this._velocity.cx;
+        this._smoothBbox.cy += this._velocity.cy;
+        this._velocity.cx   *= 0.88;
+        this._velocity.cy   *= 0.88;
+
+        // ── Pre-blur offscreen canvas ──
+        const mode = this.censorMode;
+        if (mode === 'blur' || mode === 'pixelate' || mode === 'frost' || mode === 'warmglow' || mode === 'coolglow') {
           this._blurCtx.filter = `blur(${this.blurRadius}px)`;
           this._blurCtx.drawImage(video, 0, 0, width, height);
           this._blurCtx.filter = 'none';
         } else {
           this._blurCtx.drawImage(video, 0, 0, width, height);
         }
-        this._renderFromBbox(ctx, this._smoothBbox, width, height);
+
+        // ── Fade opacity as persistence runs out ──
+        const fadeRatio = this._persistFrames / this._persistMax;
+        const alpha     = (this.censorOpacity / 100) * Math.max(fadeRatio, 0.25);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        this._renderFromBbox(ctx, this._smoothBbox, width, height, true);
+        ctx.restore();
       }
       return;
     }
 
-    this._persistFrames = 25; // reset on every detected frame
+    this._persistFrames = this._persistMax;
 
-    if (this.censorMode === 'blur' || this.censorMode === 'pixelate' || this.censorMode === 'frost' || this.censorMode === 'warmglow' || this.censorMode === 'coolglow') {
+    const mode = this.censorMode;
+    if (mode === 'blur' || mode === 'pixelate' || mode === 'frost' || mode === 'warmglow' || mode === 'coolglow') {
       this._blurCtx.filter = `blur(${this.blurRadius}px)`;
       this._blurCtx.drawImage(video, 0, 0, width, height);
       this._blurCtx.filter = 'none';
@@ -169,24 +192,32 @@ export class FaceCensorEngine {
     const rW   = (maxX - minX) / 2 + ex;
     const rH   = (maxY - minY) / 2 * 1.8 + ex;
 
-    // ── Smooth bbox: lerp toward current detection ──
-    const LERP = 0.3;
+    // ── Lerp smoothing ──
+    const LERP = 0.28;
     if (!this._smoothBbox) {
       this._smoothBbox = { cx, cy, rW, rH };
     } else {
+      // Capture velocity BEFORE update (delta per frame)
+      this._velocity.cx = (cx - this._smoothBbox.cx) * LERP * 0.5;
+      this._velocity.cy = (cy - this._smoothBbox.cy) * LERP * 0.5;
       this._smoothBbox.cx += (cx - this._smoothBbox.cx) * LERP;
       this._smoothBbox.cy += (cy - this._smoothBbox.cy) * LERP;
       this._smoothBbox.rW += (rW - this._smoothBbox.rW) * LERP;
       this._smoothBbox.rH += (rH - this._smoothBbox.rH) * LERP;
     }
 
-    this._renderFromBbox(ctx, this._smoothBbox, w, h);
+    ctx.save();
+    ctx.globalAlpha = this.censorOpacity / 100;
+    this._renderFromBbox(ctx, this._smoothBbox, w, h, false);
+    ctx.restore();
   }
 
   /** Render the censor effect using a pre-computed smooth bounding box */
-  _renderFromBbox(ctx, bbox, w, h) {
-    const { cx, cy, rW, rH } = bbox;
-    const ex  = this.maskExpand;
+  _renderFromBbox(ctx, bbox, w, h, skipSave = false) {
+    const { cx, cy } = bbox;
+    const rW  = bbox.rW * this.maskScaleX;
+    const rH  = bbox.rH * this.maskScaleY;
+    const ex  = 0;
     const bx  = Math.max(0, Math.round(cx - rW));
     const by  = Math.max(0, Math.round(cy - rH));
     const bw  = Math.min(w - bx, Math.round(rW * 2));
@@ -296,6 +327,9 @@ export class FaceCensorEngine {
   /** Update settings without restarting */
   setBlurRadius(r)   { this.blurRadius = Math.max(1, Math.min(r, 80)); }
   setMaskExpand(e)   { this.maskExpand = Math.max(0, Math.min(e, 400)); }
+  setCensorOpacity(v)  { this.censorOpacity = Math.max(0, Math.min(v, 100)); }
+  setMaskScaleX(v)     { this.maskScaleX    = Math.max(0.3, Math.min(v, 6)); }
+  setMaskScaleY(v)     { this.maskScaleY    = Math.max(0.3, Math.min(v, 6)); }
   setActive(active)  { this.isActive = active; if (!active) this.lastResults = null; }
 
   /** How many faces currently detected */

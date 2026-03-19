@@ -213,6 +213,230 @@ const FRAG_FLARE = `
   }
 `;
 
+const FRAG_GLITCH = `
+  precision mediump float;
+  uniform sampler2D u_texture;
+  uniform float     u_intensity;
+  uniform float     u_time;
+  uniform vec2      u_resolution;
+  varying vec2 v_texCoord;
+  float rand(vec2 co) { return fract(sin(dot(co, vec2(12.9898,78.233))) * 43758.5453); }
+  void main() {
+    vec2 uv = v_texCoord;
+    float t = floor(u_time * 8.0);
+    // Random horizontal slice glitch
+    float sliceY = floor(rand(vec2(t, 0.0)) * 8.0) / 8.0;
+    float sliceH = 0.05 + rand(vec2(t, 1.0)) * 0.08;
+    float inSlice = step(sliceY, uv.y) * step(uv.y, sliceY + sliceH);
+    float shift = (rand(vec2(t, 2.0)) - 0.5) * 0.12 * u_intensity;
+    uv.x += shift * inSlice;
+    uv.x  = fract(uv.x);
+    // Chromatic aberration
+    float ca = 0.006 * u_intensity;
+    vec4 cr = texture2D(u_texture, vec2(uv.x + ca, uv.y));
+    vec4 cg = texture2D(u_texture, uv);
+    vec4 cb = texture2D(u_texture, vec2(uv.x - ca, uv.y));
+    vec4 c  = vec4(cr.r, cg.g, cb.b, cg.a);
+    // Scanlines
+    float scan = 1.0 - 0.12 * mod(gl_FragCoord.y, 2.0);
+    c.rgb *= scan;
+    // Noise burst in glitch zones
+    float noise = rand(uv + u_time) * 0.18 * inSlice * u_intensity;
+    c.rgb = clamp(c.rgb + vec3(noise, noise * 0.3, noise * 0.8), 0.0, 1.0);
+    vec4 orig = texture2D(u_texture, v_texCoord);
+    gl_FragColor = vec4(mix(orig.rgb, c.rgb, u_intensity), orig.a);
+  }
+`;
+
+const FRAG_DREAM = `
+  precision mediump float;
+  uniform sampler2D u_texture;
+  uniform float     u_intensity;
+  uniform vec2      u_resolution;
+  varying vec2 v_texCoord;
+  void main() {
+    vec4 c    = texture2D(u_texture, v_texCoord);
+    float asp = u_resolution.x / u_resolution.y;
+    // Soft bloom: sample nearby pixels and accumulate bright values
+    vec3 bloom = vec3(0.0);
+    float R = 6.0 / u_resolution.y;
+    float total = 0.0;
+    for (int i = -4; i <= 4; i++) {
+      for (int j = -4; j <= 4; j++) {
+        float fi = float(i); float fj = float(j);
+        float w = exp(-(fi*fi + fj*fj) * 0.12);
+        vec4 s = texture2D(u_texture, v_texCoord + vec2(fi * R / asp, fj * R));
+        float lum = dot(s.rgb, vec3(0.299, 0.587, 0.114));
+        bloom += s.rgb * w * max(lum - 0.5, 0.0) * 3.0;
+        total += w;
+      }
+    }
+    bloom /= total;
+    // Gentle desaturation
+    float lum = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+    vec3 desat = mix(c.rgb, vec3(lum), 0.25);
+    // Warm pastel tint
+    vec3 dream = desat + bloom * 1.4;
+    dream.r = min(dream.r * 1.06, 1.0);
+    dream.b = min(dream.b * 1.04, 1.0);
+    // Vignette (soft)
+    vec2 uv = v_texCoord - 0.5;
+    float vign = 1.0 - dot(uv * 1.2, uv * 1.2);
+    vign = clamp(vign, 0.55, 1.0);
+    dream *= vign;
+    gl_FragColor = vec4(mix(c.rgb, dream, u_intensity), c.a);
+  }
+`;
+
+const FRAG_SEPIA = `
+  precision mediump float;
+  uniform sampler2D u_texture;
+  uniform float     u_intensity;
+  varying vec2 v_texCoord;
+  void main() {
+    vec4 c    = texture2D(u_texture, v_texCoord);
+    float lum = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+    vec3 sepia = vec3(
+      clamp(lum * 1.07 + 0.12, 0.0, 1.0),
+      clamp(lum * 0.92 + 0.04, 0.0, 1.0),
+      clamp(lum * 0.78 - 0.03, 0.0, 1.0)
+    );
+    // Soft vignette
+    vec2 uv = v_texCoord - 0.5;
+    float vign = 1.0 - dot(uv * 1.6, uv * 1.6);
+    sepia *= clamp(vign, 0.4, 1.0);
+    // Slight grain
+    float grain = fract(sin(dot(v_texCoord, vec2(127.1, 311.7))) * 43758.55) * 0.03;
+    sepia += grain;
+    gl_FragColor = vec4(mix(c.rgb, sepia, u_intensity), c.a);
+  }
+`;
+
+const FRAG_NEGATIVE = `
+  precision mediump float;
+  uniform sampler2D u_texture;
+  uniform float     u_intensity;
+  varying vec2 v_texCoord;
+  void main() {
+    vec4 c   = texture2D(u_texture, v_texCoord);
+    vec3 neg = 1.0 - c.rgb;
+    gl_FragColor = vec4(mix(c.rgb, neg, u_intensity), c.a);
+  }
+`;
+
+const FRAG_MATRIX = `
+  precision mediump float;
+  uniform sampler2D u_texture;
+  uniform float     u_intensity;
+  uniform float     u_time;
+  uniform vec2      u_resolution;
+  varying vec2 v_texCoord;
+  float rand(vec2 co) { return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453); }
+  void main() {
+    vec4 c = texture2D(u_texture, v_texCoord);
+    // Green channel dominant (matrix look)
+    float lum = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+    vec3 mat = vec3(0.0, lum * 1.3, lum * 0.18);
+    // Falling "rain" columns of brightness
+    float col    = floor(v_texCoord.x * 40.0);
+    float speed  = 0.8 + rand(vec2(col, 0.0)) * 1.2;
+    float offset = rand(vec2(col, 1.0));
+    float rain   = fract(v_texCoord.y - u_time * speed + offset);
+    float glow   = pow(rain, 8.0) * 0.6;
+    mat.g  = clamp(mat.g + glow, 0.0, 1.0);
+    // Scanlines
+    float scan = 1.0 - 0.1 * mod(gl_FragCoord.y, 2.0);
+    mat *= scan;
+    // Slight vignette
+    vec2 uv = v_texCoord - 0.5;
+    float vign = 1.0 - dot(uv * 1.5, uv * 1.5);
+    mat *= clamp(vign, 0.5, 1.0);
+    gl_FragColor = vec4(mix(c.rgb, mat, u_intensity), c.a);
+  }
+`;
+
+const FRAG_SUNSET = `
+  precision mediump float;
+  uniform sampler2D u_texture;
+  uniform float     u_intensity;
+  varying vec2 v_texCoord;
+  void main() {
+    vec4 c   = texture2D(u_texture, v_texCoord);
+    float y  = v_texCoord.y;
+    // Gradient: warm orange at top, deep purple at bottom
+    vec3 sunTop = vec3(1.0, 0.45, 0.1);
+    vec3 sunBot = vec3(0.35, 0.0, 0.45);
+    vec3 grad   = mix(sunTop, sunBot, y);
+    // Blend with source using screen mode for highlights
+    vec3 screen = 1.0 - (1.0 - c.rgb) * (1.0 - grad * 0.6);
+    // Boost saturation slightly
+    float lum = dot(screen, vec3(0.299, 0.587, 0.114));
+    screen = mix(vec3(lum), screen, 1.3);
+    // Vignette
+    vec2 uv = v_texCoord - 0.5;
+    float vign = 1.0 - dot(uv * 1.4, uv * 1.4);
+    screen *= clamp(vign, 0.45, 1.0);
+    screen  = clamp(screen, 0.0, 1.0);
+    gl_FragColor = vec4(mix(c.rgb, screen, u_intensity), c.a);
+  }
+`;
+
+const FRAG_INFRARED = `
+  precision mediump float;
+  uniform sampler2D u_texture;
+  uniform float     u_intensity;
+  varying vec2 v_texCoord;
+  void main() {
+    vec4 c    = texture2D(u_texture, v_texCoord);
+    float lum = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+    // False-color heat map: blue(cold) -> cyan -> green -> yellow -> red -> white(hot)
+    vec3 ir;
+    if      (lum < 0.2)  ir = mix(vec3(0.0,0.0,0.5), vec3(0.0,0.0,1.0), lum / 0.2);
+    else if (lum < 0.4)  ir = mix(vec3(0.0,0.0,1.0), vec3(0.0,1.0,1.0), (lum - 0.2) / 0.2);
+    else if (lum < 0.6)  ir = mix(vec3(0.0,1.0,1.0), vec3(0.0,1.0,0.0), (lum - 0.4) / 0.2);
+    else if (lum < 0.8)  ir = mix(vec3(0.0,1.0,0.0), vec3(1.0,1.0,0.0), (lum - 0.6) / 0.2);
+    else                  ir = mix(vec3(1.0,1.0,0.0), vec3(1.0,1.0,1.0), (lum - 0.8) / 0.2);
+    gl_FragColor = vec4(mix(c.rgb, ir, u_intensity), c.a);
+  }
+`;
+
+const FRAG_SKETCH = `
+  precision mediump float;
+  uniform sampler2D u_texture;
+  uniform float     u_intensity;
+  uniform vec2      u_resolution;
+  varying vec2 v_texCoord;
+  void main() {
+    vec4 c = texture2D(u_texture, v_texCoord);
+    vec2 px = 1.0 / u_resolution;
+    // Sobel edge detection
+    float gx = (
+      -1.0 * texture2D(u_texture, v_texCoord + px * vec2(-1,-1)).r +
+       1.0 * texture2D(u_texture, v_texCoord + px * vec2( 1,-1)).r +
+      -2.0 * texture2D(u_texture, v_texCoord + px * vec2(-1, 0)).r +
+       2.0 * texture2D(u_texture, v_texCoord + px * vec2( 1, 0)).r +
+      -1.0 * texture2D(u_texture, v_texCoord + px * vec2(-1, 1)).r +
+       1.0 * texture2D(u_texture, v_texCoord + px * vec2( 1, 1)).r
+    );
+    float gy = (
+      -1.0 * texture2D(u_texture, v_texCoord + px * vec2(-1,-1)).r +
+      -2.0 * texture2D(u_texture, v_texCoord + px * vec2( 0,-1)).r +
+      -1.0 * texture2D(u_texture, v_texCoord + px * vec2( 1,-1)).r +
+       1.0 * texture2D(u_texture, v_texCoord + px * vec2(-1, 1)).r +
+       2.0 * texture2D(u_texture, v_texCoord + px * vec2( 0, 1)).r +
+       1.0 * texture2D(u_texture, v_texCoord + px * vec2( 1, 1)).r
+    );
+    float edge = clamp(sqrt(gx*gx + gy*gy) * 4.0, 0.0, 1.0);
+    // Paper-white background + pencil lines
+    float lum  = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+    vec3 paper = vec3(0.96, 0.94, 0.90);
+    vec3 sketch = mix(paper, vec3(0.1, 0.1, 0.12), edge);
+    // Subtle original color bleed
+    sketch = mix(sketch, sketch * (0.5 + c.rgb * 0.6), 0.2);
+    gl_FragColor = vec4(mix(c.rgb, sketch, u_intensity), c.a);
+  }
+`;
+
 const FRAG_BOKEH = `
   precision mediump float;
   uniform sampler2D u_texture;
@@ -266,6 +490,14 @@ const SHADERS = {
   vhs:       { frag: FRAG_VHS         },
   flare:     { frag: FRAG_FLARE       },
   bokeh:     { frag: FRAG_BOKEH       },
+  glitch:    { frag: FRAG_GLITCH      },
+  dream:     { frag: FRAG_DREAM       },
+  sepia:     { frag: FRAG_SEPIA       },
+  negative:  { frag: FRAG_NEGATIVE    },
+  matrix:    { frag: FRAG_MATRIX      },
+  sunset:    { frag: FRAG_SUNSET      },
+  infrared:  { frag: FRAG_INFRARED    },
+  sketch:    { frag: FRAG_SKETCH      },
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
