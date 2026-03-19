@@ -7,7 +7,7 @@
   <meta name="description" content="CENSOR ENGINE PRO — Professional AI Video Editor">
   <title>CENSOR ENGINE PRO</title>
   <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="src/styles.css">
+  <link rel="stylesheet" href="src/styles.css?v=2">
 
   <!-- MediaPipe Face Mesh CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -221,7 +221,7 @@
       </main>
 
       <!-- RIGHT TOOL PANEL -->
-      <aside id="tool-panel">
+      <aside id="right-panel">
 
         <!-- UPLOAD PANEL -->
         <div class="panel-section" id="panel-upload">
@@ -933,6 +933,9 @@
       </aside>
 
     </div><!-- /workspace -->
+
+    <!-- Mobile panel backdrop -->
+    <div id="mobile-backdrop"></div>
 
     <!-- TIMELINE -->
     <div id="timeline-container">

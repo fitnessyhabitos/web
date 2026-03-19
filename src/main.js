@@ -1023,20 +1023,29 @@ function bindEvents() {
   toolBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const tool = btn.dataset.tool;
+
       if (tool === 'upload') {
-        // open file picker
         inputVideo.click();
         showPanel('upload');
         updateToolActive('upload');
         return;
       }
+
+      const isMobile = window.innerWidth <= 768;
+
+      // On mobile: tapping active tool toggles the sheet closed
+      if (isMobile && state.currentTool === tool) {
+        closeMobilePanel();
+        return;
+      }
+
       if (tool === 'music') {
         showPanel('music');
         updateToolActive('music');
-        return;
+      } else {
+        showPanel(tool);
+        updateToolActive(tool);
       }
-      showPanel(tool);
-      updateToolActive(tool);
     });
   });
 
@@ -1378,6 +1387,9 @@ function bindEvents() {
     startRenderLoop();
   });
 
+  // ─── Mobile backdrop: close panel on tap ─────────────────────────────────
+  document.getElementById('mobile-backdrop')?.addEventListener('click', closeMobilePanel);
+
   // ─── Segment skip on timeupdate ──────────────────────────────────────────
   videoEl.addEventListener('timeupdate', handleSegmentSkip);
 
@@ -1584,7 +1596,7 @@ function bindEvents() {
   // Mobile: close panel when tapping canvas
   displayCanvas.addEventListener('touchend', (e) => {
     if (window.innerWidth <= 768) {
-      const rp = document.getElementById('tool-panel');
+      const rp = document.getElementById('right-panel');
       if (rp?.classList.contains('mobile-open')) {
         // Only close if tap was on canvas itself, not a button
         rp.classList.remove('mobile-open');
@@ -1619,6 +1631,25 @@ function bindEvents() {
     }
     timeline._resize();
   });
+}
+
+function openMobilePanel() {
+  const rp       = document.getElementById('right-panel');
+  const backdrop = document.getElementById('mobile-backdrop');
+  if (!rp) return;
+  rp.classList.add('mobile-open');
+  if (backdrop) backdrop.classList.add('visible');
+}
+
+function closeMobilePanel() {
+  const rp       = document.getElementById('right-panel');
+  const backdrop = document.getElementById('mobile-backdrop');
+  if (!rp) return;
+  rp.classList.remove('mobile-open');
+  if (backdrop) backdrop.classList.remove('visible');
+  // Deactivate tool button highlight
+  updateToolActive('');
+  state.currentTool = '';
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1656,11 +1687,13 @@ function showPanel(name) {
     canvasWrapper.classList.add('mode-default');
   }
 
-  // Mobile: show/hide right panel as bottom drawer
-  const rightPanel = document.getElementById('tool-panel');
-  if (rightPanel && window.innerWidth <= 768) {
-    const isMediaPanel = (name === 'upload');
-    rightPanel.classList.toggle('mobile-open', !isMediaPanel);
+  // Mobile: open sheet for all panels except upload (which shows inline)
+  if (window.innerWidth <= 768) {
+    if (name !== 'upload') {
+      openMobilePanel();
+    } else {
+      closeMobilePanel();
+    }
   }
 }
 

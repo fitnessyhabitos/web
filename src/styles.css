@@ -544,7 +544,7 @@ html, body {
 /* ──────────────────────────────────────────────
    RIGHT TOOL PANEL
 ────────────────────────────────────────────── */
-#tool-panel {
+#right-panel {
   width: var(--panel-w);
   display: flex;
   flex-direction: column;
@@ -559,9 +559,9 @@ html, body {
   scrollbar-color: var(--border-red) transparent;
 }
 
-#tool-panel::-webkit-scrollbar { width: 4px; }
-#tool-panel::-webkit-scrollbar-track { background: transparent; }
-#tool-panel::-webkit-scrollbar-thumb { background: var(--border-red); border-radius: 4px; }
+#right-panel::-webkit-scrollbar { width: 4px; }
+#right-panel::-webkit-scrollbar-track { background: transparent; }
+#right-panel::-webkit-scrollbar-thumb { background: var(--border-red); border-radius: 4px; }
 
 .panel-section {
   padding: 16px;
@@ -1676,195 +1676,222 @@ button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; poin
 .sound-tile.stop-btn:hover { border-color: #ef4444; background: rgba(239,68,68,0.08); }
 
 /* ══════════════════════════════════════════════════════
-   MOBILE RESPONSIVE — iPhone 15 Pro & small screens
-   Layout switches: sidebar → bottom nav, panel → drawer
+   MOBILE RESPONSIVE — InShot-style layout for iPhone
+   Fixed bottom nav + slide-up panel sheet + safe areas
 ══════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  :root {
-    --header-h:   44px;
-    --sidebar-w:  0px;
-    --panel-w:    100vw;
-    --timeline-h: 110px;
-  }
 
-  /* Use dynamic viewport height on iOS (avoids Safari chrome overlap) */
-  #app { height: 100dvh; }
-
-  /* ── HEADER ── */
-  #app-header { padding: 0 10px; }
-  .logo-text { font-size: 15px; }
-  .ratio-btn { padding: 3px 8px; font-size: 10px; }
-  #btn-export { padding: 6px 12px; font-size: 11px; }
-  #fps-counter { display: none; }
-
-  /* ── WORKSPACE: stack vertically ── */
-  #workspace {
+  /* ── App shell ── */
+  html, body { overflow: hidden; height: 100%; }
+  #app {
+    height: 100dvh;
+    display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
   }
 
-  /* ── SIDEBAR: becomes horizontal bottom nav ── */
-  #sidebar {
-    order: 3;
-    width: 100%;
-    height: 56px;
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 0 6px;
-    gap: 0;
-    border-right: none;
-    border-top: 1px solid var(--border-red);
+  /* ── Header: compact, safe-area aware ── */
+  #app-header {
     flex-shrink: 0;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    height: calc(44px + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: 10px;
+    padding-right: 10px;
+    z-index: 50;
   }
-  #sidebar::-webkit-scrollbar { display: none; }
+  .logo-text { font-size: 15px; }
+  .ratio-btn  { padding: 3px 8px; font-size: 10px; }
+  #fps-counter { display: none; }
+  #btn-export  { padding: 6px 12px; font-size: 11px; }
 
-  .tool-btn {
-    min-width: 56px;
-    height: 52px;
-    flex-direction: row;
-    gap: 4px;
-    padding: 0 10px;
-    font-size: 10px;
-    border-radius: 0;
-    flex-shrink: 0;
-  }
-  .tool-btn svg { width: 18px; height: 18px; }
-  .tool-divider {
-    width: 1px;
-    height: 28px;
-    margin: auto 4px;
-    align-self: center;
-  }
-
-  /* ── CANVAS AREA: fills remaining space ── */
-  #canvas-area {
-    order: 1;
+  /* ── Workspace: fills screen between header and bottom nav ── */
+  #workspace {
     flex: 1 1 0;
-    width: 100%;
     min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    /* Reserve space for fixed bottom nav */
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* ── PLAYBACK CONTROLS ── */
-  #playback-controls {
-    padding: 6px 10px;
-  }
-
-  /* ── RIGHT PANEL: slide-up bottom drawer ── */
-  #tool-panel {
-    order: 2;
-    position: fixed;
-    bottom: 56px; /* above bottom nav */
-    left: 0;
-    right: 0;
+  /* ── Canvas area ── */
+  #canvas-area {
+    flex: 1 1 0;
+    min-height: 0;
     width: 100%;
-    max-height: 52vh;
-    z-index: 200;
-    border-left: none;
-    border-top: 1px solid var(--border-red);
-    border-radius: 16px 16px 0 0;
-    transform: translateY(100%);
-    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-    background: rgba(8, 0, 0, 0.96);
-    backdrop-filter: blur(24px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  #tool-panel.mobile-open {
-    transform: translateY(0);
   }
 
-  /* Drag handle indicator on panel */
-  #tool-panel::before {
-    content: '';
-    display: block;
-    width: 36px;
-    height: 4px;
-    background: var(--border-red);
-    border-radius: 2px;
-    margin: 10px auto 4px;
-    opacity: 0.6;
-  }
+  /* ── Playback controls ── */
+  #playback-controls { padding: 5px 12px; }
 
-  .panel-section {
-    overflow-y: auto;
-    max-height: calc(52vh - 60px);
-    padding-bottom: 16px;
-  }
-
-  /* MEDIA upload section shown inline */
-  #panel-upload { padding: 12px; }
-  .upload-card { height: 80px; }
-
-  /* ── TIMELINE ── */
+  /* ── Timeline: compact ── */
   #timeline-container {
-    height: var(--timeline-h);
+    height: 80px;
+    flex-shrink: 0;
   }
   .track-labels { display: none; }
   #tl-scroll-area { left: 0; }
 
-  /* ── TOUCH TARGETS ── */
-  .effect-btn, .frame-preset-btn, .sticker-pick, .sound-tile,
-  .trim-action-btn, .censor-mode-btn {
-    min-height: 40px;
+  /* ── BOTTOM NAV — fixed, always visible, InShot style ── */
+  #sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 300;
+    width: 100%;
+    height: calc(72px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left:  env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 2px;
+
+    background: rgba(4, 0, 2, 0.97);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border-top: 1px solid rgba(148, 10, 10, 0.55);
+    border-right: none;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.6);
+  }
+  #sidebar::-webkit-scrollbar { display: none; }
+
+  /* ── Tool buttons — InShot style, large tap targets ── */
+  .tool-btn {
+    flex-direction: column;
+    min-width: 62px;
+    width: 62px;
+    height: 62px;
+    padding: 8px 4px 6px;
+    gap: 4px;
+    font-size: 9px;
+    letter-spacing: 0.4px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .tool-btn svg { width: 22px; height: 22px; }
+  .tool-btn.active {
+    background: rgba(25, 249, 249, 0.1);
+    box-shadow: none;
+  }
+  .tool-btn.active svg { stroke: var(--cyan); }
+  .tool-btn.active span { color: var(--cyan); }
+
+  .tool-divider {
+    width: 1px;
+    height: 30px;
+    margin: auto 4px;
+    flex-shrink: 0;
+    background: rgba(148,10,10,0.3);
   }
 
-  .neon-range {
-    height: 6px;
-    cursor: pointer;
+  /* ── RIGHT PANEL — slide-up sheet above bottom nav ── */
+  #right-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    z-index: 250;
+    width: 100%;
+    max-height: 56dvh;
+    min-height: 200px;
+
+    background: rgba(7, 0, 3, 0.97);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border-radius: 20px 20px 0 0;
+    border-top: 1px solid rgba(148, 10, 10, 0.5);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.7);
+
+    transform: translateY(calc(100% + 8px));
+    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border-left: none;
   }
 
-  /* Effects grid 3 cols on mobile */
-  .effects-grid { grid-template-columns: repeat(3, 1fr); }
+  #right-panel.mobile-open {
+    transform: translateY(0);
+  }
 
-  /* Stickers 4 cols on mobile */
-  .stickers-grid { grid-template-columns: repeat(4, 1fr); }
+  /* Drag handle bar at top of sheet */
+  #right-panel::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 2px;
+    margin: 10px auto 2px;
+    flex-shrink: 0;
+  }
 
-  /* Frames 2 cols on mobile */
-  .frames-presets-row { grid-template-columns: repeat(2, 1fr); }
-  .fp-preview { width: 100%; }
+  .panel-section {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(56dvh - 48px);
+    padding: 8px 16px 24px;
+    flex: 1;
+  }
+
+  /* ── Upload panel inline (not in sheet, shows in canvas area) ── */
+  #panel-upload {
+    padding: 10px 14px;
+  }
+  .upload-card { height: 72px; }
+  .upload-icon { font-size: 22px; }
+
+  /* ── Touch-friendly controls ── */
+  .neon-range  { height: 6px; cursor: pointer; touch-action: manipulation; }
+  .effect-btn  { min-height: 80px; }
+  .sticker-pick { min-height: 52px; }
+  .sound-tile   { min-height: 44px; }
+  .trim-action-btn, .censor-mode-btn { min-height: 44px; }
+  .frame-preset-btn { min-height: 48px; }
+  .wm-pos-btn   { min-height: 40px; min-width: 40px; font-size: 18px; }
+
+  /* Grids adjusted for mobile width */
+  .effects-grid           { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stickers-grid          { grid-template-columns: repeat(4, 1fr); }
+  .sounds-grid            { grid-template-columns: repeat(5, 1fr); }
+  .frames-presets-row     { grid-template-columns: repeat(3, 1fr); }
+
+  /* ── Backdrop — closes panel when tapped ── */
+  #mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    z-index: 240;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(2px);
+    display: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #mobile-backdrop.visible { display: block; }
 }
 
-/* Extra small (iPhone SE etc) */
+/* ── iPhone SE and very small phones ── */
 @media (max-width: 390px) {
-  .tool-btn { min-width: 48px; padding: 0 6px; font-size: 9px; }
-  :root { --timeline-h: 90px; }
+  .tool-btn { min-width: 52px; width: 52px; font-size: 8px; }
+  :root { --timeline-h: 80px; }
 }
 
-/* ══════════════════════════════════════════════════════
-   SAFE AREA INSETS — iPhone 15 Pro / 16 Pro
-   Handles Dynamic Island notch + Home indicator bar
-══════════════════════════════════════════════════════ */
-@supports (padding-top: env(safe-area-inset-top)) {
-  #app-header {
-    padding-top: env(safe-area-inset-top);
-    height: calc(var(--header-h) + env(safe-area-inset-top));
-  }
-
-  /* Bottom nav safe area (home indicator on 15/16 Pro) */
-  @media (max-width: 768px) {
-    #sidebar {
-      padding-bottom: env(safe-area-inset-bottom);
-      height: calc(56px + env(safe-area-inset-bottom));
-    }
-    #right-panel {
-      bottom: calc(56px + env(safe-area-inset-bottom));
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    /* Left/right notch insets for landscape */
-    #canvas-area {
-      padding-left:  env(safe-area-inset-left);
-      padding-right: env(safe-area-inset-right);
-    }
-  }
-}
-
-/* iPhone 16 Pro specific (430px logical width) */
+/* ── iPhone 16 Pro (430pt wide) ── */
 @media (min-width: 391px) and (max-width: 430px) {
-  :root { --timeline-h: 105px; }
-  .tool-btn { min-width: 52px; }
+  .tool-btn { min-width: 64px; width: 64px; }
+  :root { --timeline-h: 85px; }
 }
 
 /* ══════════════════════════════════════════════════════
