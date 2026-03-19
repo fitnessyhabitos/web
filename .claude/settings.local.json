@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(where npx:*)",
+      "Bash(where node:*)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(node --check \"C:/Users/bigde/Desktop/Proyectos Claude/InShot/src/main.js\")",
+      "Bash(rtk grep:*)",
+      "Bash(node --check \"C:/Users/bigde/Desktop/Proyectos Claude/InShot/src/webgl-effects.js\")",
+      "Bash(node --check \"C:/Users/bigde/Desktop/Proyectos Claude/InShot/src/face-censor.js\")",
+      "Bash(node --check \"C:/Users/bigde/Desktop/Proyectos Claude/InShot/src/zen-audio.js\")",
+      "Bash(node -e \":*)",
+      "Bash(rtk git:*)",
+      "Bash(\"C:/Users/bigde/Desktop/Proyectos Claude/InShot/src/styles.css\":*)"
+    ]
+  }
+}

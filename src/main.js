@@ -1,0 +1,1501 @@
+/**
+ * CENSOR ENGINE PRO — Main Application
+ * Orchestrates: FaceCensor + WebGLEffects + Timeline + AudioMixer + Exporter
+ */
+
+import { FaceCensorEngine }   from './face-censor.js';
+import { WebGLEffectsEngine } from './webgl-effects.js';
+import { Timeline }           from './timeline.js';
+import { AudioMixer }         from './audio-mixer.js';
+import { VideoExporter }      from './exporter.js';
+import { ZenAudioEngine }    from './zen-audio.js';
+
+// ─── DOM References ──────────────────────────────────────────────────────────
+const $ = (sel) => document.querySelector(sel);
+
+const splashScreen       = $('#splash-screen');
+const progressFill       = $('#splash-progress-fill');
+const progressLabel      = $('#splash-progress-label');
+const app                = $('#app');
+
+const videoEl            = $('#video-element');
+const compositeCanvas    = $('#composite-canvas');
+const displayCanvas      = $('#display-canvas');
+
+const dropOverlay        = $('#drop-overlay');
+const canvasWrapper      = $('#canvas-wrapper');
+
+const btnPlayPause       = $('#btn-play-pause');
+const iconPlay           = $('#icon-play');
+const iconPause          = $('#icon-pause');
+const btnPreviewToggle   = $('#btn-preview-toggle');
+const timeDisplay        = $('#time-display');
+const headerFilename     = $('#header-filename');
+const fpsCounter         = $('#fps-counter');
+const btnExport          = $('#btn-export');
+const btnFullscreen      = $('#btn-fullscreen');
+
+const exportModal        = $('#export-modal');
+const btnCloseExport     = $('#btn-close-export');
+const btnCancelExport    = $('#btn-cancel-export');
+const btnStartExport     = $('#btn-start-export');
+const exportResolution   = $('#export-resolution');
+const exportFormat       = $('#export-format');
+const exportBitrate      = $('#export-bitrate');
+const exportProgressArea = $('#export-progress-area');
+const exportProgressFill = $('#export-progress-fill');
+const exportProgressLabel= $('#export-progress-label');
+
+const tlCanvas           = $('#timeline-canvas');
+const tlRuler            = $('#tl-ruler');
+const tlPlayhead         = $('#tl-playhead');
+const tlScrollArea       = $('#tl-scroll-area');
+const tlZoomIn           = $('#tl-zoom-in');
+const tlZoomOut          = $('#tl-zoom-out');
+const tlZoomLabel        = $('#tl-zoom-label');
+
+// Tool buttons & panels
+const toolBtns           = document.querySelectorAll('.tool-btn');
+const panelUpload        = $('#panel-upload');
+const panelCensor        = $('#panel-censor');
+const panelEffects       = $('#panel-effects');
+const panelColor         = $('#panel-color');
+const panelText          = $('#panel-text');
+const panelMusic         = $('#panel-music');
+const panelTrim          = $('#panel-trim');
+const panelStickers      = $('#panel-stickers');
+const panelFrames        = $('#panel-frames');
+
+// Trim controls
+const btnSplit           = $('#btn-split');
+const btnDeleteSegment   = $('#btn-delete-segment');
+const btnResetTrim       = $('#btn-reset-trim');
+const trimStart          = $('#trim-start');
+const trimStartVal       = $('#trim-start-val');
+const trimEnd            = $('#trim-end');
+const trimEndVal         = $('#trim-end-val');
+const segmentsList       = $('#segments-list');
+
+// Sticker controls
+const stickersGrid       = document.querySelectorAll('.sticker-pick');
+const stickerSize        = $('#sticker-size');
+const stickerSizeVal     = $('#sticker-size-val');
+const stickerOpacity     = $('#sticker-opacity');
+const stickerOpacityVal  = $('#sticker-opacity-val');
+const selectedStickerLabel = $('#selected-sticker-label');
+const stickersPlacedList = $('#stickers-placed-list');
+const btnClearStickers   = $('#btn-clear-stickers');
+
+// Frame controls
+const framePresetBtns    = document.querySelectorAll('.frame-preset-btn');
+const frameOpacity       = $('#frame-opacity');
+const frameOpacityVal    = $('#frame-opacity-val');
+const activeFramesList   = $('#active-frames-list');
+const btnClearFrames     = $('#btn-clear-frames');
+
+// Sound controls
+const soundTiles          = document.querySelectorAll('.sound-tile[data-sound]');
+const btnStopSound        = $('#btn-stop-sound');
+const soundVolume         = $('#sound-volume');
+const soundVolumeVal      = $('#sound-volume-val');
+
+// Censor controls
+const toggleCensor       = $('#toggle-censor');
+const blurRadiusSlider   = $('#blur-radius');
+const blurRadiusVal      = $('#blur-radius-val');
+const maskExpandSlider   = $('#mask-expand');
+const maskExpandVal      = $('#mask-expand-val');
+const maxFacesSelect     = $('#max-faces');
+const censorStatus       = $('#censor-status');
+const censorStatusDot    = censorStatus.querySelector('.status-dot');
+const censorStatusText   = censorStatus.querySelector('.status-text');
+const faceCountDisplay   = $('#face-count-display');
+const censorControls     = $('#censor-controls');
+const censorModeGrid     = document.querySelectorAll('.censor-mode-btn');
+const censorRadiusLabel  = $('#censor-radius-label');
+
+// Effects controls
+const effectBtns         = document.querySelectorAll('.effect-btn');
+const effectIntensity    = $('#effect-intensity');
+const effectIntensityVal = $('#effect-intensity-val');
+const flareX             = $('#flare-x');
+const flareXVal          = $('#flare-x-val');
+const flareY             = $('#flare-y');
+const flareYVal          = $('#flare-y-val');
+const toggleFlareTrack   = $('#toggle-flare-track');
+const flareTrackHint     = $('#flare-track-hint');
+
+// Color correction
+const ccBrightness       = $('#cc-brightness');
+const ccContrast         = $('#cc-contrast');
+const ccSaturation       = $('#cc-saturation');
+const ccExposure         = $('#cc-exposure');
+const ccVignette         = $('#cc-vignette');
+const ccSharpen          = $('#cc-sharpen');
+const btnResetColor      = $('#btn-reset-color');
+const filterPresetsScroll  = $('#filter-presets-scroll');
+
+// Text controls
+const textContent        = $('#text-content');
+const textSize           = $('#text-size');
+const textSizeVal        = $('#text-size-val');
+const textColor          = $('#text-color');
+const textStrokeColor    = $('#text-stroke-color');
+const textX              = $('#text-x');
+const textXVal           = $('#text-x-val');
+const textY              = $('#text-y');
+const textYVal           = $('#text-y-val');
+const textOpacity        = $('#text-opacity');
+const textOpacityVal     = $('#text-opacity-val');
+const btnAddText         = $('#btn-add-text');
+
+// Audio
+const volVideo           = $('#vol-video');
+const volVideoVal        = $('#vol-video-val');
+const volMusic           = $('#vol-music');
+const volMusicVal        = $('#vol-music-val');
+const musicStart         = $('#music-start');
+const musicStartVal      = $('#music-start-val');
+const musicFade          = $('#music-fade');
+const musicFadeVal       = $('#music-fade-val');
+const musicInfo          = $('#music-info');
+
+// Aspect ratio
+const arBtns             = document.querySelectorAll('.ar-btn');
+
+// Upload inputs
+const inputVideo         = $('#input-video');
+const inputMusic         = $('#input-music');
+const inputMusic2        = $('#input-music2');
+
+// ─── Module Instances ────────────────────────────────────────────────────────
+const faceCensor  = new FaceCensorEngine();
+const webglFx     = new WebGLEffectsEngine(displayCanvas);
+const zenAudio    = new ZenAudioEngine();
+const audioMixer  = new AudioMixer();
+const exporter    = new VideoExporter();
+let   timeline    = null;
+
+// ─── App State ───────────────────────────────────────────────────────────────
+const state = {
+  videoLoaded:      false,
+  playing:          false,
+  currentTool:      'upload',
+  aspectRatio:      '9:16',   // '9:16' | '16:9' | '1:1'
+  censorActive:     false,
+  currentEffect:    'none',
+  faceMeshReady:    false,
+  audioInitialized: false,
+  textLayers:       [],       // [{id, text, x, y, size, color, stroke, opacity}]
+  segments:         [],       // [{id, start, end, deleted}]
+  selectedSegment:  0,
+  stickers:         [],       // [{id, emoji, x, y, size, opacity}]
+  selectedSticker:  null,     // emoji string currently selected for placement
+  activeFrames:     [],       // [{id, type, opacity}]
+  flareTrackEyes:   false,
+  recBlinkState:    true,
+  recBlinkTimer:    0,
+  frameCount:       0,
+  lastFpsTime:      0,
+  fps:              0,
+  rafId:            null,
+};
+
+// ─── Canvas 2D composite context ─────────────────────────────────────────────
+let compCtx = null;  // compositeCanvas 2D context
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INITIALIZATION
+// ══════════════════════════════════════════════════════════════════════════════
+async function init() {
+  setSplashProgress(5, 'Initializing WebGL…');
+
+  try {
+    webglFx.init();
+  } catch (err) {
+    console.error('WebGL init failed:', err);
+    setSplashProgress(10, 'WebGL failed — using 2D fallback');
+  }
+
+  setSplashProgress(15, 'Setting up timeline…');
+  timeline = new Timeline(tlCanvas, tlRuler, tlPlayhead, tlScrollArea);
+  timeline.onSeek((t) => {
+    if (state.videoLoaded) {
+      videoEl.currentTime = t;
+      audioMixer.onVideoSeeked(t);
+    }
+  });
+
+  setSplashProgress(25, 'Loading AI models…');
+
+  try {
+    await faceCensor.init(2, (pct, label) => {
+      setSplashProgress(25 + pct * 0.7, label);
+    });
+    state.faceMeshReady = true;
+    setSplashProgress(95, 'AI ready');
+  } catch (err) {
+    console.warn('FaceMesh init failed:', err);
+    setSplashProgress(95, 'AI unavailable (offline mode)');
+    censorStatusText.textContent = 'AI model unavailable';
+    censorStatusDot.classList.add('error');
+  }
+
+  // Register face results callback
+  faceCensor.onResults((results) => {
+    faceCountDisplay.textContent = `Faces: ${results.multiFaceLandmarks?.length ?? 0}`;
+    if (results.multiFaceLandmarks?.length > 0) {
+      censorStatusDot.className = 'status-dot active';
+      censorStatusText.textContent = `Censoring ${results.multiFaceLandmarks.length} face(s)`;
+    } else if (state.censorActive) {
+      censorStatusDot.className = 'status-dot processing';
+      censorStatusText.textContent = 'Scanning for faces…';
+    }
+  });
+
+  setSplashProgress(100, 'Ready');
+  await delay(600);
+
+  splashScreen.classList.add('fade-out');
+  setTimeout(() => {
+    splashScreen.style.display = 'none';
+    app.classList.remove('hidden');
+  }, 650);
+
+  bindEvents();
+  renderFilterPresets();
+  setAspectRatio('9:16');
+  showPanel('upload');
+  updateToolActive('upload');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RENDER LOOP
+// ══════════════════════════════════════════════════════════════════════════════
+function startRenderLoop() {
+  if (state.rafId) return;
+
+  async function frame() {
+    state.rafId = requestAnimationFrame(frame);
+
+    if (!state.videoLoaded || videoEl.readyState < 2) return;
+
+    const W = compositeCanvas.width;
+    const H = compositeCanvas.height;
+
+    // ── Step 1: Draw video to composite canvas (with CSS filter for CC) ──
+    compCtx.filter = webglFx.buildCSSFilter();
+    compCtx.drawImage(videoEl, 0, 0, W, H);
+    compCtx.filter = 'none';
+
+    // ── Step 2: Apply eye blur + optional eye tracking for flare ──
+    const needsFaceMesh = (state.censorActive || state.flareTrackEyes) && state.faceMeshReady;
+    if (needsFaceMesh) {
+      await faceCensor.processFrame(videoEl);
+      if (state.censorActive) {
+        faceCensor.applyBlurMask(compCtx, videoEl, W, H);
+      }
+    }
+
+    // ── Step 2b: Flare eye tracking ──
+    if (state.flareTrackEyes && state.currentEffect === 'flare') {
+      const centers = faceCensor.getEyeCenters(0);
+      if (centers) {
+        const avgX = (centers.left.x + centers.right.x) / 2;
+        const avgY = (centers.left.y + centers.right.y) / 2;
+        webglFx.setFlareX(avgX);
+        webglFx.setFlareY(avgY);
+        if (flareX) { flareX.value = Math.round(avgX * 100); flareXVal.textContent = `${Math.round(avgX * 100)}%`; }
+        if (flareY) { flareY.value = Math.round(avgY * 100); flareYVal.textContent = `${Math.round(avgY * 100)}%`; }
+      }
+    }
+
+    // ── Step 3: Draw text layers, stickers, frames ──
+    drawTextLayers(compCtx, W, H);
+    drawStickers(compCtx, W, H);
+    drawFrames(compCtx, W, H);
+
+    // ── Step 3b: REC blink timer ──
+    state.recBlinkTimer += 1;
+    if (state.recBlinkTimer > 30) { state.recBlinkState = !state.recBlinkState; state.recBlinkTimer = 0; }
+
+    // ── Step 4: WebGL effect pass ──
+    webglFx.renderFrame(compositeCanvas);
+
+    // ── Step 5: Vignette (if CC vignette > 0) ──
+    drawVignette(W, H);
+
+    // ── Step 6: Update timeline ──
+    timeline.setTime(videoEl.currentTime);
+    audioMixer.tick(videoEl.currentTime, videoEl.duration);
+    updateTimeDisplay();
+
+    // ── FPS counter ──
+    state.frameCount++;
+    const now = performance.now();
+    if (now - state.lastFpsTime >= 1000) {
+      state.fps        = Math.round(state.frameCount * 1000 / (now - state.lastFpsTime));
+      fpsCounter.textContent = `${state.fps} fps`;
+      state.frameCount = 0;
+      state.lastFpsTime = now;
+    }
+  }
+
+  state.lastFpsTime = performance.now();
+  state.rafId = requestAnimationFrame(frame);
+}
+
+function stopRenderLoop() {
+  if (state.rafId) {
+    cancelAnimationFrame(state.rafId);
+    state.rafId = null;
+  }
+}
+
+// ─── Vignette pass directly on WebGL canvas via 2D overlay ──────────────────
+function drawVignette(w, h) {
+  const vig = parseInt(ccVignette.value) / 100;
+  if (vig <= 0) return;
+  // We'll draw a radial gradient vignette using a temporary canvas drawn on top
+  // via an overlay canvas — we use the composite canvas for this
+  const ctx = compCtx;
+  const cx  = w / 2;
+  const cy  = h / 2;
+  const r   = Math.sqrt(cx * cx + cy * cy);
+  const grad = ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, r);
+  grad.addColorStop(0, 'transparent');
+  grad.addColorStop(1, `rgba(0,0,0,${vig.toFixed(2)})`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+}
+
+// ─── Text layer rendering ────────────────────────────────────────────────────
+function drawTextLayers(ctx, w, h) {
+  for (const layer of state.textLayers) {
+    const x   = (layer.x / 100) * w;
+    const y   = (layer.y / 100) * h;
+    const sz  = layer.size;
+    ctx.save();
+    ctx.globalAlpha = layer.opacity / 100;
+    ctx.font        = `bold ${sz}px 'SF Pro Display', system-ui, sans-serif`;
+    ctx.textAlign   = 'center';
+    ctx.textBaseline= 'middle';
+    ctx.lineWidth   = sz / 12;
+    ctx.strokeStyle = layer.stroke;
+    ctx.fillStyle   = layer.color;
+    ctx.strokeText(layer.text, x, y);
+    ctx.fillText(layer.text, x, y);
+    ctx.restore();
+  }
+}
+
+// ─── Sticker rendering ───────────────────────────────────────────────────────
+function drawStickers(ctx, w, h) {
+  for (const s of state.stickers) {
+    ctx.save();
+    ctx.globalAlpha = s.opacity / 100;
+    ctx.font        = `${s.size}px serif`;
+    ctx.textAlign   = 'center';
+    ctx.textBaseline= 'middle';
+    ctx.fillText(s.emoji, (s.x / 100) * w, (s.y / 100) * h);
+    ctx.restore();
+  }
+}
+
+// ─── Frame / overlay rendering ───────────────────────────────────────────────
+function drawFrames(ctx, w, h) {
+  const opacity = parseInt(frameOpacity?.value ?? 90) / 100;
+
+  for (const frame of state.activeFrames) {
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    switch (frame.type) {
+
+      case 'bars21': {
+        // 2.35:1 cinematic letterbox bars
+        const barH = Math.round(h * 0.115);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, w, barH);
+        ctx.fillRect(0, h - barH, w, barH);
+        break;
+      }
+
+      case 'bars169': {
+        // 16:9 crop on a 9:16 canvas (pillarbox for portrait)
+        if (w < h) {
+          const barH = Math.round((h - w * 9/16) / 2);
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, w, barH);
+          ctx.fillRect(0, h - barH, w, barH);
+        }
+        break;
+      }
+
+      case 'vhs-frame': {
+        // VHS UI: timecode + noise lines
+        ctx.globalAlpha = opacity * 0.7;
+        for (let y = 0; y < h; y += 4) {
+          ctx.fillStyle = `rgba(25,249,249,${Math.random() * 0.03})`;
+          ctx.fillRect(0, y, w, 1);
+        }
+        ctx.globalAlpha = opacity;
+        ctx.font        = `bold ${Math.round(w * 0.04)}px 'SF Mono', monospace`;
+        ctx.fillStyle   = 'rgba(25,249,249,0.75)';
+        ctx.textAlign   = 'left';
+        ctx.textBaseline= 'top';
+        ctx.fillText('▶ PLAY', w * 0.04, h * 0.04);
+        ctx.textAlign   = 'right';
+        const d = new Date();
+        ctx.fillText(
+          `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`,
+          w * 0.96, h * 0.04
+        );
+        break;
+      }
+
+      case 'neon-border': {
+        const thick = Math.round(w * 0.015);
+        ctx.strokeStyle = '#940a0a';
+        ctx.lineWidth   = thick;
+        ctx.shadowColor = '#940a0a';
+        ctx.shadowBlur  = thick * 3;
+        ctx.strokeRect(thick / 2, thick / 2, w - thick, h - thick);
+        ctx.strokeStyle = '#19f9f9';
+        ctx.lineWidth   = 1;
+        ctx.shadowColor = '#19f9f9';
+        ctx.shadowBlur  = 8;
+        ctx.strokeRect(thick * 1.5, thick * 1.5, w - thick * 3, h - thick * 3);
+        ctx.shadowBlur  = 0;
+        break;
+      }
+
+      case 'film-strip': {
+        const holeR = Math.round(w * 0.025);
+        const edgeW = holeR * 2.5;
+        ctx.fillStyle   = 'rgba(0,0,0,0.85)';
+        ctx.fillRect(0, 0, edgeW, h);
+        ctx.fillRect(w - edgeW, 0, edgeW, h);
+        // Film holes
+        ctx.fillStyle = '#222';
+        for (let y = holeR; y < h - holeR; y += holeR * 3) {
+          ctx.beginPath();
+          ctx.roundRect(edgeW * 0.3, y, holeR, holeR * 1.5, 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.roundRect(w - edgeW * 0.3 - holeR, y, holeR, holeR * 1.5, 2);
+          ctx.fill();
+        }
+        break;
+      }
+
+      case 'glow-frame': {
+        const grad = ctx.createRadialGradient(w/2, h/2, h*0.2, w/2, h/2, h*0.75);
+        grad.addColorStop(0, 'transparent');
+        grad.addColorStop(0.7, 'transparent');
+        grad.addColorStop(1, 'rgba(148,10,10,0.7)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+        break;
+      }
+
+      case 'leak-orange': {
+        const g = ctx.createLinearGradient(0, 0, w * 0.6, h * 0.6);
+        g.addColorStop(0, 'rgba(255,140,0,0.55)');
+        g.addColorStop(0.4, 'rgba(255,80,0,0.25)');
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        break;
+      }
+
+      case 'leak-blue': {
+        const g = ctx.createLinearGradient(w, h, w * 0.3, h * 0.3);
+        g.addColorStop(0, 'rgba(0,100,255,0.55)');
+        g.addColorStop(0.4, 'rgba(0,200,255,0.25)');
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        break;
+      }
+
+      case 'leak-rainbow': {
+        const g = ctx.createLinearGradient(0, 0, w, h);
+        g.addColorStop(0,   'rgba(255,0,0,0.3)');
+        g.addColorStop(0.25,'rgba(255,165,0,0.2)');
+        g.addColorStop(0.5, 'transparent');
+        g.addColorStop(0.75,'rgba(0,200,255,0.2)');
+        g.addColorStop(1,   'rgba(150,0,255,0.3)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        break;
+      }
+
+      case 'rec': drawRecIndicator(ctx, w, h, 'REC');    break;
+      case 'live': drawRecIndicator(ctx, w, h, 'LIVE');  break;
+      case 'cam':  drawRecIndicator(ctx, w, h, '📷 CAM'); break;
+    }
+    ctx.restore();
+  }
+}
+
+function drawRecIndicator(ctx, w, h, label) {
+  const fs   = Math.round(w * 0.045);
+  const pad  = fs * 0.5;
+  const blink= state.recBlinkState;
+
+  ctx.font        = `bold ${fs}px 'SF Mono', monospace`;
+  ctx.textAlign   = 'left';
+  ctx.textBaseline= 'top';
+
+  const dotR  = fs * 0.35;
+  const x     = w * 0.04;
+  const y     = h * 0.04;
+
+  // Background pill
+  const textW = ctx.measureText(label).width;
+  const pillW = dotR * 2 + pad + textW + pad * 2;
+  const pillH = fs + pad * 2;
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.beginPath();
+  ctx.roundRect(x - pad, y - pad * 0.5, pillW, pillH, 6);
+  ctx.fill();
+
+  // Blinking dot
+  if (blink || label === 'LIVE') {
+    ctx.fillStyle   = '#ef4444';
+    ctx.shadowColor = '#ef4444';
+    ctx.shadowBlur  = 8;
+    ctx.beginPath();
+    ctx.arc(x + dotR, y + fs / 2, dotR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur  = 0;
+  }
+
+  // Label text
+  ctx.fillStyle = '#fff';
+  ctx.fillText(label, x + dotR * 2 + pad * 0.5, y);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// COLOR FILTER PRESETS  (InShot-style)
+// ══════════════════════════════════════════════════════════════════════════════
+const COLOR_PRESETS = [
+  { id: 'original', name: 'Original', brightness: 0,   contrast: 0,   saturation: 0,   exposure: 0,  swatch: 'linear-gradient(160deg,#7a7a7a,#3a3a3a)' },
+  { id: 'hx1',     name: 'HX1',      brightness: 8,   contrast: 15,  saturation: 25,  exposure: 5,  swatch: 'linear-gradient(160deg,#d4935a,#c05030)' },
+  { id: 'eg4',     name: 'EG4',      brightness: 0,   contrast: 20,  saturation: -25, exposure: 0,  swatch: 'linear-gradient(160deg,#7aaac0,#3a6080)' },
+  { id: 'eg2',     name: 'EG2',      brightness: 10,  contrast: 10,  saturation: 10,  exposure: 3,  swatch: 'linear-gradient(160deg,#8ab0be,#5a8090)' },
+  { id: 'xh1',     name: 'XH1',      brightness: 5,   contrast: 20,  saturation: 40,  exposure: 5,  swatch: 'linear-gradient(160deg,#e89040,#d05020)' },
+  { id: 'b1',      name: 'B1',       brightness: 0,   contrast: 35,  saturation: -100,exposure: 0,  swatch: 'linear-gradient(160deg,#909090,#181818)' },
+  { id: 'b2',      name: 'B2',       brightness: 10,  contrast: 25,  saturation: -90, exposure: 5,  swatch: 'linear-gradient(160deg,#a0a0a0,#383838)' },
+  { id: 'fade',    name: 'Fade',     brightness: 25,  contrast: -30, saturation: -20, exposure: 0,  swatch: 'linear-gradient(160deg,#c8b8b0,#988880)' },
+  { id: 'golden',  name: 'Golden',   brightness: 12,  contrast: 15,  saturation: 35,  exposure: 8,  swatch: 'linear-gradient(160deg,#f0b840,#e06810)' },
+  { id: 'moody',   name: 'Moody',    brightness: -15, contrast: 30,  saturation: -30, exposure: -5, swatch: 'linear-gradient(160deg,#384860,#101820)' },
+  { id: 'fresh',   name: 'Fresh',    brightness: 10,  contrast: 10,  saturation: 20,  exposure: 5,  swatch: 'linear-gradient(160deg,#60c8a8,#2888a0)' },
+  { id: 'vintage', name: 'Vintage',  brightness: 0,   contrast: -15, saturation: -30, exposure: -5, swatch: 'linear-gradient(160deg,#c09060,#805030)' },
+  { id: 'neon',    name: 'Neon',     brightness: 10,  contrast: 25,  saturation: 60,  exposure: 0,  swatch: 'linear-gradient(160deg,#a030e0,#d02080)' },
+  { id: 'cinema',  name: 'Cinema',   brightness: -10, contrast: 25,  saturation: -15, exposure: -5, swatch: 'linear-gradient(160deg,#405060,#101820)' },
+  { id: 'pastel',  name: 'Pastel',   brightness: 25,  contrast: -20, saturation: -25, exposure: 5,  swatch: 'linear-gradient(160deg,#d0c0c8,#a098b8)' },
+  { id: 'drama',   name: 'Drama',    brightness: -20, contrast: 40,  saturation: 15,  exposure: -10,swatch: 'linear-gradient(160deg,#602040,#100810)' },
+];
+
+let activePreset = 'original';
+
+function renderFilterPresets() {
+  if (!filterPresetsScroll) return;
+  filterPresetsScroll.innerHTML = '';
+  for (const p of COLOR_PRESETS) {
+    const btn = document.createElement('button');
+    btn.className = `filter-preset-btn${p.id === activePreset ? ' active' : ''}`;
+    btn.dataset.preset = p.id;
+    btn.innerHTML = `
+      <div class="filter-swatch" style="background:${p.swatch}"></div>
+      <span class="filter-name">${p.name}</span>
+    `;
+    btn.addEventListener('click', () => applyColorPreset(p));
+    filterPresetsScroll.appendChild(btn);
+  }
+}
+
+function applyColorPreset(preset) {
+  activePreset = preset.id;
+
+  // Update sliders + values
+  const set = (id, valId, v) => {
+    const el = document.getElementById(id);
+    const vEl = document.getElementById(valId);
+    if (el)  el.value = v;
+    if (vEl) vEl.textContent = v;
+  };
+
+  set('cc-brightness', 'cc-brightness-val', preset.brightness);
+  set('cc-contrast',   'cc-contrast-val',   preset.contrast);
+  set('cc-saturation', 'cc-saturation-val', preset.saturation);
+  set('cc-exposure',   'cc-exposure-val',   preset.exposure);
+
+  // Fire change to rebuild CSS filter
+  ['cc-brightness','cc-contrast','cc-saturation','cc-exposure'].forEach(id => {
+    document.getElementById(id)?.dispatchEvent(new Event('input'));
+  });
+
+  // Re-render preset buttons
+  renderFilterPresets();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TRIM / CUT ENGINE
+// ══════════════════════════════════════════════════════════════════════════════
+function initSegments(duration) {
+  state.segments = [{ id: 1, start: 0, end: duration, deleted: false }];
+  state.selectedSegment = 0;
+  renderSegmentsList();
+}
+
+function splitAtPlayhead() {
+  if (!state.videoLoaded) return;
+  const t = videoEl.currentTime;
+  const idx = state.segments.findIndex(s => !s.deleted && t > s.start + 0.05 && t < s.end - 0.05);
+  if (idx === -1) return;
+  const seg = state.segments[idx];
+  const nextId = Date.now();
+  state.segments.splice(idx, 1,
+    { id: seg.id,  start: seg.start, end: t,       deleted: false },
+    { id: nextId,  start: t,         end: seg.end,  deleted: false }
+  );
+  state.selectedSegment = idx;
+  renderSegmentsList();
+  timeline.render();
+}
+
+function deleteSelectedSegment() {
+  const activeSegs = state.segments.filter(s => !s.deleted);
+  if (activeSegs.length <= 1) return; // keep at least one
+  const t    = videoEl.currentTime;
+  const idx  = state.segments.findIndex(s => !s.deleted && t >= s.start && t < s.end);
+  if (idx === -1) return;
+  state.segments[idx].deleted = true;
+  // Jump to next valid segment
+  const next = state.segments.find(s => !s.deleted && s.start >= state.segments[idx].end);
+  const prev = [...state.segments].reverse().find(s => !s.deleted && s.end <= state.segments[idx].start);
+  const dest = next || prev;
+  if (dest) videoEl.currentTime = dest.start;
+  renderSegmentsList();
+}
+
+function resetTrim() {
+  if (state.videoLoaded) initSegments(videoEl.duration);
+}
+
+function renderSegmentsList() {
+  segmentsList.innerHTML = '';
+  state.segments.forEach((seg, i) => {
+    const div = document.createElement('div');
+    div.className = `segment-item${seg.deleted ? ' deleted' : ''}${i === state.selectedSegment ? ' active' : ''}`;
+    div.innerHTML = `
+      <span>#${i+1} &nbsp; ${formatTime(seg.start)} → ${formatTime(seg.end)}</span>
+      ${!seg.deleted ? `<button class="segment-del-btn" data-idx="${i}" title="Delete this segment">✕</button>` : '<span style="font-size:9px;color:#ef4444">DELETED</span>'}
+    `;
+    div.querySelector('span')?.addEventListener('click', () => {
+      state.selectedSegment = i;
+      if (!seg.deleted) videoEl.currentTime = seg.start;
+      renderSegmentsList();
+    });
+    div.querySelector('.segment-del-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(e.target.dataset.idx);
+      const activeSegs = state.segments.filter(s => !s.deleted);
+      if (activeSegs.length <= 1) return;
+      state.segments[idx].deleted = true;
+      renderSegmentsList();
+    });
+    segmentsList.appendChild(div);
+  });
+}
+
+// Segment skip logic: called from timeupdate
+function handleSegmentSkip() {
+  if (!state.segments.length) return;
+  const t = videoEl.currentTime;
+  const inValid = state.segments.some(s => !s.deleted && t >= s.start && t < s.end);
+  if (!inValid) {
+    const next = state.segments.find(s => !s.deleted && s.start >= t);
+    if (next) {
+      videoEl.currentTime = next.start;
+    } else {
+      videoEl.pause();
+      state.playing = false;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VIDEO LOADING
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadVideo(file) {
+  const url = URL.createObjectURL(file);
+  videoEl.src = url;
+
+  await new Promise((resolve, reject) => {
+    videoEl.onloadedmetadata = resolve;
+    videoEl.onerror          = reject;
+  });
+
+  // Set canvas dimensions from video
+  const vw = videoEl.videoWidth;
+  const vh = videoEl.videoHeight;
+  compositeCanvas.width  = vw;
+  compositeCanvas.height = vh;
+  compCtx = compositeCanvas.getContext('2d');
+
+  // Apply aspect ratio letterboxing
+  resizeDisplayCanvas(vw, vh);
+
+  // Hide drop zone
+  dropOverlay.classList.add('hidden');
+  headerFilename.textContent = file.name;
+  btnPlayPause.disabled = false;
+  state.videoLoaded = true;
+  resizeDisplayCanvas(vw, vh);
+
+  // Init trim segments
+  initSegments(videoEl.duration);
+
+  // Update trim sliders range
+  if (trimEnd) { trimEnd.max = videoEl.duration; trimEnd.value = videoEl.duration; trimEndVal.textContent = formatTime(videoEl.duration); }
+  if (trimStart) { trimStart.max = videoEl.duration; trimStartVal.textContent = '0s'; }
+
+  // Init audio (needs user gesture — already had one via file pick)
+  if (!state.audioInitialized) {
+    try {
+      await audioMixer.init(videoEl);
+      state.audioInitialized = true;
+    } catch (err) {
+      console.warn('AudioMixer init failed:', err);
+    }
+  }
+
+  // Load timeline thumbnails (async, non-blocking)
+  timeline.loadVideo(videoEl);
+
+  startRenderLoop();
+}
+
+function resizeDisplayCanvas(vw, vh) {
+  if (!vw || !vh) return;
+  // Set CSS aspect-ratio so the browser auto-sizes within the flex container.
+  // max-width:100% / max-height:100% (set in CSS) clamp it to the available space.
+  displayCanvas.style.aspectRatio = `${vw} / ${vh}`;
+  // Internal resolution = full video resolution for maximum render quality.
+  displayCanvas.width  = vw;
+  displayCanvas.height = vh;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PLAYBACK
+// ══════════════════════════════════════════════════════════════════════════════
+async function togglePlayPause() {
+  if (!state.videoLoaded) return;
+
+  await audioMixer.resume();
+
+  if (state.playing) {
+    videoEl.pause();
+    audioMixer.stopMusic();
+    state.playing = false;
+    iconPlay.classList.remove('hidden');
+    iconPause.classList.add('hidden');
+    // Update preview toggle icon
+    btnPreviewToggle.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+  } else {
+    try {
+      await videoEl.play();
+      if (audioMixer.musicBuffer) {
+        audioMixer.startMusic(videoEl.currentTime);
+      }
+      state.playing = true;
+      iconPlay.classList.add('hidden');
+      iconPause.classList.remove('hidden');
+      btnPreviewToggle.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+    } catch (err) {
+      console.warn('Playback error:', err);
+    }
+  }
+}
+
+function updateTimeDisplay() {
+  const cur = videoEl.currentTime || 0;
+  const dur = videoEl.duration    || 0;
+  timeDisplay.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ASPECT RATIO
+// ══════════════════════════════════════════════════════════════════════════════
+function setAspectRatio(ar) {
+  state.aspectRatio = ar;
+  arBtns.forEach(b => b.classList.toggle('active', b.dataset.ar === ar));
+
+  if (state.videoLoaded) {
+    resizeDisplayCanvas(compositeCanvas.width, compositeCanvas.height);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EVENT BINDINGS
+// ══════════════════════════════════════════════════════════════════════════════
+function bindEvents() {
+  // ─── Tool sidebar ─────────────────────────────────────────────────────────
+  toolBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tool = btn.dataset.tool;
+      if (tool === 'upload') {
+        // open file picker
+        inputVideo.click();
+        showPanel('upload');
+        updateToolActive('upload');
+        return;
+      }
+      if (tool === 'music') {
+        showPanel('music');
+        updateToolActive('music');
+        return;
+      }
+      showPanel(tool);
+      updateToolActive(tool);
+    });
+  });
+
+  // ─── Drag & drop on canvas area ──────────────────────────────────────────
+  canvasWrapper.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropOverlay.classList.remove('hidden');
+    dropOverlay.classList.add('drag-active');
+  });
+
+  canvasWrapper.addEventListener('dragleave', () => {
+    dropOverlay.classList.remove('drag-active');
+    if (state.videoLoaded) dropOverlay.classList.add('hidden');
+  });
+
+  canvasWrapper.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    dropOverlay.classList.remove('drag-active');
+    const file = e.dataTransfer.files[0];
+    if (file?.type.startsWith('video/')) {
+      await loadVideo(file);
+    }
+  });
+
+  dropOverlay.addEventListener('click', () => inputVideo.click());
+
+  // ─── File inputs ─────────────────────────────────────────────────────────
+  inputVideo.addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    if (f) await loadVideo(f);
+    inputVideo.value = '';
+  });
+
+  const loadMusicFile = async (file) => {
+    if (!file) return;
+    musicInfo.textContent = `Loading: ${file.name}…`;
+    try {
+      if (!state.audioInitialized) {
+        // Can't init without video element — show error
+        musicInfo.textContent = 'Load a video first, then add music.';
+        return;
+      }
+      const buf = await audioMixer.loadMusicFile(file);
+      musicInfo.textContent = `♪ ${file.name} (${buf.duration.toFixed(1)}s)`;
+      musicStart.max = Math.floor(buf.duration);
+      // Load waveform into timeline
+      timeline.loadAudioData(buf);
+    } catch (err) {
+      musicInfo.textContent = `Error: ${err.message}`;
+    }
+  };
+
+  inputMusic.addEventListener('change',  async (e) => { await loadMusicFile(e.target.files[0]); inputMusic.value = ''; });
+  inputMusic2.addEventListener('change', async (e) => { await loadMusicFile(e.target.files[0]); inputMusic2.value = ''; });
+
+  // Upload zone clicks
+  $('#upload-video-zone').addEventListener('click', () => inputVideo.click());
+  $('#upload-music-zone').addEventListener('click', () => inputMusic.click());
+  $('#upload-music-zone2').addEventListener('click', () => inputMusic2.click());
+
+  // ─── Playback controls ────────────────────────────────────────────────────
+  btnPlayPause.addEventListener('click', togglePlayPause);
+  btnPreviewToggle.addEventListener('click', togglePlayPause);
+
+  videoEl.addEventListener('ended', () => {
+    state.playing = false;
+    iconPlay.classList.remove('hidden');
+    iconPause.classList.add('hidden');
+    audioMixer.stopMusic();
+  });
+
+  videoEl.addEventListener('seeked', () => {
+    // Force a single frame render when paused + seeked
+    if (!state.playing && state.videoLoaded) {
+      renderSingleFrame();
+    }
+  });
+
+  btnFullscreen.addEventListener('click', () => {
+    canvasWrapper.requestFullscreen?.() || canvasWrapper.webkitRequestFullscreen?.();
+  });
+
+  // ─── Aspect ratio ─────────────────────────────────────────────────────────
+  arBtns.forEach(b => b.addEventListener('click', () => setAspectRatio(b.dataset.ar)));
+
+  // ─── Censor controls ──────────────────────────────────────────────────────
+  toggleCensor.addEventListener('change', () => {
+    state.censorActive = toggleCensor.checked;
+    faceCensor.setActive(state.censorActive);
+    censorControls.classList.toggle('inactive', !state.censorActive);
+    if (state.censorActive) {
+      censorStatusDot.className  = 'status-dot processing';
+      censorStatusText.textContent = 'Scanning for faces…';
+    } else {
+      censorStatusDot.className  = 'status-dot';
+      censorStatusText.textContent = 'Censor inactive';
+      faceCountDisplay.textContent = 'Faces: 0';
+    }
+  });
+
+  // ─── Censor mode buttons ─────────────────────────────────────────────────
+  censorModeGrid.forEach(btn => {
+    btn.addEventListener('click', () => {
+      censorModeGrid.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = btn.dataset.mode;
+      faceCensor.censorMode = mode;
+      // Update label
+      if (censorRadiusLabel) {
+        const labels = { blur: 'Blur Radius', pixelate: 'Block Size', blackbar: 'Bar Expand', shadow: 'Shadow Radius', stripes: 'Stripe Width' };
+        censorRadiusLabel.textContent = labels[mode] || 'Radius';
+      }
+    });
+  });
+
+  blurRadiusSlider.addEventListener('input', () => {
+    const v = parseInt(blurRadiusSlider.value);
+    blurRadiusVal.textContent = `${v}px`;
+    faceCensor.setBlurRadius(v);
+  });
+
+  maskExpandSlider.addEventListener('input', () => {
+    const v = parseInt(maskExpandSlider.value);
+    maskExpandVal.textContent = `${v}px`;
+    faceCensor.setMaskExpand(v);
+  });
+
+  maxFacesSelect.addEventListener('change', async () => {
+    await faceCensor.setMaxFaces(parseInt(maxFacesSelect.value));
+  });
+
+  // ─── Effects ─────────────────────────────────────────────────────────────
+  effectBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      effectBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.currentEffect = btn.dataset.effect;
+      webglFx.setEffect(state.currentEffect);
+      // Flare cursor mode
+      canvasWrapper.classList.remove('mode-sticker', 'mode-flare', 'mode-default');
+      canvasWrapper.classList.add(state.currentEffect === 'flare' ? 'mode-flare' : 'mode-default');
+      if (state.currentEffect === 'flare') {
+        document.title = 'Click canvas to set flare position — CENSOR ENGINE PRO';
+        setTimeout(() => { document.title = 'CENSOR ENGINE PRO'; }, 2000);
+      }
+      // Add effect marker to timeline
+      if (state.videoLoaded && state.currentEffect !== 'none') {
+        timeline.addEffectMarker(videoEl.currentTime, state.currentEffect);
+      }
+    });
+  });
+
+  // Flare eye tracking toggle
+  toggleFlareTrack?.addEventListener('change', () => {
+    state.flareTrackEyes = toggleFlareTrack.checked;
+    if (flareTrackHint) flareTrackHint.style.display = toggleFlareTrack.checked ? 'block' : 'none';
+    if (toggleFlareTrack.checked && !state.faceMeshReady) {
+      alert('Enable Censor first to activate FaceMesh, then Eye Tracking will work.');
+      toggleFlareTrack.checked = false;
+      state.flareTrackEyes = false;
+    }
+  });
+
+  effectIntensity.addEventListener('input', () => {
+    const v = parseInt(effectIntensity.value);
+    effectIntensityVal.textContent = `${v}%`;
+    webglFx.setIntensity(v / 100);
+  });
+
+  flareX.addEventListener('input', () => {
+    const v = parseInt(flareX.value);
+    flareXVal.textContent = `${v}%`;
+    webglFx.setFlareX(v / 100);
+  });
+
+  flareY.addEventListener('input', () => {
+    const v = parseInt(flareY.value);
+    flareYVal.textContent = `${v}%`;
+    webglFx.setFlareY(v / 100);
+  });
+
+  // ─── Color correction ─────────────────────────────────────────────────────
+  const ccSliders = [
+    [ccBrightness, '#cc-brightness-val', 'brightness'],
+    [ccContrast,   '#cc-contrast-val',   'contrast'],
+    [ccSaturation, '#cc-saturation-val', 'saturation'],
+    [ccExposure,   '#cc-exposure-val',   'exposure'],
+    [ccVignette,   '#cc-vignette-val',   'vignette', '%'],
+    [ccSharpen,    '#cc-sharpen-val',    'sharpen',  '%'],
+  ];
+
+  ccSliders.forEach(([el, valSel, key, suffix = '']) => {
+    el.addEventListener('input', () => {
+      const v = parseInt(el.value);
+      $(valSel).textContent = `${v}${suffix}`;
+      webglFx.setColorCorrection(key, v);
+    });
+  });
+
+  btnResetColor.addEventListener('click', () => {
+    ccSliders.forEach(([el, valSel, , suffix = '']) => {
+      el.value = 0;
+      $(valSel).textContent = `0${suffix}`;
+    });
+    webglFx.resetColorCorrection();
+  });
+
+  // ─── Text overlay ─────────────────────────────────────────────────────────
+  const makeSliderLive = (slider, valEl, suffix = '') => {
+    slider.addEventListener('input', () => {
+      valEl.textContent = `${slider.value}${suffix}`;
+    });
+  };
+
+  makeSliderLive(textSize,    textSizeVal,    'px');
+  makeSliderLive(textX,       textXVal,       '%');
+  makeSliderLive(textY,       textYVal,       '%');
+  makeSliderLive(textOpacity, textOpacityVal, '%');
+
+  btnAddText.addEventListener('click', () => {
+    const text = textContent.value.trim();
+    if (!text) return;
+    state.textLayers.push({
+      id:      Date.now(),
+      text,
+      x:       parseInt(textX.value),
+      y:       parseInt(textY.value),
+      size:    parseInt(textSize.value),
+      color:   textColor.value,
+      stroke:  textStrokeColor.value,
+      opacity: parseInt(textOpacity.value),
+    });
+    textContent.value = '';
+  });
+
+  // ─── Audio mixer ──────────────────────────────────────────────────────────
+  volVideo.addEventListener('input', () => {
+    const v = parseInt(volVideo.value);
+    volVideoVal.textContent = `${v}%`;
+    audioMixer.setVideoVolume(v / 100);
+  });
+
+  volMusic.addEventListener('input', () => {
+    const v = parseInt(volMusic.value);
+    volMusicVal.textContent = `${v}%`;
+    audioMixer.setMusicVolume(v / 100);
+  });
+
+  musicStart.addEventListener('input', () => {
+    const v = parseInt(musicStart.value);
+    musicStartVal.textContent = `${v}s`;
+    audioMixer.setMusicStart(v);
+  });
+
+  musicFade.addEventListener('input', () => {
+    const v = parseFloat(musicFade.value);
+    musicFadeVal.textContent = `${v}s`;
+    audioMixer.setMusicFade(v);
+  });
+
+  // ─── Timeline zoom ────────────────────────────────────────────────────────
+  tlZoomIn.addEventListener('click',  () => { timeline.zoomIn();  tlZoomLabel.textContent = `${timeline.zoom}×`; });
+  tlZoomOut.addEventListener('click', () => { timeline.zoomOut(); tlZoomLabel.textContent = `${timeline.zoom}×`; });
+
+  // ─── Export ───────────────────────────────────────────────────────────────
+  btnExport.addEventListener('click', () => {
+    if (!state.videoLoaded) return;
+    exportProgressArea.classList.add('hidden');
+    exportModal.classList.remove('hidden');
+  });
+
+  btnCloseExport.addEventListener('click',  () => exportModal.classList.add('hidden'));
+  btnCancelExport.addEventListener('click', () => {
+    exporter.cancel();
+    exportModal.classList.add('hidden');
+    videoEl.pause();
+    state.playing = false;
+  });
+
+  $('#modal-backdrop')?.addEventListener('click', () => exportModal.classList.add('hidden'));
+
+  btnStartExport.addEventListener('click', async () => {
+    if (!state.videoLoaded) return;
+
+    btnStartExport.disabled = true;
+    exportProgressArea.classList.remove('hidden');
+
+    // Was playing? pause first so we can rewind
+    const wasPlaying = state.playing;
+    if (wasPlaying) await togglePlayPause();
+
+    exporter.onProgress = (pct, label) => {
+      exportProgressFill.style.width = `${pct}%`;
+      exportProgressLabel.textContent = label;
+    };
+
+    exporter.onComplete = (blob, url) => {
+      exportProgressLabel.textContent = `✓ Saved (${(blob.size / 1_048_576).toFixed(1)} MB)`;
+      btnStartExport.disabled = false;
+      setTimeout(() => exportModal.classList.add('hidden'), 2000);
+    };
+
+    exporter.onError = (err) => {
+      exportProgressLabel.textContent = `Error: ${err.message}`;
+      btnStartExport.disabled = false;
+    };
+
+    const audioStream = audioMixer.getAudioStream();
+
+    await exporter.start(
+      displayCanvas,
+      audioStream,
+      videoEl,
+      {
+        mimeType: exportFormat.value,
+        bitrate:  parseInt(exportBitrate.value),
+      }
+    );
+
+    // Restart render loop during recording
+    startRenderLoop();
+  });
+
+  // ─── Segment skip on timeupdate ──────────────────────────────────────────
+  videoEl.addEventListener('timeupdate', handleSegmentSkip);
+
+  // ─── Trim panel ──────────────────────────────────────────────────────────
+  btnSplit?.addEventListener('click', splitAtPlayhead);
+  btnDeleteSegment?.addEventListener('click', deleteSelectedSegment);
+  btnResetTrim?.addEventListener('click', resetTrim);
+
+  trimStart?.addEventListener('input', () => {
+    const v = parseFloat(trimStart.value);
+    trimStartVal.textContent = formatTime(v);
+    // Apply as a cut: remove everything before v
+    if (state.segments.length && state.videoLoaded) {
+      state.segments[0].start = v;
+      if (videoEl.currentTime < v) videoEl.currentTime = v;
+      renderSegmentsList();
+    }
+  });
+
+  trimEnd?.addEventListener('input', () => {
+    const v = parseFloat(trimEnd.value);
+    trimEndVal.textContent = formatTime(v);
+    if (state.segments.length && state.videoLoaded) {
+      state.segments[state.segments.length - 1].end = v;
+      renderSegmentsList();
+    }
+  });
+
+  // ─── Sticker panel ───────────────────────────────────────────────────────
+  stickersGrid.forEach(btn => {
+    btn.addEventListener('click', () => {
+      stickersGrid.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.selectedSticker = btn.dataset.sticker;
+      selectedStickerLabel.style.display = 'block';
+      canvasWrapper.classList.remove('mode-default', 'mode-flare');
+      canvasWrapper.classList.add('mode-sticker');
+    });
+  });
+
+  stickerSize?.addEventListener('input', () => {
+    stickerSizeVal.textContent = `${stickerSize.value}px`;
+  });
+
+  stickerOpacity?.addEventListener('input', () => {
+    stickerOpacityVal.textContent = `${stickerOpacity.value}%`;
+  });
+
+  btnClearStickers?.addEventListener('click', () => {
+    state.stickers = [];
+    stickersPlacedList.innerHTML = '';
+    stickersGrid.forEach(b => b.classList.remove('active'));
+    state.selectedSticker = null;
+    selectedStickerLabel.style.display = 'none';
+    canvasWrapper.classList.remove('mode-sticker');
+    canvasWrapper.classList.add('mode-default');
+  });
+
+  // ─── Frame panel ─────────────────────────────────────────────────────────
+  framePresetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.frame;
+      const exists = state.activeFrames.findIndex(f => f.type === type);
+      if (exists !== -1) {
+        // Toggle off
+        state.activeFrames.splice(exists, 1);
+        btn.classList.remove('active');
+      } else {
+        state.activeFrames.push({ id: Date.now(), type });
+        btn.classList.add('active');
+      }
+      renderActiveFramesList();
+    });
+  });
+
+  frameOpacity?.addEventListener('input', () => {
+    frameOpacityVal.textContent = `${frameOpacity.value}%`;
+  });
+
+  btnClearFrames?.addEventListener('click', () => {
+    state.activeFrames = [];
+    framePresetBtns.forEach(b => b.classList.remove('active'));
+    renderActiveFramesList();
+  });
+
+  // ─── Canvas click: sticker placement + flare position ────────────────────
+  displayCanvas.addEventListener('click', (e) => {
+    const rect  = displayCanvas.getBoundingClientRect();
+    const xPct  = ((e.clientX - rect.left) / rect.width)  * 100;
+    const yPct  = ((e.clientY - rect.top)  / rect.height) * 100;
+
+    if (state.selectedSticker && state.currentTool === 'stickers') {
+      const s = {
+        id:      Date.now(),
+        emoji:   state.selectedSticker,
+        x:       xPct,
+        y:       yPct,
+        size:    parseInt(stickerSize?.value ?? 80),
+        opacity: parseInt(stickerOpacity?.value ?? 100),
+      };
+      state.stickers.push(s);
+      renderPlacedStickersList();
+    }
+
+    if (state.currentEffect === 'flare') {
+      webglFx.setFlareX(xPct / 100);
+      webglFx.setFlareY(yPct / 100);
+      if (flareX) { flareX.value = Math.round(xPct); flareXVal.textContent = `${Math.round(xPct)}%`; }
+      if (flareY) { flareY.value = Math.round(yPct); flareYVal.textContent = `${Math.round(yPct)}%`; }
+    }
+  });
+
+  // ─── Sounds panel ────────────────────────────────────────────────────────
+  soundTiles.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const soundId = btn.dataset.sound;
+      if (zenAudio.currentSound === soundId) {
+        zenAudio.stop();
+        soundTiles.forEach(b => b.classList.remove('active'));
+      } else {
+        zenAudio.play(soundId);
+        soundTiles.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    });
+  });
+
+  btnStopSound?.addEventListener('click', () => {
+    zenAudio.stop();
+    soundTiles.forEach(b => b.classList.remove('active'));
+  });
+
+  soundVolume?.addEventListener('input', () => {
+    const v = parseInt(soundVolume.value) / 100;
+    soundVolumeVal.textContent = `${soundVolume.value}%`;
+    zenAudio.setVolume(v);
+  });
+
+  // Mobile: close panel when tapping canvas
+  displayCanvas.addEventListener('touchend', (e) => {
+    if (window.innerWidth <= 768) {
+      const rp = document.getElementById('tool-panel');
+      if (rp?.classList.contains('mobile-open')) {
+        // Only close if tap was on canvas itself, not a button
+        rp.classList.remove('mobile-open');
+      }
+    }
+  });
+
+  // ─── Keyboard shortcuts ───────────────────────────────────────────────────
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    switch (e.code) {
+      case 'Space': e.preventDefault(); togglePlayPause(); break;
+      case 'ArrowLeft':
+        if (state.videoLoaded) {
+          videoEl.currentTime = Math.max(0, videoEl.currentTime - 5);
+        }
+        break;
+      case 'ArrowRight':
+        if (state.videoLoaded) {
+          videoEl.currentTime = Math.min(videoEl.duration, videoEl.currentTime + 5);
+        }
+        break;
+      case 'KeyC': toggleCensor.click(); break;
+      case 'Escape': exportModal.classList.add('hidden'); break;
+    }
+  });
+
+  // ─── Window resize ────────────────────────────────────────────────────────
+  window.addEventListener('resize', () => {
+    if (state.videoLoaded) {
+      resizeDisplayCanvas(compositeCanvas.width, compositeCanvas.height);
+    }
+    timeline._resize();
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// UTILITY
+// ══════════════════════════════════════════════════════════════════════════════
+function showPanel(name) {
+  const panelSounds = $('#panel-sounds');
+  [panelUpload, panelCensor, panelEffects, panelColor, panelText, panelMusic,
+   panelTrim, panelStickers, panelFrames, panelSounds].forEach(p => {
+    p?.classList.add('hidden');
+  });
+  const map = {
+    upload:   panelUpload,
+    censor:   panelCensor,
+    effects:  panelEffects,
+    color:    panelColor,
+    text:     panelText,
+    music:    panelMusic,
+    trim:     panelTrim,
+    stickers: panelStickers,
+    frames:   panelFrames,
+    sounds:   panelSounds,
+  };
+  map[name]?.classList.remove('hidden');
+
+  // Cursor mode
+  canvasWrapper.classList.remove('mode-sticker', 'mode-flare', 'mode-default');
+  if (name === 'stickers' && state.selectedSticker) {
+    canvasWrapper.classList.add('mode-sticker');
+  } else if (name === 'effects' && state.currentEffect === 'flare') {
+    canvasWrapper.classList.add('mode-flare');
+  } else {
+    canvasWrapper.classList.add('mode-default');
+  }
+
+  // Mobile: show/hide right panel as bottom drawer
+  const rightPanel = document.getElementById('tool-panel');
+  if (rightPanel && window.innerWidth <= 768) {
+    const isMediaPanel = (name === 'upload');
+    rightPanel.classList.toggle('mobile-open', !isMediaPanel);
+  }
+}
+
+function updateToolActive(activeTool) {
+  toolBtns.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tool === activeTool);
+  });
+  state.currentTool = activeTool;
+}
+
+function renderPlacedStickersList() {
+  if (!stickersPlacedList) return;
+  stickersPlacedList.innerHTML = '';
+  state.stickers.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'segment-item';
+    div.innerHTML = `<span>${s.emoji} at ${s.x.toFixed(0)}%, ${s.y.toFixed(0)}%</span>
+      <button class="segment-del-btn" data-idx="${i}">✕</button>`;
+    div.querySelector('.segment-del-btn').addEventListener('click', () => {
+      state.stickers.splice(i, 1);
+      renderPlacedStickersList();
+    });
+    stickersPlacedList.appendChild(div);
+  });
+}
+
+function renderActiveFramesList() {
+  if (!activeFramesList) return;
+  activeFramesList.innerHTML = '';
+  state.activeFrames.forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'segment-item active';
+    div.innerHTML = `<span>${f.type}</span>
+      <button class="segment-del-btn" data-idx="${i}">✕</button>`;
+    div.querySelector('.segment-del-btn').addEventListener('click', () => {
+      state.activeFrames.splice(i, 1);
+      // Deactivate the corresponding preset button
+      framePresetBtns.forEach(b => { if (b.dataset.frame === f.type) b.classList.remove('active'); });
+      renderActiveFramesList();
+    });
+    activeFramesList.appendChild(div);
+  });
+}
+
+function setSplashProgress(pct, label) {
+  progressFill.style.width       = `${pct}%`;
+  progressLabel.textContent      = label;
+}
+
+function formatTime(sec) {
+  if (!isFinite(sec)) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/** Render a single frame (used when paused + seeked) */
+async function renderSingleFrame() {
+  if (!compCtx) return;
+  const W = compositeCanvas.width;
+  const H = compositeCanvas.height;
+
+  compCtx.filter = webglFx.buildCSSFilter();
+  compCtx.drawImage(videoEl, 0, 0, W, H);
+  compCtx.filter = 'none';
+
+  if (state.censorActive && state.faceMeshReady) {
+    await faceCensor.processFrame(videoEl);
+    faceCensor.applyBlurMask(compCtx, videoEl, W, H);
+  }
+
+  drawTextLayers(compCtx, W, H);
+  drawStickers(compCtx, W, H);
+  drawFrames(compCtx, W, H);
+  webglFx.renderFrame(compositeCanvas);
+  drawVignette(W, H);
+  updateTimeDisplay();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SERVICE WORKER REGISTRATION
+// ══════════════════════════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // SW registration failure is non-critical
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════════════════════════
+init().catch(err => {
+  console.error('Fatal init error:', err);
+  progressLabel.textContent = `Init error: ${err.message}`;
+});

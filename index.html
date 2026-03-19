@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="CENSOR ENGINE PRO — Professional AI Video Editor">
+  <title>CENSOR ENGINE PRO</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="src/styles.css">
+
+  <!-- MediaPipe Face Mesh CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SPLASH SCREEN
+  ═══════════════════════════════════════════════════════ -->
+  <div id="splash-screen">
+    <div class="splash-inner">
+      <div class="splash-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="40" r="36" stroke="#940a0a" stroke-width="2"/>
+            <circle cx="40" cy="40" r="28" stroke="#19f9f9" stroke-width="1" opacity="0.5"/>
+            <ellipse cx="28" cy="36" rx="9" ry="5" fill="#940a0a" opacity="0.9"/>
+            <ellipse cx="52" cy="36" rx="9" ry="5" fill="#940a0a" opacity="0.9"/>
+            <path d="M28 48 Q40 56 52 48" stroke="#19f9f9" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <circle cx="28" cy="36" r="3" fill="#000" opacity="0.8"/>
+            <circle cx="52" cy="36" r="3" fill="#000" opacity="0.8"/>
+            <line x1="4" y1="40" x2="16" y2="40" stroke="#19f9f9" stroke-width="1.5" opacity="0.6"/>
+            <line x1="64" y1="40" x2="76" y2="40" stroke="#19f9f9" stroke-width="1.5" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-main">CENSOR ENGINE</span>
+          <span class="logo-pro">PRO</span>
+        </div>
+      </div>
+      <div class="splash-tagline">AI-Powered Video Editor · RTX Optimized</div>
+      <div class="splash-progress-container">
+        <div class="splash-progress-bar">
+          <div id="splash-progress-fill"></div>
+        </div>
+        <div id="splash-progress-label">Initializing AI models…</div>
+      </div>
+      <div class="splash-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       MAIN APP
+  ═══════════════════════════════════════════════════════ -->
+  <div id="app" class="hidden">
+
+    <!-- HEADER -->
+    <header id="app-header">
+      <div class="header-left">
+        <div class="header-logo">
+          <span class="hl-icon">⬤</span>
+          <span class="hl-text">CENSOR<span class="hl-pro">PRO</span></span>
+        </div>
+        <div class="header-aspect-ratio">
+          <button class="ar-btn active" data-ar="9:16" title="Portrait (9:16)">9:16</button>
+          <button class="ar-btn" data-ar="16:9" title="Landscape (16:9)">16:9</button>
+          <button class="ar-btn" data-ar="1:1" title="Square (1:1)">1:1</button>
+        </div>
+      </div>
+      <div class="header-center">
+        <span id="header-filename">No video loaded</span>
+      </div>
+      <div class="header-right">
+        <div id="fps-counter" class="fps-counter">-- fps</div>
+        <button id="btn-preview-toggle" class="header-btn" title="Play / Pause">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button id="btn-export" class="header-btn header-btn--export" title="Export Video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Export
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN WORKSPACE -->
+    <div id="workspace">
+
+      <!-- LEFT SIDEBAR -->
+      <aside id="sidebar">
+        <button class="tool-btn" data-tool="upload" title="Load Video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span>Video</span>
+        </button>
+        <button class="tool-btn" data-tool="music" title="Load Music">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18V5l12-2v13"/>
+            <circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+          <span>Music</span>
+        </button>
+        <div class="tool-divider"></div>
+        <button class="tool-btn" data-tool="censor" title="AI Eye Censor">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+            <line x1="3" y1="3" x2="21" y2="21" stroke="#940a0a"/>
+          </svg>
+          <span>Censor</span>
+        </button>
+        <button class="tool-btn" data-tool="effects" title="Visual Effects">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span>Effects</span>
+        </button>
+        <button class="tool-btn" data-tool="color" title="Color Grade">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 2a10 10 0 010 20" fill="rgba(148,10,10,0.4)"/>
+          </svg>
+          <span>Color</span>
+        </button>
+        <button class="tool-btn" data-tool="text" title="Add Text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 7 4 4 20 4 20 7"/>
+            <line x1="9" y1="20" x2="15" y2="20"/>
+            <line x1="12" y1="4" x2="12" y2="20"/>
+          </svg>
+          <span>Text</span>
+        </button>
+        <div class="tool-divider"></div>
+        <button class="tool-btn" data-tool="trim" title="Trim & Cut">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+            <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+            <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+          </svg>
+          <span>Trim</span>
+        </button>
+        <button class="tool-btn" data-tool="stickers" title="Stickers & Emojis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.3"/>
+          </svg>
+          <span>Stickers</span>
+        </button>
+        <button class="tool-btn" data-tool="frames" title="Frames & Overlays">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <rect x="7" y="7" width="10" height="10" rx="1"/>
+          </svg>
+          <span>Frames</span>
+        </button>
+        <button class="tool-btn" data-tool="sounds" title="Ambient Sounds">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18V5l12-2v13"/>
+            <path d="M6 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" fill="currentColor" opacity="0.4"/>
+            <path d="M18 13a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" fill="currentColor" opacity="0.4"/>
+          </svg>
+          <span>Sounds</span>
+        </button>
+      </aside>
+
+      <!-- CANVAS AREA -->
+      <main id="canvas-area">
+        <div id="canvas-wrapper">
+          <!-- Hidden: raw video source -->
+          <video id="video-element" crossorigin="anonymous" playsinline></video>
+          <!-- Hidden: 2D compositing canvas (video + eye blur) -->
+          <canvas id="composite-canvas"></canvas>
+          <!-- Visible: WebGL effects output -->
+          <canvas id="display-canvas"></canvas>
+          <!-- Drop zone overlay -->
+          <div id="drop-overlay">
+            <div class="drop-inner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <p>Drop video here</p>
+              <span>MP4, WebM, MOV supported</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Canvas Controls -->
+        <div id="canvas-controls">
+          <button id="btn-play-pause" class="canvas-ctrl-btn" disabled>
+            <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
+          <span id="time-display">0:00 / 0:00</span>
+          <div class="canvas-ctrl-spacer"></div>
+          <button id="btn-fullscreen" class="canvas-ctrl-btn" title="Fullscreen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+              <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+            </svg>
+          </button>
+        </div>
+      </main>
+
+      <!-- RIGHT TOOL PANEL -->
+      <aside id="tool-panel">
+
+        <!-- UPLOAD PANEL -->
+        <div class="panel-section" id="panel-upload">
+          <div class="panel-title">
+            <span>Media</span>
+          </div>
+          <div class="upload-zone" id="upload-video-zone">
+            <input type="file" id="input-video" accept="video/*" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="2" width="20" height="20" rx="2"/>
+              <polygon points="10 8 16 12 10 16 10 8"/>
+            </svg>
+            <p>Click or drag video</p>
+            <span>MP4 · MOV · WebM · MKV</span>
+          </div>
+          <div class="upload-zone" id="upload-music-zone">
+            <input type="file" id="input-music" accept="audio/*" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+            </svg>
+            <p>Click or drag music</p>
+            <span>MP3 · WAV · OGG · M4A</span>
+          </div>
+        </div>
+
+        <!-- CENSOR PANEL -->
+        <div class="panel-section hidden" id="panel-censor">
+          <div class="panel-title">
+            <span>AI Eye Censor</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-censor">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="panel-body" id="censor-controls">
+            <div class="control-group">
+              <label>Censor Mode</label>
+              <div class="censor-mode-grid" id="censor-mode-grid">
+                <button class="censor-mode-btn active" data-mode="blur">
+                  <span class="cmb-icon">≈</span><span>Blur</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="pixelate">
+                  <span class="cmb-icon">▦</span><span>Pixel</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="blackbar">
+                  <span class="cmb-icon">█</span><span>Black</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="shadow">
+                  <span class="cmb-icon">◉</span><span>Shadow</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="stripes">
+                  <span class="cmb-icon">≡</span><span>Stripes</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="frost">
+                  <span class="cmb-icon">❄️</span><span>Frost</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="warmglow">
+                  <span class="cmb-icon">🔆</span><span>Warm</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="coolglow">
+                  <span class="cmb-icon">💠</span><span>Cool</span>
+                </button>
+                <button class="censor-mode-btn" data-mode="emoji">
+                  <span class="cmb-icon">😎</span><span>Emoji</span>
+                </button>
+              </div>
+            </div>
+            <div class="control-group">
+              <label id="censor-radius-label">Blur Radius</label>
+              <div class="slider-row">
+                <input type="range" id="blur-radius" min="5" max="60" value="20" class="neon-range">
+                <span id="blur-radius-val">20px</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Mask Size <small style="color:var(--text-muted);font-size:9px;font-weight:400">ojos → cara</small></label>
+              <div class="slider-row">
+                <input type="range" id="mask-expand" min="0" max="220" value="10" class="neon-range">
+                <span id="mask-expand-val">10px</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Max Faces</label>
+              <div class="select-row">
+                <select id="max-faces" class="neon-select">
+                  <option value="1">1 face</option>
+                  <option value="2" selected>2 faces</option>
+                  <option value="4">4 faces</option>
+                </select>
+              </div>
+            </div>
+            <div id="censor-status" class="status-indicator">
+              <span class="status-dot"></span>
+              <span class="status-text">Censor inactive</span>
+            </div>
+            <div id="face-count-display" class="face-count">Faces: 0</div>
+          </div>
+        </div>
+
+        <!-- EFFECTS PANEL -->
+        <div class="panel-section hidden" id="panel-effects">
+          <div class="panel-title"><span>Visual Effects</span></div>
+          <div class="effects-grid">
+            <button class="effect-btn active" data-effect="none">
+              <div class="effect-preview ep-none"></div>
+              <span>None</span>
+            </button>
+            <button class="effect-btn" data-effect="cinematic">
+              <div class="effect-preview ep-cinematic"></div>
+              <span>Cinematic</span>
+            </button>
+            <button class="effect-btn" data-effect="warm">
+              <div class="effect-preview ep-warm"></div>
+              <span>Warm</span>
+            </button>
+            <button class="effect-btn" data-effect="cold">
+              <div class="effect-preview ep-cold"></div>
+              <span>Cold</span>
+            </button>
+            <button class="effect-btn" data-effect="flare">
+              <div class="effect-preview ep-flare"></div>
+              <span>Lens Flare</span>
+            </button>
+            <button class="effect-btn" data-effect="neon">
+              <div class="effect-preview ep-neon"></div>
+              <span>Neon</span>
+            </button>
+            <button class="effect-btn" data-effect="bokeh">
+              <div class="effect-preview ep-bokeh"></div>
+              <span>Bokeh</span>
+            </button>
+            <button class="effect-btn" data-effect="vhs">
+              <div class="effect-preview ep-vhs"></div>
+              <span>VHS</span>
+            </button>
+            <button class="effect-btn" data-effect="noir">
+              <div class="effect-preview ep-noir"></div>
+              <span>Noir</span>
+            </button>
+          </div>
+          <div class="control-group" style="margin-top:16px">
+            <label>Effect Intensity</label>
+            <div class="slider-row">
+              <input type="range" id="effect-intensity" min="0" max="100" value="80" class="neon-range">
+              <span id="effect-intensity-val">80%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Flare Position X</label>
+            <div class="slider-row">
+              <input type="range" id="flare-x" min="0" max="100" value="75" class="neon-range">
+              <span id="flare-x-val">75%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Flare Position Y</label>
+            <div class="slider-row">
+              <input type="range" id="flare-y" min="0" max="100" value="25" class="neon-range">
+              <span id="flare-y-val">25%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label style="display:flex;align-items:center;justify-content:space-between">
+              Track Eyes with Flare
+              <label class="toggle-switch" style="margin:0">
+                <input type="checkbox" id="toggle-flare-track">
+                <span class="toggle-slider"></span>
+              </label>
+            </label>
+          </div>
+          <div class="hint-text" id="flare-track-hint" style="display:none;font-size:10px;color:var(--cyan);text-align:center;padding:4px 0">
+            ✦ Flare follows detected eyes automatically
+          </div>
+        </div>
+
+        <!-- COLOR PANEL -->
+        <div class="panel-section hidden" id="panel-color">
+          <div class="panel-title"><span>Filter Presets</span></div>
+          <div class="filter-presets-scroll" id="filter-presets-scroll">
+            <!-- filter buttons will be rendered by JS -->
+          </div>
+          <div class="panel-divider"></div>
+          <div class="panel-title" style="margin-top:4px"><span>Manual Adjust</span></div>
+          <div class="control-group">
+            <label>Brightness</label>
+            <div class="slider-row">
+              <input type="range" id="cc-brightness" min="-100" max="100" value="0" class="neon-range">
+              <span id="cc-brightness-val">0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Contrast</label>
+            <div class="slider-row">
+              <input type="range" id="cc-contrast" min="-100" max="100" value="0" class="neon-range">
+              <span id="cc-contrast-val">0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Saturation</label>
+            <div class="slider-row">
+              <input type="range" id="cc-saturation" min="-100" max="100" value="0" class="neon-range">
+              <span id="cc-saturation-val">0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Exposure</label>
+            <div class="slider-row">
+              <input type="range" id="cc-exposure" min="-100" max="100" value="0" class="neon-range">
+              <span id="cc-exposure-val">0</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Vignette</label>
+            <div class="slider-row">
+              <input type="range" id="cc-vignette" min="0" max="100" value="0" class="neon-range">
+              <span id="cc-vignette-val">0%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Sharpen</label>
+            <div class="slider-row">
+              <input type="range" id="cc-sharpen" min="0" max="100" value="0" class="neon-range">
+              <span id="cc-sharpen-val">0%</span>
+            </div>
+          </div>
+          <button class="neon-btn-secondary" id="btn-reset-color" style="margin-top:12px">Reset All</button>
+        </div>
+
+        <!-- TEXT PANEL -->
+        <div class="panel-section hidden" id="panel-text">
+          <div class="panel-title"><span>Text Overlay</span></div>
+          <div class="control-group">
+            <label>Text Content</label>
+            <textarea id="text-content" class="neon-textarea" placeholder="Enter text…" rows="3"></textarea>
+          </div>
+          <div class="control-group">
+            <label>Font Size</label>
+            <div class="slider-row">
+              <input type="range" id="text-size" min="16" max="120" value="48" class="neon-range">
+              <span id="text-size-val">48px</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Color</label>
+            <div class="color-row">
+              <input type="color" id="text-color" value="#ffffff" class="neon-color">
+              <input type="color" id="text-stroke-color" value="#000000" class="neon-color">
+              <span>Fill / Stroke</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Position X / Y</label>
+            <div class="slider-row">
+              <input type="range" id="text-x" min="0" max="100" value="50" class="neon-range">
+              <span id="text-x-val">50%</span>
+            </div>
+            <div class="slider-row" style="margin-top:6px">
+              <input type="range" id="text-y" min="0" max="100" value="80" class="neon-range">
+              <span id="text-y-val">80%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Opacity</label>
+            <div class="slider-row">
+              <input type="range" id="text-opacity" min="0" max="100" value="100" class="neon-range">
+              <span id="text-opacity-val">100%</span>
+            </div>
+          </div>
+          <button class="neon-btn-secondary" id="btn-add-text">Add Text</button>
+        </div>
+
+        <!-- MUSIC PANEL -->
+        <div class="panel-section hidden" id="panel-music">
+          <div class="panel-title"><span>Audio Mixer</span></div>
+          <div id="music-info" class="music-info">No music loaded</div>
+          <div class="control-group">
+            <label>Video Volume</label>
+            <div class="slider-row">
+              <input type="range" id="vol-video" min="0" max="100" value="100" class="neon-range">
+              <span id="vol-video-val">100%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Music Volume</label>
+            <div class="slider-row">
+              <input type="range" id="vol-music" min="0" max="100" value="50" class="neon-range">
+              <span id="vol-music-val">50%</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Music Start (sec)</label>
+            <div class="slider-row">
+              <input type="range" id="music-start" min="0" max="300" value="0" class="neon-range">
+              <span id="music-start-val">0s</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Fade Out (sec)</label>
+            <div class="slider-row">
+              <input type="range" id="music-fade" min="0" max="10" value="2" class="neon-range" step="0.5">
+              <span id="music-fade-val">2s</span>
+            </div>
+          </div>
+          <div class="upload-zone mini" id="upload-music-zone2">
+            <input type="file" id="input-music2" accept="audio/*" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+            </svg>
+            <p>Load music file</p>
+          </div>
+        </div>
+
+        <!-- TRIM PANEL -->
+        <div class="panel-section hidden" id="panel-trim">
+          <div class="panel-title"><span>Trim &amp; Cut</span></div>
+          <div class="trim-actions">
+            <button class="trim-action-btn" id="btn-split" title="Split clip at playhead position">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M2 12h4M18 12h4"/></svg>
+              Split here
+            </button>
+            <button class="trim-action-btn danger" id="btn-delete-segment" title="Delete selected segment">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+              Delete segment
+            </button>
+          </div>
+          <div class="control-group" style="margin-top:12px">
+            <label>Trim Start</label>
+            <div class="slider-row">
+              <input type="range" id="trim-start" min="0" max="100" value="0" step="0.1" class="neon-range">
+              <span id="trim-start-val">0s</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Trim End</label>
+            <div class="slider-row">
+              <input type="range" id="trim-end" min="0" max="100" value="100" step="0.1" class="neon-range">
+              <span id="trim-end-val">–s</span>
+            </div>
+          </div>
+          <div class="panel-title" style="margin-top:14px"><span>Segments</span></div>
+          <div id="segments-list" class="segments-list"></div>
+          <button class="neon-btn-secondary" id="btn-reset-trim" style="margin-top:10px">Reset all cuts</button>
+        </div>
+
+        <!-- STICKERS PANEL -->
+        <div class="panel-section hidden" id="panel-stickers">
+          <div class="panel-title"><span>Stickers &amp; Overlays</span></div>
+          <div class="sticker-hint">Click a sticker → click on video to place it</div>
+          <div class="stickers-grid" id="stickers-grid">
+            <button class="sticker-pick" data-sticker="⭐">⭐<span>Star</span></button>
+            <button class="sticker-pick" data-sticker="✨">✨<span>Sparkle</span></button>
+            <button class="sticker-pick" data-sticker="🔥">🔥<span>Fire</span></button>
+            <button class="sticker-pick" data-sticker="❤️">❤️<span>Heart</span></button>
+            <button class="sticker-pick" data-sticker="💫">💫<span>Dizzy</span></button>
+            <button class="sticker-pick" data-sticker="⚡">⚡<span>Flash</span></button>
+            <button class="sticker-pick" data-sticker="💎">💎<span>Diamond</span></button>
+            <button class="sticker-pick" data-sticker="👑">👑<span>Crown</span></button>
+            <button class="sticker-pick" data-sticker="🚀">🚀<span>Rocket</span></button>
+            <button class="sticker-pick" data-sticker="🎯">🎯<span>Target</span></button>
+            <button class="sticker-pick" data-sticker="🌟">🌟<span>Glow</span></button>
+            <button class="sticker-pick" data-sticker="💥">💥<span>Boom</span></button>
+            <button class="sticker-pick" data-sticker="🎬">🎬">🎬<span>Clap</span></button>
+            <button class="sticker-pick" data-sticker="📍">📍<span>Pin</span></button>
+            <button class="sticker-pick" data-sticker="🎵">🎵<span>Music</span></button>
+            <button class="sticker-pick" data-sticker="💯">💯<span>100</span></button>
+          </div>
+          <div class="control-group" style="margin-top:12px">
+            <label>Sticker Size</label>
+            <div class="slider-row">
+              <input type="range" id="sticker-size" min="20" max="200" value="80" class="neon-range">
+              <span id="sticker-size-val">80px</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Opacity</label>
+            <div class="slider-row">
+              <input type="range" id="sticker-opacity" min="10" max="100" value="100" class="neon-range">
+              <span id="sticker-opacity-val">100%</span>
+            </div>
+          </div>
+          <div id="selected-sticker-label" class="sticker-hint" style="color:var(--cyan);display:none">
+            ✦ Click on the video to place
+          </div>
+          <div class="panel-title" style="margin-top:14px"><span>Placed stickers</span></div>
+          <div id="stickers-placed-list" class="segments-list"></div>
+          <button class="neon-btn-secondary" id="btn-clear-stickers" style="margin-top:8px">Clear all stickers</button>
+        </div>
+
+        <!-- FRAMES PANEL -->
+        <div class="panel-section hidden" id="panel-frames">
+          <div class="panel-title"><span>Frames &amp; Overlays</span></div>
+
+          <!-- REC / Broadcast indicator -->
+          <div class="frames-section-label">● Recording Indicators</div>
+          <div class="frames-presets-row">
+            <button class="frame-preset-btn" data-frame="rec">
+              <div class="fp-preview fp-rec"><span class="rec-dot"></span>REC</div>
+              <span>REC</span>
+            </button>
+            <button class="frame-preset-btn" data-frame="live">
+              <div class="fp-preview fp-live">● LIVE</div>
+              <span>LIVE</span>
+            </button>
+            <button class="frame-preset-btn" data-frame="cam">
+              <div class="fp-preview fp-cam">📷 CAM</div>
+              <span>CAM</span>
+            </button>
+          </div>
+
+          <!-- Cinematic / Aspect frames -->
+          <div class="frames-section-label" style="margin-top:12px">▬ Cinematic Frames</div>
+          <div class="frames-presets-row">
+            <button class="frame-preset-btn" data-frame="bars21">
+              <div class="fp-preview fp-bars21"></div>
+              <span>2.35:1</span>
+            </button>
+            <button class="frame-preset-btn" data-frame="bars169">
+              <div class="fp-preview fp-bars169"></div>
+              <span>16:9</span>
+            </button>
+            <button class="frame-preset-btn" data-frame="vhs-frame">
+              <div class="fp-preview fp-vhs-frame">▓VHS▓</div>
+              <span>VHS UI</span>
+            </button>
+          </div>
+
+          <!-- Decorative borders -->
+          <div class="frames-section-label" style="margin-top:12px">◻ Border Frames</div>
+          <div class="frames-presets-row">
+            <button class="frame-preset-btn" data-frame="neon-border">
+              <div class="fp-preview fp-neon-border"></div>
+              <span>Neon</span>
+            </button>
+            <button class="frame-preset-btn" data-frame="film-strip">
+              <div class="fp-preview fp-film"></div>
+              <span>Film</span>
+            </button>
+            <button class="frame-preset-btn" data-frame="glow-frame">
+              <div class="fp-preview fp-glow"></div>
+              <span>Glow</span>
+            </button>
+          </div>
+
+          <!-- Light leaks -->
+          <div class="frames-section-label" style="margin-top:12px">☀ Light Leaks</div>
+          <div class="frames-presets-row">
+            <button class="frame-preset-btn" data-frame="leak-orange">
+              <div class="fp-preview fp-leak-orange"></div>
+              <span>Orange</span>
+            </button>
+            <button class="frame-preset-btn" data-frame="leak-blue">
+              <div class="fp-preview fp-leak-blue"></div>
+              <span>Blue</span>
+            </button>
+            <button class="frame-preset-btn" data-frame="leak-rainbow">
+              <div class="fp-preview fp-leak-rainbow"></div>
+              <span>Rainbow</span>
+            </button>
+          </div>
+
+          <div class="control-group" style="margin-top:14px">
+            <label>Frame Opacity</label>
+            <div class="slider-row">
+              <input type="range" id="frame-opacity" min="10" max="100" value="90" class="neon-range">
+              <span id="frame-opacity-val">90%</span>
+            </div>
+          </div>
+          <div id="active-frames-list" class="segments-list" style="margin-top:8px"></div>
+          <button class="neon-btn-secondary" id="btn-clear-frames" style="margin-top:8px">Clear all frames</button>
+        </div>
+
+        <!-- SOUNDS PANEL -->
+        <div class="panel-section hidden" id="panel-sounds">
+          <div class="panel-title"><span>Ambient Sounds</span></div>
+
+          <div class="sounds-section-label">🌿 Nature</div>
+          <div class="sounds-grid">
+            <button class="sound-tile" data-sound="rain">
+              <span class="sound-icon">🌧️</span><span>Rain</span>
+            </button>
+            <button class="sound-tile" data-sound="ocean">
+              <span class="sound-icon">🌊</span><span>Ocean</span>
+            </button>
+            <button class="sound-tile" data-sound="wind">
+              <span class="sound-icon">🌬️</span><span>Wind</span>
+            </button>
+            <button class="sound-tile" data-sound="forest">
+              <span class="sound-icon">🌳</span><span>Forest</span>
+            </button>
+            <button class="sound-tile" data-sound="fire">
+              <span class="sound-icon">🔥</span><span>Fire</span>
+            </button>
+          </div>
+
+          <div class="sounds-section-label" style="margin-top:12px">🧘 Meditation</div>
+          <div class="sounds-grid">
+            <button class="sound-tile" data-sound="bowl">
+              <span class="sound-icon">🎑</span><span>Bowl</span>
+            </button>
+            <button class="sound-tile" data-sound="bells">
+              <span class="sound-icon">🔔</span><span>Bells</span>
+            </button>
+            <button class="sound-tile" data-sound="binaural">
+              <span class="sound-icon">💫</span><span>Binaural</span>
+            </button>
+            <button class="sound-tile" data-sound="om">
+              <span class="sound-icon">🙏</span><span>Om</span>
+            </button>
+          </div>
+
+          <div class="sounds-section-label" style="margin-top:12px">✨ Ambient</div>
+          <div class="sounds-grid">
+            <button class="sound-tile" data-sound="sensual">
+              <span class="sound-icon">🎷</span><span>Sensual</span>
+            </button>
+          </div>
+
+          <button class="sound-tile stop-btn" id="btn-stop-sound" style="margin-top:14px;width:100%;justify-content:center;gap:8px;padding:10px">
+            <span>⏹</span><span>Stop</span>
+          </button>
+
+          <div class="control-group" style="margin-top:14px">
+            <label>Volume</label>
+            <div class="slider-row">
+              <input type="range" id="sound-volume" min="0" max="100" value="55" class="neon-range">
+              <span id="sound-volume-val">55%</span>
+            </div>
+          </div>
+
+          <div class="hint-text" style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:10px;line-height:1.5">
+            Sonidos generados en tiempo real<br>con Web Audio API
+          </div>
+        </div>
+
+      </aside>
+
+    </div><!-- /workspace -->
+
+    <!-- TIMELINE -->
+    <div id="timeline-container">
+      <div id="timeline-header">
+        <div class="tl-controls">
+          <button id="tl-zoom-out" class="tl-btn" title="Zoom Out">−</button>
+          <span id="tl-zoom-label">1×</span>
+          <button id="tl-zoom-in" class="tl-btn" title="Zoom In">+</button>
+        </div>
+        <div id="tl-time-ruler-wrapper">
+          <canvas id="tl-ruler"></canvas>
+        </div>
+      </div>
+      <div id="timeline-tracks">
+        <div class="track-labels">
+          <div class="track-label">Video</div>
+          <div class="track-label">Effects</div>
+          <div class="track-label">Audio</div>
+        </div>
+        <div id="tl-scroll-area">
+          <canvas id="timeline-canvas"></canvas>
+          <div id="tl-playhead"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /app -->
+
+  <!-- EXPORT MODAL -->
+  <div id="export-modal" class="modal hidden">
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>Export Video</h2>
+        <button class="modal-close" id="btn-close-export">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="export-options">
+          <div class="export-option-group">
+            <label>Resolution</label>
+            <select id="export-resolution" class="neon-select">
+              <option value="1920x1080">1920×1080 (Full HD)</option>
+              <option value="1080x1920">1080×1920 (Portrait HD)</option>
+              <option value="1080x1080">1080×1080 (Square)</option>
+              <option value="3840x2160">3840×2160 (4K)</option>
+            </select>
+          </div>
+          <div class="export-option-group">
+            <label>Format</label>
+            <select id="export-format" class="neon-select">
+              <option value="video/webm;codecs=vp9,opus">WebM VP9 (Best quality)</option>
+              <option value="video/webm;codecs=vp8,opus">WebM VP8</option>
+              <option value="video/mp4">MP4 (if supported)</option>
+            </select>
+          </div>
+          <div class="export-option-group">
+            <label>Bitrate</label>
+            <select id="export-bitrate" class="neon-select">
+              <option value="8000000">8 Mbps</option>
+              <option value="15000000" selected>15 Mbps (Recommended)</option>
+              <option value="25000000">25 Mbps (High)</option>
+              <option value="50000000">50 Mbps (Ultra)</option>
+            </select>
+          </div>
+        </div>
+        <div id="export-progress-area" class="hidden">
+          <div class="export-progress-bar">
+            <div id="export-progress-fill"></div>
+          </div>
+          <div id="export-progress-label">Preparing export…</div>
+        </div>
+        <div class="export-warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>Keep this tab open during export. The video will download automatically.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="neon-btn-secondary" id="btn-cancel-export">Cancel</button>
+        <button class="neon-btn-primary" id="btn-start-export">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="10 8 16 12 10 16 10 8"/>
+          </svg>
+          Start Export
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file inputs -->
+  <input type="file" id="input-video-main" accept="video/*" hidden>
+
+  <!-- Main Application -->
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
