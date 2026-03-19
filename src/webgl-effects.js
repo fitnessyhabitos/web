@@ -350,8 +350,10 @@ export class WebGLEffectsEngine {
     if (this.canvas.width !== w || this.canvas.height !== h) {
       this.canvas.width  = w;
       this.canvas.height = h;
-      gl.viewport(0, 0, w, h);
     }
+    // ALWAYS reset viewport — changing canvas.width/height preserves all GL state
+    // (including the old viewport), so we must explicitly sync it every frame.
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
     // Upload source as texture
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
