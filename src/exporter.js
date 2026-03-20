@@ -155,7 +155,7 @@ export class VideoExporter {
     let Muxer, ArrayBufferTarget;
     try {
       const mod = await import(
-        'https://cdn.jsdelivr.net/npm/mp4-muxer@5/build/mp4-muxer.mjs'
+        'https://cdn.jsdelivr.net/npm/mp4-muxer@4/build/mp4-muxer.mjs'
       );
       Muxer            = mod.Muxer;
       ArrayBufferTarget = mod.ArrayBufferTarget;
@@ -219,7 +219,18 @@ export class VideoExporter {
     // ── Create encoder ───────────────────────────────────────────────────
     const encoder = new VideoEncoder({
       output: (chunk, meta) => {
-        try { muxer.addVideoChunk(chunk, meta); } catch (_) {}
+        try {
+          // iOS Safari omits colorSpace in decoderConfig; mp4-muxer crashes on null.
+          // Inject BT.709 defaults so the muxer always has a valid value.
+          if (meta?.decoderConfig && meta.decoderConfig.colorSpace == null) {
+            meta.decoderConfig.colorSpace = {
+              primaries: 'bt709', transfer: 'bt709', matrix: 'bt709', fullRange: false
+            };
+          }
+          muxer.addVideoChunk(chunk, meta);
+        } catch (e) {
+          console.warn('[WC] muxer chunk skipped:', e.message);
+        }
       },
       error: (e) => {
         this.isRecording = false;
