@@ -1002,6 +1002,13 @@ async function loadVideo(file) {
   // Load timeline thumbnails (async, non-blocking)
   timeline.loadVideo(videoEl);
 
+  // iOS: eagerly preload mp4-muxer and find the best codec config.
+  // This must happen here (not at Export time) so the browser module cache
+  // already has mp4-muxer when the user taps Export, preventing user-gesture
+  // token expiry caused by awaiting a CDN import mid-export.
+  exporter.preloadIOS();
+  exporter.preloadCodecConfig(vw, vh);
+
   startRenderLoop();
 }
 

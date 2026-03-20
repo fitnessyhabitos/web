@@ -37,6 +37,50 @@ export class VideoExporter {
     this._wcBridgeCtx   = null;
     this._wcW           = 0;
     this._wcH           = 0;
+    this._wcWatchdog    = null;   // stuck-detection timer
+
+    // iOS eager preload (populated by preloadIOS / preloadCodecConfig)
+    this._preloadedMod    = null; // { Muxer, ArrayBufferTarget }
+    this._preloadedConfig = null; // { codec, width, height, _canvasW, _canvasH }
+  }
+
+  // ─── iOS eager preload ───────────────────────────────────────────────────
+  // Call these as soon as a video is loaded so that mp4-muxer is already in
+  // the module cache and the codec config is known by the time the user taps
+  // "Export". Without preloading, the awaits inside _startWebCodecs consume
+  // the ~500 ms iOS user-gesture window and video.play() fails silently.
+
+  async preloadIOS() {
+    if (!this._isIOS() || !this._hasWebCodecs()) return;
+    if (this._preloadedMod) return;
+    try {
+      const mod = await import(
+        'https://cdn.jsdelivr.net/npm/mp4-muxer@4/build/mp4-muxer.mjs'
+      );
+      this._preloadedMod = mod;
+      console.log('[Exporter] iOS: mp4-muxer preloaded ✓');
+    } catch (e) {
+      console.warn('[Exporter] iOS preload failed:', e);
+    }
+  }
+
+  async preloadCodecConfig(canvasW, canvasH) {
+    if (!this._isIOS() || !this._hasWebCodecs()) return;
+    const W = canvasW & ~1;
+    const H = canvasH & ~1;
+    // Skip if already cached for the same canvas size
+    if (this._preloadedConfig?._canvasW === W && this._preloadedConfig?._canvasH === H) return;
+    try {
+      const cfg = await this._findSupportedConfig(W, H, 8_000_000, 30);
+      if (cfg) {
+        cfg._canvasW = W;
+        cfg._canvasH = H;
+        this._preloadedConfig = cfg;
+        console.log('[Exporter] iOS: codec preloaded ✓', cfg.codec, cfg.width, 'x', cfg.height);
+      }
+    } catch (e) {
+      console.warn('[Exporter] iOS codec preload failed:', e);
+    }
   }
 
   // ─── Public API ──────────────────────────────────────────────────────────
@@ -64,7 +108,9 @@ export class VideoExporter {
 
   cancel() {
     clearInterval(this._ticker);
-    this.isRecording = false;
+    clearInterval(this._wcWatchdog);
+    this._wcWatchdog  = null;
+    this.isRecording  = false;
 
     if (this._wcEncoder) {
       cancelAnimationFrame(this._wcRafId);
@@ -151,64 +197,104 @@ export class VideoExporter {
 
     this.onProgress?.(0, 'Iniciando…');
 
-    // ── Load mp4-muxer ───────────────────────────────────────────────────
+    // ── Use preloaded mp4-muxer (loaded when video opened, not on Export tap) ──
+    // This avoids consuming the iOS user-gesture window with async CDN imports.
     let Muxer, ArrayBufferTarget;
-    try {
-      const mod = await import(
-        'https://cdn.jsdelivr.net/npm/mp4-muxer@4/build/mp4-muxer.mjs'
-      );
-      Muxer            = mod.Muxer;
-      ArrayBufferTarget = mod.ArrayBufferTarget;
-    } catch (e) {
-      console.warn('mp4-muxer CDN failed, trying MediaRecorder fallback', e);
-      this.isRecording = false;
-      await this._startMediaRecorder(canvas, null, video, opts);
-      return;
+    if (this._preloadedMod) {
+      ({ Muxer, ArrayBufferTarget } = this._preloadedMod);
+    } else {
+      // Fallback: load now (gesture window may have expired, but we try anyway)
+      try {
+        const mod = await import(
+          'https://cdn.jsdelivr.net/npm/mp4-muxer@4/build/mp4-muxer.mjs'
+        );
+        Muxer             = mod.Muxer;
+        ArrayBufferTarget = mod.ArrayBufferTarget;
+      } catch (e) {
+        console.warn('mp4-muxer CDN failed', e);
+        this.isRecording = false;
+        this.onError?.(new Error('No se pudo cargar el módulo de exportación. Verifica tu conexión a internet.'));
+        return;
+      }
     }
 
-    // ── Find a working codec / resolution ─────────────────────────────────
-    const canvasW   = canvas.width  & ~1;   // ensure even
-    const canvasH   = canvas.height & ~1;
-    const FPS       = 30;
-    const bitrate   = Math.min(opts.bitrate || 4_000_000, 8_000_000); // iOS hw cap
+    // ── Find codec / resolution (use preloaded cache when available) ────────
+    const canvasW = canvas.width  & ~1;
+    const canvasH = canvas.height & ~1;
+    const FPS     = 30;
+    const bitrate = Math.min(opts.bitrate || 4_000_000, 8_000_000); // iOS hw cap
 
-    this.onProgress?.(2, 'Comprobando codec…');
-    const config = await this._findSupportedConfig(canvasW, canvasH, bitrate, FPS);
+    let config = null;
+    if (
+      this._preloadedConfig &&
+      this._preloadedConfig._canvasW === canvasW &&
+      this._preloadedConfig._canvasH === canvasH
+    ) {
+      config = this._preloadedConfig;
+    } else {
+      this.onProgress?.(2, 'Comprobando codec…');
+      config = await this._findSupportedConfig(canvasW, canvasH, bitrate, FPS);
+    }
 
     if (!config) {
+      this.isRecording = false;
       this.onError?.(new Error(
         'Este dispositivo no soporta VideoEncoder H.264. ' +
         'Prueba a reducir la resolución de exportación.'
       ));
-      this.isRecording = false;
       return;
     }
 
     const { codec, width, height } = config;
 
-    // ── 2D bridge canvas ─────────────────────────────────────────────────
-    // iOS Safari cannot create VideoFrame directly from a WebGL canvas
-    // (displayCanvas uses WebGL context). drawImage() CAN read a WebGL
-    // framebuffer (because preserveDrawingBuffer=true is set) and writes it
-    // into a 2D canvas, which VideoFrame accepts reliably.
-    this._wcBridge    = document.createElement('canvas');
+    // ── Seek to start (iOS ended-state safe) ──────────────────────────────
+    // On iOS, if video.ended === true, setting currentTime does NOT clear the
+    // ended flag until the 'seeked' event fires. We must wait for seeked BEFORE
+    // calling play() or iOS ignores the play().
+    this.onProgress?.(3, 'Preparando vídeo…');
+    await this._seekToStart(video);
+
+    // ── PLAY VIDEO — must happen as early as possible ─────────────────────
+    // The iOS user-gesture window is ~500 ms. With preloaded muxer + codec
+    // this call now happens within the window. If it still fails, retry once.
+    try {
+      await video.play();
+    } catch (err) {
+      // Give iOS a brief moment to settle the ended / seeking state then retry
+      await new Promise(r => setTimeout(r, 150));
+      try {
+        await video.play();
+      } catch (err2) {
+        this.isRecording = false;
+        this.onError?.(new Error(
+          'No se pudo reproducir el vídeo para exportar. ' +
+          'Toca el botón "Exportar" directamente (sin tocar antes otro botón). ' +
+          'Detalle: ' + err2.message
+        ));
+        return;
+      }
+    }
+
+    // ── 2D bridge canvas ──────────────────────────────────────────────────
+    // iOS Safari cannot create VideoFrame directly from a WebGL canvas.
+    // drawImage() reads the WebGL framebuffer (preserveDrawingBuffer=true)
+    // into a plain 2D canvas, which VideoFrame accepts reliably.
+    this._wcBridge        = document.createElement('canvas');
     this._wcBridge.width  = width;
     this._wcBridge.height = height;
-    this._wcBridgeCtx = this._wcBridge.getContext('2d', { willReadFrequently: false });
+    this._wcBridgeCtx     = this._wcBridge.getContext('2d', { willReadFrequently: false });
     this._wcBridgeCtx.imageSmoothingEnabled = true;
     this._wcBridgeCtx.imageSmoothingQuality = 'high';
+    this._wcScaleCanvas   = null;
+    this._wcScaleCtx      = null;
+    this._wcW             = width;
+    this._wcH             = height;
 
-    // ── Optional downscale (only when native res > supported res) ────────
     if (width !== canvasW || height !== canvasH) {
-      this.onProgress?.(3, `Escalando a ${width}×${height}…`);
+      this.onProgress?.(4, `Escalando a ${width}×${height}…`);
     }
-    // (downscaling is handled directly by drawing canvas → bridge at target dims)
-    this._wcScaleCanvas = null;
-    this._wcScaleCtx    = null;
-    this._wcW = width;
-    this._wcH = height;
 
-    // ── Create muxer ─────────────────────────────────────────────────────
+    // ── Create muxer ──────────────────────────────────────────────────────
     const target = new ArrayBufferTarget();
     const muxer  = new Muxer({
       target,
@@ -216,7 +302,7 @@ export class VideoExporter {
       fastStart: 'in-memory',
     });
 
-    // ── Create encoder ───────────────────────────────────────────────────
+    // ── Create encoder ────────────────────────────────────────────────────
     const encoder = new VideoEncoder({
       output: (chunk, meta) => {
         try {
@@ -233,6 +319,8 @@ export class VideoExporter {
         }
       },
       error: (e) => {
+        clearInterval(this._wcWatchdog);
+        this._wcWatchdog = null;
         this.isRecording = false;
         this.onError?.(new Error('Error de codificación: ' + (e.message ?? e)));
       },
@@ -244,13 +332,30 @@ export class VideoExporter {
     this._wcMuxer   = muxer;
     this._wcTarget  = target;
 
-    // ── Rewind & play ─────────────────────────────────────────────────────
-    video.currentTime = 0;
-    await this._waitForSeek(video);
-
     const duration = video.duration || 1;
     this.onProgress?.(5, `Grabando ${width}×${height}…`);
 
+    // ── Stuck-detection watchdog ──────────────────────────────────────────
+    // If video.currentTime has not advanced after 6 s, abort with a clear error.
+    let _lastCheckedTime = -1;
+    this._wcWatchdog = setInterval(() => {
+      if (!this.isRecording) { clearInterval(this._wcWatchdog); return; }
+      const t = video.currentTime;
+      if (t === _lastCheckedTime) {
+        clearInterval(this._wcWatchdog);
+        this._wcWatchdog = null;
+        this.isRecording = false;
+        cancelAnimationFrame(this._wcRafId);
+        try { if (encoder.state !== 'closed') encoder.close(); } catch (_) {}
+        this.onError?.(new Error(
+          'El vídeo se quedó sin avanzar durante la exportación. ' +
+          'Prueba a reducir la resolución de exportación.'
+        ));
+      }
+      _lastCheckedTime = t;
+    }, 6_000);
+
+    // ── RAF capture loop ──────────────────────────────────────────────────
     const captureFrame = () => {
       if (!this.isRecording || encoder.state === 'closed') return;
       const tsUs = Math.round(video.currentTime * 1_000_000);
@@ -258,15 +363,15 @@ export class VideoExporter {
       this._wcLastTs = tsUs;
 
       try {
-        // Draw WebGL canvas → 2D bridge (also handles any resolution downscale)
-        // This is the critical step: VideoFrame from 2D canvas is reliable on iOS.
-        // VideoFrame from WebGL canvas directly throws "Encoding task failed".
+        // drawImage reads the WebGL framebuffer → plain 2D canvas → VideoFrame
         this._wcBridgeCtx.drawImage(canvas, 0, 0, width, height);
         const frame = new VideoFrame(this._wcBridge, { timestamp: tsUs });
         encoder.encode(frame, { keyFrame: this._wcFrameCount % 90 === 0 });
         frame.close();
         this._wcFrameCount++;
-      } catch (_) {}
+      } catch (e) {
+        console.warn('[WC] frame capture error:', e.message);
+      }
 
       const pct = Math.min((video.currentTime / duration) * 100, 97);
       this.onProgress?.(pct, `Grabando… ${Math.round(pct)}%`);
@@ -278,14 +383,29 @@ export class VideoExporter {
       this._wcRafId = requestAnimationFrame(rafLoop);
     };
 
-    await video.play();
     requestAnimationFrame(rafLoop);
     video.addEventListener('ended', () => this._finalizeWebCodecs(), { once: true });
   }
 
+  // Seek to t=0 in a way that correctly handles the iOS 'ended' state.
+  // The seeked listener must be added BEFORE currentTime is set, otherwise
+  // iOS may fire 'seeked' before the JS listener is attached and we'd hang.
+  _seekToStart(video) {
+    return new Promise(resolve => {
+      const done = () => resolve();
+      video.addEventListener('seeked', done, { once: true });
+      video.currentTime = 0;
+      // If already at start and not in ended state, the seeked event may not
+      // fire; resolve immediately via timeout safety net.
+      setTimeout(done, 1500);
+    });
+  }
+
   async _finalizeWebCodecs() {
     cancelAnimationFrame(this._wcRafId);
-    this.isRecording = false;
+    clearInterval(this._wcWatchdog);
+    this._wcWatchdog  = null;
+    this.isRecording  = false;
     this.onProgress?.(98, 'Codificando…');
 
     const encoder     = this._wcEncoder;
