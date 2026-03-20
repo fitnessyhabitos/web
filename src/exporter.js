@@ -247,21 +247,18 @@ export class VideoExporter {
 
     const { codec, width, height } = config;
 
-    // ── Seek to start (iOS ended-state safe) ──────────────────────────────
-    // On iOS, if video.ended === true, setting currentTime does NOT clear the
-    // ended flag until the 'seeked' event fires. We must wait for seeked BEFORE
-    // calling play() or iOS ignores the play().
-    this.onProgress?.(3, 'Preparando vídeo…');
-    await this._seekToStart(video);
+    // ── PLAY VIDEO FIRST — within the ~500 ms iOS gesture window ────────
+    // iOS requires video.play() to be called very close to the user tap.
+    // Any await() before play() risks expiring the gesture window.
+    // Strategy: set currentTime synchronously (exits "ended" state immediately),
+    // then call play() as the FIRST await. Seek completes in the background.
+    this.onProgress?.(3, 'Iniciando reproducción…');
+    video.currentTime = 0;          // SYNC — clears "ended" flag, starts seek
 
-    // ── PLAY VIDEO — must happen as early as possible ─────────────────────
-    // The iOS user-gesture window is ~500 ms. With preloaded muxer + codec
-    // this call now happens within the window. If it still fails, retry once.
     try {
-      await video.play();
+      await video.play();           // FIRST await — still inside gesture window
     } catch (err) {
-      // Give iOS a brief moment to settle the ended / seeking state then retry
-      await new Promise(r => setTimeout(r, 150));
+      await new Promise(r => setTimeout(r, 200));
       try {
         await video.play();
       } catch (err2) {
@@ -273,6 +270,16 @@ export class VideoExporter {
         ));
         return;
       }
+    }
+
+    // ── Wait for seek to settle (safe now — gesture window already consumed) ──
+    // video.currentTime=0 may still be seeking; wait before the capture loop
+    // so the first encoded frame is actually frame 0 of the video.
+    if (video.seeking) {
+      await new Promise(resolve => {
+        video.addEventListener('seeked', resolve, { once: true });
+        setTimeout(resolve, 800);   // safety net
+      });
     }
 
     // ── 2D bridge canvas ──────────────────────────────────────────────────

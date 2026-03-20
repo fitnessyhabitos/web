@@ -1064,17 +1064,18 @@ async function togglePlayPause() {
   } else {
     // ── Play ───────────────────────────────────────────────────────────
     try {
-      // If ended or nearly at end → seek to beginning FIRST
-      // (iOS keeps video in frozen "ended" state until currentTime is reset)
+      // If ended or nearly at end → reset currentTime SYNCHRONOUSLY.
+      // iOS gesture window is ~500 ms; ANY await before play() can expire it.
+      // Setting currentTime is a synchronous write — no await needed.
       if (videoEl.ended || videoEl.currentTime >= (videoEl.duration - 0.05)) {
         const firstSeg = state.segments.find(s => !s.deleted);
-        await _seekAndWait(firstSeg?.start ?? 0);
+        videoEl.currentTime = firstSeg?.start ?? 0;  // SYNC — no await!
       }
 
-      // IMPORTANT iOS: call play() BEFORE any further awaits so the
-      // user-gesture token (valid ~500 ms) is consumed immediately.
-      // AudioContext resume runs in parallel — not awaited before play().
+      // AudioContext resume: fire-and-forget to keep gesture window for play()
       audioMixer.resume().catch(() => {});
+
+      // play() MUST be the very first await after the gesture tap
       await videoEl.play();
 
       if (audioMixer.musicBuffer) audioMixer.startMusic(videoEl.currentTime);
@@ -1241,10 +1242,12 @@ function bindEvents() {
     const firstSeg = state.segments.find(s => !s.deleted);
     const resetTo  = firstSeg?.start ?? 0;
     if (seekBar) seekBar.value = String(Math.round((resetTo / (videoEl.duration || 1)) * 1000));
-    // Seek AFTER a short delay — iOS needs one event loop tick to settle
+    // Seek after a short delay — iOS needs a task boundary to fully exit
+    // the "ended" state before responding to currentTime writes.
+    // 300 ms is safe on iPhone 16 Pro (80 ms was insufficient).
     setTimeout(() => {
       videoEl.currentTime = resetTo;
-    }, 80);
+    }, 300);
   });
 
   // ── Seeked → render frame when paused ────────────────────────────────────
