@@ -4,35 +4,40 @@
  * Dual-path export:
  *  • Desktop / Android  →  MediaRecorder  (captureStream)
  *  • iOS (iPhone/iPad)  →  WebCodecs API  (VideoEncoder + mp4-muxer CDN)
+ *
+ * iOS notes:
+ *  - Uses isConfigSupported() to find a valid H.264 codec + resolution.
+ *  - If the canvas resolution is too high for any codec, downscales via
+ *    an OffscreenCanvas so the VideoFrame dimensions always match the encoder.
+ *  - Bitrate is capped at 8 Mbps (iOS hardware encoder limit).
+ *  - Audio is not included (iOS WebCodecs AudioEncoder is unreliable).
  */
 
 export class VideoExporter {
   constructor() {
-    this.recorder      = null;
-    this.chunks        = [];
-    this.isRecording   = false;
-    this.onProgress    = null;   // cb(pct, label)
-    this.onComplete    = null;   // cb(blob, url)
-    this.onError       = null;   // cb(err)
-    this._ticker       = null;
+    this.recorder       = null;
+    this.chunks         = [];
+    this.isRecording    = false;
+    this.onProgress     = null;   // cb(pct, label)
+    this.onComplete     = null;   // cb(blob, url)
+    this.onError        = null;   // cb(err)
+    this._ticker        = null;
 
     // WebCodecs path (iOS)
-    this._wcEncoder    = null;
-    this._wcMuxer      = null;
-    this._wcTarget     = null;
-    this._wcRafId      = null;
-    this._wcFrameCount = 0;
-    this._wcLastTs     = -1;
-    this._wcVideo      = null;  // ref for cancel
+    this._wcEncoder     = null;
+    this._wcMuxer       = null;
+    this._wcTarget      = null;
+    this._wcRafId       = null;
+    this._wcFrameCount  = 0;
+    this._wcLastTs      = -1;
+    this._wcVideo       = null;
+    this._wcScaleCanvas = null;   // offscreen canvas for resolution downscale
+    this._wcScaleCtx    = null;
+    this._wcW           = 0;      // actual encoded width
+    this._wcH           = 0;      // actual encoded height
   }
 
   // ─── Public API ──────────────────────────────────────────────────────────
-  /**
-   * @param {HTMLCanvasElement} displayCanvas
-   * @param {MediaStream|null}  audioStream
-   * @param {HTMLVideoElement}  video
-   * @param {object}            opts  { mimeType, bitrate }
-   */
   async start(displayCanvas, audioStream, video, opts = {}) {
     if (this.isRecording) return;
 
@@ -45,19 +50,13 @@ export class VideoExporter {
 
   stop() {
     if (!this.isRecording) return;
-
     if (this._wcEncoder) {
-      // WebCodecs path — finalize is triggered by video ended event
-      // If user calls stop() manually, force finalize
       this._finalizeWebCodecs();
     } else {
-      // MediaRecorder path
       clearInterval(this._ticker);
       this.isRecording = false;
       this.onProgress?.(99, 'Finalizando…');
-      if (this.recorder?.state !== 'inactive') {
-        this.recorder.stop();
-      }
+      if (this.recorder?.state !== 'inactive') this.recorder.stop();
     }
   }
 
@@ -65,19 +64,17 @@ export class VideoExporter {
     clearInterval(this._ticker);
     this.isRecording = false;
 
-    // WebCodecs path
     if (this._wcEncoder) {
       cancelAnimationFrame(this._wcRafId);
-      try {
-        if (this._wcEncoder.state !== 'closed') this._wcEncoder.close();
-      } catch (_) {}
-      this._wcEncoder = null;
-      this._wcMuxer   = null;
-      this._wcTarget  = null;
+      try { if (this._wcEncoder.state !== 'closed') this._wcEncoder.close(); } catch (_) {}
+      this._wcEncoder     = null;
+      this._wcMuxer       = null;
+      this._wcTarget      = null;
+      this._wcScaleCanvas = null;
+      this._wcScaleCtx    = null;
       if (this._wcVideo) { this._wcVideo.pause(); this._wcVideo = null; }
     }
 
-    // MediaRecorder path
     if (this.recorder?.state !== 'inactive') {
       try { this.recorder.stop(); } catch (_) {}
     }
@@ -89,7 +86,6 @@ export class VideoExporter {
   _isIOS() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   }
-
   _hasWebCodecs() {
     return typeof VideoEncoder !== 'undefined' && typeof VideoFrame !== 'undefined';
   }
@@ -97,15 +93,61 @@ export class VideoExporter {
   // ════════════════════════════════════════════════════════════════════════
   // PATH A — WebCodecs (iOS 16+)
   // ════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Find the best H.264 config supported by this device for the given size.
+   * Tries multiple codec level strings and, if none work at full res, retries
+   * at progressively lower resolutions (720p → 480p).
+   */
+  async _findSupportedConfig(W, H, bitrate, fps) {
+    // H.264 codec strings ordered from best to safest quality
+    const CODECS = [
+      'avc1.640034',   // High L5.2  (up to 4K+)
+      'avc1.640032',   // High L5.0
+      'avc1.64002A',   // High L4.2
+      'avc1.640029',   // High L4.1  (needed for 1080p portrait)
+      'avc1.640028',   // High L4.0
+      'avc1.4D4029',   // Main L4.1
+      'avc1.4D4028',   // Main L4.0
+      'avc1.4D401E',   // Main L3.0
+      'avc1.42E01F',   // CB   L3.1
+      'avc1.42E01E',   // CB   L3.0
+    ];
+
+    // Resolution ladder — always keeps aspect ratio, dims rounded to even
+    const even = (n) => Math.max(2, n & ~1);
+    const ladder = [
+      { w: W,    h: H    },
+      { w: 1280, h: even(Math.round(1280 * H / W)) },
+      { w: 720,  h: even(Math.round(720  * H / W)) },
+      { w: 480,  h: even(Math.round(480  * H / W)) },
+    ].filter(r => r.w <= W && r.h <= H && r.w >= 2 && r.h >= 2)
+     .map(r => ({ w: even(r.w), h: even(r.h) }));
+
+    for (const { w, h } of ladder) {
+      for (const codec of CODECS) {
+        try {
+          const res = await VideoEncoder.isConfigSupported({
+            codec, width: w, height: h, bitrate, framerate: fps,
+          });
+          if (res.supported) {
+            return { codec: res.config?.codec ?? codec, width: w, height: h };
+          }
+        } catch (_) {}
+      }
+    }
+    return null;  // nothing supported
+  }
+
   async _startWebCodecs(canvas, video, opts) {
     this.isRecording   = true;
     this._wcFrameCount = 0;
     this._wcLastTs     = -1;
     this._wcVideo      = video;
 
-    this.onProgress?.(0, 'Cargando codificador…');
+    this.onProgress?.(0, 'Iniciando…');
 
-    // ── Load mp4-muxer from CDN ──────────────────────────────────────────
+    // ── Load mp4-muxer ───────────────────────────────────────────────────
     let Muxer, ArrayBufferTarget;
     try {
       const mod = await import(
@@ -114,50 +156,66 @@ export class VideoExporter {
       Muxer            = mod.Muxer;
       ArrayBufferTarget = mod.ArrayBufferTarget;
     } catch (e) {
-      console.warn('mp4-muxer load failed, falling back to MediaRecorder', e);
+      console.warn('mp4-muxer CDN failed, trying MediaRecorder fallback', e);
       this.isRecording = false;
-      // Re-enter via MediaRecorder (no audio — iOS limitation)
       await this._startMediaRecorder(canvas, null, video, opts);
       return;
     }
 
-    const W   = canvas.width;
-    const H   = canvas.height;
-    const FPS = 30;
+    // ── Find a working codec / resolution ─────────────────────────────────
+    const canvasW   = canvas.width  & ~1;   // ensure even
+    const canvasH   = canvas.height & ~1;
+    const FPS       = 30;
+    const bitrate   = Math.min(opts.bitrate || 4_000_000, 8_000_000); // iOS hw cap
+
+    this.onProgress?.(2, 'Comprobando codec…');
+    const config = await this._findSupportedConfig(canvasW, canvasH, bitrate, FPS);
+
+    if (!config) {
+      this.onError?.(new Error(
+        'Este dispositivo no soporta VideoEncoder H.264. ' +
+        'Prueba a reducir la resolución de exportación.'
+      ));
+      this.isRecording = false;
+      return;
+    }
+
+    const { codec, width, height } = config;
+
+    // ── Set up optional downscale canvas ──────────────────────────────────
+    if (width !== canvasW || height !== canvasH) {
+      this.onProgress?.(3, `Escalando a ${width}×${height}…`);
+      this._wcScaleCanvas = new OffscreenCanvas(width, height);
+      this._wcScaleCtx    = this._wcScaleCanvas.getContext('2d');
+      this._wcScaleCtx.imageSmoothingEnabled = true;
+      this._wcScaleCtx.imageSmoothingQuality = 'high';
+    } else {
+      this._wcScaleCanvas = null;
+      this._wcScaleCtx    = null;
+    }
+    this._wcW = width;
+    this._wcH = height;
 
     // ── Create muxer ─────────────────────────────────────────────────────
     const target = new ArrayBufferTarget();
     const muxer  = new Muxer({
       target,
-      video:     { codec: 'avc', width: W, height: H },
+      video:     { codec: 'avc', width, height },
       fastStart: 'in-memory',
     });
 
-    // ── Create video encoder ──────────────────────────────────────────────
+    // ── Create encoder ───────────────────────────────────────────────────
     const encoder = new VideoEncoder({
       output: (chunk, meta) => {
         try { muxer.addVideoChunk(chunk, meta); } catch (_) {}
       },
       error: (e) => {
         this.isRecording = false;
-        this.onError?.(e);
+        this.onError?.(new Error('Error de codificación: ' + (e.message ?? e)));
       },
     });
 
-    try {
-      encoder.configure({
-        codec:        'avc1.42001f',   // H.264 Baseline
-        width:        W,
-        height:       H,
-        bitrate:      opts.bitrate || 4_000_000,
-        framerate:    FPS,
-        latencyMode:  'quality',
-      });
-    } catch (cfgErr) {
-      this.onError?.(new Error('VideoEncoder.configure failed: ' + cfgErr.message));
-      this.isRecording = false;
-      return;
-    }
+    encoder.configure({ codec, width, height, bitrate, framerate: FPS, latencyMode: 'quality' });
 
     this._wcEncoder = encoder;
     this._wcMuxer   = muxer;
@@ -168,23 +226,28 @@ export class VideoExporter {
     await this._waitForSeek(video);
 
     const duration = video.duration || 1;
-    this.onProgress?.(1, 'Grabando… 1%');
+    this.onProgress?.(5, `Grabando ${width}×${height}…`);
 
     const captureFrame = () => {
       if (!this.isRecording || encoder.state === 'closed') return;
       const tsUs = Math.round(video.currentTime * 1_000_000);
-      if (tsUs === this._wcLastTs) return;  // no new frame yet
+      if (tsUs === this._wcLastTs) return;
       this._wcLastTs = tsUs;
 
       try {
-        const frame    = new VideoFrame(canvas, { timestamp: tsUs });
-        const isKeyFrm = this._wcFrameCount % 90 === 0;
-        encoder.encode(frame, { keyFrame: isKeyFrm });
+        // Downscale to OffscreenCanvas if needed, otherwise use canvas directly
+        let src = canvas;
+        if (this._wcScaleCanvas) {
+          this._wcScaleCtx.drawImage(canvas, 0, 0, width, height);
+          src = this._wcScaleCanvas;
+        }
+        const frame    = new VideoFrame(src, { timestamp: tsUs });
+        encoder.encode(frame, { keyFrame: this._wcFrameCount % 90 === 0 });
         frame.close();
         this._wcFrameCount++;
       } catch (_) {}
 
-      const pct = Math.min((video.currentTime / duration) * 100, 98);
+      const pct = Math.min((video.currentTime / duration) * 100, 97);
       this.onProgress?.(pct, `Grabando… ${Math.round(pct)}%`);
     };
 
@@ -196,24 +259,23 @@ export class VideoExporter {
 
     await video.play();
     requestAnimationFrame(rafLoop);
-
-    // Auto-stop when video ends
     video.addEventListener('ended', () => this._finalizeWebCodecs(), { once: true });
   }
 
   async _finalizeWebCodecs() {
     cancelAnimationFrame(this._wcRafId);
     this.isRecording = false;
-    this.onProgress?.(99, 'Codificando…');
+    this.onProgress?.(98, 'Codificando…');
 
-    const encoder = this._wcEncoder;
-    const muxer   = this._wcMuxer;
-    const target  = this._wcTarget;
-
-    this._wcEncoder = null;
-    this._wcMuxer   = null;
-    this._wcTarget  = null;
-    this._wcVideo   = null;
+    const encoder     = this._wcEncoder;
+    const muxer       = this._wcMuxer;
+    const target      = this._wcTarget;
+    this._wcEncoder   = null;
+    this._wcMuxer     = null;
+    this._wcTarget    = null;
+    this._wcScaleCanvas = null;
+    this._wcScaleCtx    = null;
+    this._wcVideo       = null;
 
     try {
       if (encoder && encoder.state !== 'closed') {
@@ -226,33 +288,35 @@ export class VideoExporter {
       const blob     = new Blob([buffer], { type: 'video/mp4' });
       const url      = URL.createObjectURL(blob);
       const filename = `VideoEditado_${Date.now()}.mp4`;
+      const sizeMB   = (blob.size / 1_048_576).toFixed(1);
 
-      this.onProgress?.(100, `✓ Listo (${(blob.size / 1_048_576).toFixed(1)} MB)`);
+      this.onProgress?.(100, `✓ Listo (${sizeMB} MB) — comparte para guardar en Fotos`);
       this.onComplete?.(blob, url);
 
-      // ── iOS: share sheet → save to Camera Roll ───────────────────────
+      // ── iOS: Web Share API → save to Camera Roll ─────────────────────
       if (navigator.canShare) {
         try {
           const file = new File([blob], filename, { type: 'video/mp4' });
           if (navigator.canShare({ files: [file] })) {
+            // Small delay so onComplete UI updates first
+            await new Promise(r => setTimeout(r, 600));
             await navigator.share({ files: [file], title: 'Video editado' });
             setTimeout(() => URL.revokeObjectURL(url), 60_000);
             return;
           }
         } catch (shareErr) {
           if (shareErr.name !== 'AbortError') {
-            console.warn('Share failed, falling back to download', shareErr);
+            console.warn('Share failed, opening in tab:', shareErr);
+            // Open in new tab — user can tap & hold → Save to Photos
+            window.open(url, '_blank');
           }
         }
       }
 
-      // ── Fallback: open in new tab (tap & hold → Save to Photos) ──────
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      // Fallback: anchor download
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
 
     } catch (finalErr) {
@@ -268,22 +332,15 @@ export class VideoExporter {
     const bitrate  = opts.bitrate || 15_000_000;
 
     const videoStream = displayCanvas.captureStream(60);
-    let combined;
-
+    let combined = videoStream;
     if (audioStream && audioStream.getAudioTracks().length > 0) {
       combined = new MediaStream([
         ...videoStream.getVideoTracks(),
         ...audioStream.getAudioTracks(),
       ]);
-    } else {
-      combined = videoStream;
     }
 
-    const recOpts = {
-      mimeType,
-      videoBitsPerSecond: bitrate,
-      audioBitsPerSecond: 192_000,
-    };
+    const recOpts = { mimeType, videoBitsPerSecond: bitrate, audioBitsPerSecond: 192_000 };
 
     try {
       this.recorder = new MediaRecorder(combined, recOpts);
@@ -299,14 +356,9 @@ export class VideoExporter {
     this.chunks      = [];
     this.isRecording = true;
 
-    this.recorder.ondataavailable = (e) => {
-      if (e.data && e.data.size > 0) this.chunks.push(e.data);
-    };
+    this.recorder.ondataavailable = (e) => { if (e.data?.size > 0) this.chunks.push(e.data); };
     this.recorder.onstop  = () => this._finalize(mimeType);
-    this.recorder.onerror = (e) => {
-      this.isRecording = false;
-      this.onError?.(e.error);
-    };
+    this.recorder.onerror = (e) => { this.isRecording = false; this.onError?.(e.error); };
 
     video.currentTime = 0;
     await this._waitForSeek(video);
@@ -334,7 +386,6 @@ export class VideoExporter {
     this.onProgress?.(100, `✓ Listo (${(blob.size / 1_048_576).toFixed(1)} MB)`);
     this.onComplete?.(blob, url);
 
-    // iOS Web Share fallback for MediaRecorder path
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     if (isIOS && navigator.canShare) {
       try {
@@ -344,31 +395,25 @@ export class VideoExporter {
           setTimeout(() => URL.revokeObjectURL(url), 60_000);
           return;
         }
-      } catch (e) {
-        if (e.name !== 'AbortError') console.warn('Share failed:', e);
-      }
+      } catch (e) { if (e.name !== 'AbortError') console.warn('Share failed:', e); }
     }
 
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   _selectMimeType(preferred) {
     const candidates = [
       preferred,
-      'video/mp4;codecs=avc1,mp4a.40.2',   // iOS Safari 15.4+
+      'video/mp4;codecs=avc1,mp4a.40.2',
       'video/mp4;codecs=avc1',
       'video/mp4',
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
       'video/webm',
     ].filter(Boolean);
-
     for (const mime of candidates) {
       if (MediaRecorder.isTypeSupported(mime)) return mime;
     }

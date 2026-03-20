@@ -1399,10 +1399,30 @@ function bindEvents() {
   tlZoomOut.addEventListener('click', () => { timeline.zoomOut(); tlZoomLabel.textContent = `${timeline.zoom}×`; });
 
   // ─── Export ───────────────────────────────────────────────────────────────
+  // Detect iOS once
+  const _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
   const openExportModal = () => {
     if (!state.videoLoaded) return;
     exportProgressArea.classList.add('hidden');
     exportModal.classList.remove('hidden');
+
+    // iOS-specific UI tweaks
+    const iosNote = $('#ios-export-note');
+    if (_isIOS && iosNote) {
+      iosNote.style.display = 'block';
+      // Hide format selector (irrelevant for WebCodecs path) and cap bitrate
+      const fmtGroup = $('#export-format')?.closest('.export-option-group');
+      if (fmtGroup) fmtGroup.style.display = 'none';
+      // Cap bitrate dropdown to 8 Mbps for iOS hw encoder
+      const bitrateEl = $('#export-bitrate');
+      if (bitrateEl) {
+        for (const opt of bitrateEl.options) {
+          if (parseInt(opt.value) > 8_000_000) opt.disabled = true;
+        }
+        if (parseInt(bitrateEl.value) > 8_000_000) bitrateEl.value = '8000000';
+      }
+    }
   };
   btnExport.addEventListener('click', openExportModal);
   // Mobile sidebar export & screenshot buttons
