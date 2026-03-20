@@ -673,6 +673,17 @@ const COLOR_PRESETS = [
   { id: 'coral',      name: 'Coral',      brightness: 10, contrast: 12, saturation: 35, exposure: 6,  swatch: 'linear-gradient(160deg,#f08860,#d05840)' },
   { id: 'velvet',     name: 'Velvet',     brightness: -8, contrast: 25, saturation: 22, exposure: 2,  swatch: 'linear-gradient(160deg,#903060,#500030)' },
   { id: 'champagne',  name: 'Champagne',  brightness: 18, contrast: -8, saturation: 12, exposure: 10, swatch: 'linear-gradient(160deg,#f0d8a0,#d0b060)' },
+  // ── More Skin Tones ───────────────────────────────────────────────────────
+  { id: 'skin_tan',   name: 'Tanned',     brightness: 3,  contrast: 14, saturation: 32, exposure: 4,  swatch: 'linear-gradient(160deg,#c8824a,#a05030)' },
+  { id: 'skin_dark',  name: 'Dark Skin',  brightness: -5, contrast: 22, saturation: 28, exposure: 2,  swatch: 'linear-gradient(160deg,#7a4828,#4a2810)' },
+  { id: 'porcelain',  name: 'Porcelain',  brightness: 22, contrast: 2,  saturation: -12, exposure: 10, swatch: 'linear-gradient(160deg,#fce8d8,#e8d0c0)' },
+  { id: 'golden_hr',  name: 'Golden Hr',  brightness: 10, contrast: 18, saturation: 45, exposure: 8,  swatch: 'linear-gradient(160deg,#ffb850,#e07020)' },
+  { id: 'rose_gold',  name: 'Rose Gold',  brightness: 12, contrast: 10, saturation: 30, exposure: 7,  swatch: 'linear-gradient(160deg,#f0a898,#d07868)' },
+  { id: 'caramel',    name: 'Caramel',    brightness: 5,  contrast: 16, saturation: 36, exposure: 5,  swatch: 'linear-gradient(160deg,#c88848,#905828)' },
+  { id: 'soft_matte', name: 'Soft Matte', brightness: 8,  contrast: -5, saturation: -5, exposure: 6,  swatch: 'linear-gradient(160deg,#d8c8c0,#b8a8a0)' },
+  { id: 'vivid_skin', name: 'Vivid Skin', brightness: 10, contrast: 20, saturation: 55, exposure: 8,  swatch: 'linear-gradient(160deg,#f89060,#d05030)' },
+  { id: 'olive',      name: 'Olive Glow', brightness: 5,  contrast: 12, saturation: 22, exposure: 4,  swatch: 'linear-gradient(160deg,#a09048,#706828)' },
+  { id: 'blush',      name: 'Blush',      brightness: 15, contrast: 5,  saturation: 28, exposure: 8,  swatch: 'linear-gradient(160deg,#f0a0b0,#d07080)' },
 ];
 
 let activePreset = 'original';

@@ -362,6 +362,116 @@ export class FaceCensorEngine {
         ctx.drawImage(this._smallCanvas, 0, 0, zsw, zsh, (width - zw) / 2, (height - zh) / 2, zw, zh);
         break;
       }
+
+      case 'ice': {
+        // Cool icy blue blur
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.filter = 'saturate(0.6) hue-rotate(190deg) brightness(0.85) contrast(0.9)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        // Ice tint overlay
+        ctx.fillStyle = 'rgba(140,210,255,0.18)';
+        ctx.fillRect(0, 0, width, height);
+        break;
+      }
+
+      case 'fire': {
+        // Hot fire orange/red blur
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.filter = 'saturate(4) hue-rotate(-20deg) contrast(1.2) brightness(0.75)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        ctx.fillStyle = 'rgba(255,60,0,0.15)';
+        ctx.fillRect(0, 0, width, height);
+        break;
+      }
+
+      case 'dream': {
+        // Dreamy soft pink/purple glow
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.filter = 'saturate(1.8) hue-rotate(290deg) brightness(0.9) contrast(0.85)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        ctx.fillStyle = 'rgba(200,130,255,0.20)';
+        ctx.fillRect(0, 0, width, height);
+        break;
+      }
+
+      case 'matrix': {
+        // Dark green digital/hacker look
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.filter = 'grayscale(1) sepia(1) hue-rotate(90deg) saturate(8) brightness(0.55) contrast(1.4)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        ctx.fillStyle = 'rgba(0,30,0,0.35)';
+        ctx.fillRect(0, 0, width, height);
+        break;
+      }
+
+      case 'sketch': {
+        // High-contrast desaturated sketch
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.filter = 'grayscale(1) contrast(2.5) brightness(1.15)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        break;
+      }
+
+      case 'vhs': {
+        // VHS tape effect — blur + color aberration
+        if (this._smallCanvas.width !== sw || this._smallCanvas.height !== sh) {
+          this._smallCanvas.width = sw; this._smallCanvas.height = sh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, sw, sh);
+        ctx.filter = 'saturate(1.3) contrast(1.1)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 0, 0, width, height);
+        ctx.filter = 'none';
+        // Chromatic aberration (red offset left, cyan right)
+        ctx.globalAlpha = 0.35;
+        ctx.filter = 'sepia(1) hue-rotate(-15deg) saturate(6) brightness(0.7)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, -6, 0, width, height);
+        ctx.filter = 'sepia(1) hue-rotate(155deg) saturate(6) brightness(0.7)';
+        ctx.drawImage(this._smallCanvas, 0, 0, sw, sh, 6, 0, width, height);
+        ctx.globalAlpha = 1;
+        ctx.filter = 'none';
+        // Scanlines
+        ctx.fillStyle = 'rgba(0,0,0,0.08)';
+        const lh = Math.max(2, Math.round(height * 0.012));
+        for (let y = 0; y < height; y += lh * 2) ctx.fillRect(0, y, width, lh);
+        break;
+      }
+
+      case 'smoke': {
+        // Deep smoke — heavy dark blur with white mist
+        const ss = Math.max(0.02, 1 / (1 + this.bgBlurRadius * 0.28));
+        const ssw = Math.max(3, Math.round(width * ss));
+        const ssh = Math.max(3, Math.round(height * ss));
+        if (this._smallCanvas.width !== ssw || this._smallCanvas.height !== ssh) {
+          this._smallCanvas.width = ssw; this._smallCanvas.height = ssh;
+        }
+        this._smallCtx.drawImage(video, 0, 0, ssw, ssh);
+        ctx.filter = 'grayscale(0.5) brightness(0.6) contrast(1.1)';
+        ctx.drawImage(this._smallCanvas, 0, 0, ssw, ssh, 0, 0, width, height);
+        ctx.filter = 'none';
+        ctx.fillStyle = 'rgba(200,200,210,0.12)';
+        ctx.fillRect(0, 0, width, height);
+        break;
+      }
     }
     ctx.restore();
   }
