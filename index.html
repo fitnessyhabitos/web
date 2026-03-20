@@ -1303,9 +1303,27 @@
           <div id="export-progress-label">Preparing export…</div>
         </div>
         <!-- iOS note (shown only on iOS via JS) -->
-        <div id="ios-export-note" style="display:none;background:rgba(0,120,255,0.12);border:1px solid rgba(0,120,255,0.35);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11px;color:#90c8ff;line-height:1.5">
-          📱 <strong>iPhone/iPad:</strong> el vídeo se codifica directamente en MP4 H.264. Tras exportar, se abrirá el menú <em>Compartir</em> — pulsa <strong>Guardar en Fotos</strong> para guardarlo en tu galería.<br>
-          <span style="color:#f0a060">⚠️ Mantén la pantalla activa y esta pestaña abierta durante toda la exportación.</span>
+        <div id="ios-export-note" style="display:none;margin-bottom:10px">
+          <div style="background:rgba(0,120,255,0.12);border:1px solid rgba(0,120,255,0.35);border-radius:10px;padding:10px 12px;font-size:11px;color:#90c8ff;line-height:1.5;margin-bottom:8px">
+            📱 <strong>iPhone/iPad:</strong> se codifica en MP4 H.264. Al terminar, aparecerá el menú <em>Compartir</em> → toca <strong>Guardar en Fotos</strong>.<br>
+            <span style="color:#f0a060">⚠️ Mantén la pantalla activa durante la exportación.</span>
+          </div>
+          <!-- Screen Record fallback button -->
+          <button id="btn-screen-record-mode" style="width:100%;padding:10px 12px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.5);border-radius:10px;color:#4ade80;font-size:12px;font-weight:600;cursor:pointer;text-align:left;line-height:1.4">
+            📹 Modo Grabación de Pantalla (100% fiable)<br>
+            <span style="font-size:10px;font-weight:400;color:#86efac">Si la exportación falla, usa la grabación nativa de iOS</span>
+          </button>
+          <!-- Screen record instructions panel (hidden by default) -->
+          <div id="screen-record-instructions" style="display:none;margin-top:8px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:12px;font-size:11px;color:#a7f3d0;line-height:1.7">
+            <strong style="color:#4ade80;font-size:12px">Pasos para grabar:</strong><br>
+            1️⃣ Cierra este modal<br>
+            2️⃣ Desliza hacia abajo desde la esquina superior derecha → <strong>Control Center</strong><br>
+            3️⃣ Pulsa el botón <strong>⏺ Grabación de pantalla</strong> (espera 3 seg)<br>
+            4️⃣ Vuelve aquí y pulsa <strong>▶ Play</strong> para reproducir el vídeo<br>
+            5️⃣ Cuando termine, vuelve al <strong>Control Center</strong> y para la grabación<br>
+            6️⃣ El vídeo se guardará automáticamente en <strong>Fotos</strong> 📸<br>
+            <button id="btn-close-screen-record" style="margin-top:8px;width:100%;padding:7px;background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);border-radius:7px;color:#4ade80;font-size:11px;cursor:pointer">✓ Entendido, cerrar modal</button>
+          </div>
         </div>
         <div class="export-warning">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

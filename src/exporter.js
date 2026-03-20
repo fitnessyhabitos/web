@@ -31,10 +31,12 @@ export class VideoExporter {
     this._wcFrameCount  = 0;
     this._wcLastTs      = -1;
     this._wcVideo       = null;
-    this._wcScaleCanvas = null;   // offscreen canvas for resolution downscale
+    this._wcScaleCanvas = null;   // downscale canvas (if resolution reduced)
     this._wcScaleCtx    = null;
-    this._wcW           = 0;      // actual encoded width
-    this._wcH           = 0;      // actual encoded height
+    this._wcBridge      = null;   // 2D bridge — reads WebGL canvas safely on iOS
+    this._wcBridgeCtx   = null;
+    this._wcW           = 0;
+    this._wcH           = 0;
   }
 
   // ─── Public API ──────────────────────────────────────────────────────────
@@ -72,6 +74,8 @@ export class VideoExporter {
       this._wcTarget      = null;
       this._wcScaleCanvas = null;
       this._wcScaleCtx    = null;
+      this._wcBridge      = null;
+      this._wcBridgeCtx   = null;
       if (this._wcVideo) { this._wcVideo.pause(); this._wcVideo = null; }
     }
 
@@ -182,17 +186,25 @@ export class VideoExporter {
 
     const { codec, width, height } = config;
 
-    // ── Set up optional downscale canvas ──────────────────────────────────
+    // ── 2D bridge canvas ─────────────────────────────────────────────────
+    // iOS Safari cannot create VideoFrame directly from a WebGL canvas
+    // (displayCanvas uses WebGL context). drawImage() CAN read a WebGL
+    // framebuffer (because preserveDrawingBuffer=true is set) and writes it
+    // into a 2D canvas, which VideoFrame accepts reliably.
+    this._wcBridge    = document.createElement('canvas');
+    this._wcBridge.width  = width;
+    this._wcBridge.height = height;
+    this._wcBridgeCtx = this._wcBridge.getContext('2d', { willReadFrequently: false });
+    this._wcBridgeCtx.imageSmoothingEnabled = true;
+    this._wcBridgeCtx.imageSmoothingQuality = 'high';
+
+    // ── Optional downscale (only when native res > supported res) ────────
     if (width !== canvasW || height !== canvasH) {
       this.onProgress?.(3, `Escalando a ${width}×${height}…`);
-      this._wcScaleCanvas = new OffscreenCanvas(width, height);
-      this._wcScaleCtx    = this._wcScaleCanvas.getContext('2d');
-      this._wcScaleCtx.imageSmoothingEnabled = true;
-      this._wcScaleCtx.imageSmoothingQuality = 'high';
-    } else {
-      this._wcScaleCanvas = null;
-      this._wcScaleCtx    = null;
     }
+    // (downscaling is handled directly by drawing canvas → bridge at target dims)
+    this._wcScaleCanvas = null;
+    this._wcScaleCtx    = null;
     this._wcW = width;
     this._wcH = height;
 
@@ -235,13 +247,11 @@ export class VideoExporter {
       this._wcLastTs = tsUs;
 
       try {
-        // Downscale to OffscreenCanvas if needed, otherwise use canvas directly
-        let src = canvas;
-        if (this._wcScaleCanvas) {
-          this._wcScaleCtx.drawImage(canvas, 0, 0, width, height);
-          src = this._wcScaleCanvas;
-        }
-        const frame    = new VideoFrame(src, { timestamp: tsUs });
+        // Draw WebGL canvas → 2D bridge (also handles any resolution downscale)
+        // This is the critical step: VideoFrame from 2D canvas is reliable on iOS.
+        // VideoFrame from WebGL canvas directly throws "Encoding task failed".
+        this._wcBridgeCtx.drawImage(canvas, 0, 0, width, height);
+        const frame = new VideoFrame(this._wcBridge, { timestamp: tsUs });
         encoder.encode(frame, { keyFrame: this._wcFrameCount % 90 === 0 });
         frame.close();
         this._wcFrameCount++;
@@ -270,11 +280,13 @@ export class VideoExporter {
     const encoder     = this._wcEncoder;
     const muxer       = this._wcMuxer;
     const target      = this._wcTarget;
-    this._wcEncoder   = null;
-    this._wcMuxer     = null;
-    this._wcTarget    = null;
+    this._wcEncoder     = null;
+    this._wcMuxer       = null;
+    this._wcTarget      = null;
     this._wcScaleCanvas = null;
     this._wcScaleCtx    = null;
+    this._wcBridge      = null;
+    this._wcBridgeCtx   = null;
     this._wcVideo       = null;
 
     try {

@@ -1431,6 +1431,15 @@ function bindEvents() {
 
 
   btnCloseExport.addEventListener('click',  () => exportModal.classList.add('hidden'));
+
+  // ─── Screen Record Mode (iOS fallback) ───────────────────────────────────
+  $('#btn-screen-record-mode')?.addEventListener('click', () => {
+    const instr = $('#screen-record-instructions');
+    if (instr) instr.style.display = instr.style.display === 'none' ? 'block' : 'none';
+  });
+  $('#btn-close-screen-record')?.addEventListener('click', () => {
+    exportModal.classList.add('hidden');
+  });
   btnCancelExport.addEventListener('click', () => {
     exporter.cancel();
     exportModal.classList.add('hidden');
