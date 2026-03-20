@@ -542,24 +542,33 @@ html, body {
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.18);
   border-radius: 4px;
   outline: none;
   cursor: pointer;
   touch-action: manipulation;
+  /* iOS: increase hit area via padding so small thumbs are still tappable */
+  padding: 10px 0;
+  margin: -10px 0;
+}
+.seek-bar-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.18);
 }
 .seek-bar-range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--cyan);
-  box-shadow: 0 0 6px var(--cyan-glow);
+  box-shadow: 0 0 8px var(--cyan-glow);
   cursor: pointer;
+  margin-top: -6px; /* vertically center thumb on track */
 }
 .seek-bar-range::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--cyan);
   border: none;
@@ -641,11 +650,18 @@ html, body {
 
 @media (max-width: 768px) {
   .seek-bar-range {
-    height: 6px;
+    height: 5px;
+    padding: 14px 0;
+    margin: -14px 0;
+  }
+  .seek-bar-range::-webkit-slider-runnable-track {
+    height: 5px;
   }
   .seek-bar-range::-webkit-slider-thumb {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
+    margin-top: -10px;
+    box-shadow: 0 0 0 6px rgba(25,249,249,0.15), 0 0 10px var(--cyan-glow);
   }
 }
 

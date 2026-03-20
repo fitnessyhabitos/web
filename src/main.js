@@ -1018,37 +1018,67 @@ function resizeDisplayCanvas(vw, vh) {
 // ══════════════════════════════════════════════════════════════════════════════
 // PLAYBACK
 // ══════════════════════════════════════════════════════════════════════════════
+// ── Helper: update play/pause button icons ──────────────────────────────────
+function _setPlayUI(playing) {
+  if (playing) {
+    iconPlay.classList.add('hidden');
+    iconPause.classList.remove('hidden');
+    btnPreviewToggle.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+  } else {
+    iconPlay.classList.remove('hidden');
+    iconPause.classList.add('hidden');
+    btnPreviewToggle.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+  }
+}
+
+// ── Helper: seek video and wait for seeked event (with safety timeout) ───────
+function _seekAndWait(targetTime, timeoutMs = 1200) {
+  return new Promise(resolve => {
+    let done = false;
+    const finish = () => { if (!done) { done = true; resolve(); } };
+    // Add listener BEFORE setting currentTime to avoid race condition
+    // (iOS can fire 'seeked' synchronously)
+    videoEl.addEventListener('seeked', finish, { once: true });
+    setTimeout(finish, timeoutMs);   // safety net if seeked never fires
+    videoEl.currentTime = targetTime;
+  });
+}
+
 async function togglePlayPause() {
   if (!state.videoLoaded) return;
 
-  await audioMixer.resume();
-
   if (state.playing) {
+    // ── Pause ──────────────────────────────────────────────────────────
     videoEl.pause();
     audioMixer.stopMusic();
     state.playing = false;
-    iconPlay.classList.remove('hidden');
-    iconPause.classList.add('hidden');
-    // Update preview toggle icon
-    btnPreviewToggle.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+    _setPlayUI(false);
+
   } else {
+    // ── Play ───────────────────────────────────────────────────────────
     try {
-      // iOS fix: if video ended, seek to beginning before playing (iOS won't auto-restart)
+      // If ended or nearly at end → seek to beginning FIRST
+      // (iOS keeps video in frozen "ended" state until currentTime is reset)
       if (videoEl.ended || videoEl.currentTime >= (videoEl.duration - 0.05)) {
         const firstSeg = state.segments.find(s => !s.deleted);
-        videoEl.currentTime = firstSeg?.start ?? 0;
-        await new Promise(r => videoEl.addEventListener('seeked', r, { once: true }));
+        await _seekAndWait(firstSeg?.start ?? 0);
       }
+
+      // IMPORTANT iOS: call play() BEFORE any further awaits so the
+      // user-gesture token (valid ~500 ms) is consumed immediately.
+      // AudioContext resume runs in parallel — not awaited before play().
+      audioMixer.resume().catch(() => {});
       await videoEl.play();
-      if (audioMixer.musicBuffer) {
-        audioMixer.startMusic(videoEl.currentTime);
-      }
+
+      if (audioMixer.musicBuffer) audioMixer.startMusic(videoEl.currentTime);
       state.playing = true;
-      iconPlay.classList.add('hidden');
-      iconPause.classList.remove('hidden');
-      btnPreviewToggle.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+      _setPlayUI(true);
+
     } catch (err) {
-      console.warn('Playback error:', err);
+      // NotAllowedError, AbortError, etc.
+      console.warn('Playback error:', err.name, err.message);
+      state.playing = false;
+      _setPlayUI(false);
     }
   }
 }
@@ -1170,25 +1200,48 @@ function bindEvents() {
   btnPlayPause.addEventListener('click', togglePlayPause);
   btnPreviewToggle.addEventListener('click', togglePlayPause);
 
-  // ── Seek bar ──
-  seekBar?.addEventListener('pointerdown', () => { _seekDragging = true; });
-  seekBar?.addEventListener('pointerup',   () => { _seekDragging = false; });
-  seekBar?.addEventListener('input', () => {
-    if (!state.videoLoaded || !videoEl.duration) return;
-    videoEl.currentTime = (parseInt(seekBar.value) / 1000) * videoEl.duration;
-  });
+  // ── Seek bar ──────────────────────────────────────────────────────────────
+  // iOS: pointer events are unreliable on <input type=range> inside fixed divs.
+  // Use both pointer + touch events so _seekDragging is always set correctly.
+  const _onSeekStart = () => { _seekDragging = true; };
+  const _onSeekEnd   = () => { _seekDragging = false; };
+  seekBar?.addEventListener('pointerdown',  _onSeekStart);
+  seekBar?.addEventListener('pointerup',    _onSeekEnd);
+  seekBar?.addEventListener('pointercancel',_onSeekEnd);
+  seekBar?.addEventListener('touchstart',   _onSeekStart, { passive: true });
+  seekBar?.addEventListener('touchend',     _onSeekEnd);
+  seekBar?.addEventListener('touchcancel',  _onSeekEnd);
 
+  const _applySeek = () => {
+    if (!state.videoLoaded || !videoEl.duration) return;
+    const targetTime = (parseInt(seekBar.value) / 1000) * videoEl.duration;
+    // On iOS the video may still be in "ended" state here; _seekAndWait
+    // ensures the seek lands and the frame updates via the 'seeked' listener.
+    videoEl.currentTime = targetTime;
+  };
+  seekBar?.addEventListener('input',  _applySeek);
+  seekBar?.addEventListener('change', _applySeek); // 'change' fires on iOS when thumb released
+
+  // ── Video ended ───────────────────────────────────────────────────────────
   videoEl.addEventListener('ended', () => {
     state.playing = false;
-    iconPlay.classList.remove('hidden');
-    iconPause.classList.add('hidden');
+    _setPlayUI(false);
     audioMixer.stopMusic();
-    // Reset seek bar to beginning for easy replay
-    if (seekBar) seekBar.value = '0';
+
+    // iOS critical: immediately seek back to start so the element exits the
+    // "ended" state. Without this, subsequent play() and currentTime writes
+    // are silently ignored by iOS Safari.
+    const firstSeg = state.segments.find(s => !s.deleted);
+    const resetTo  = firstSeg?.start ?? 0;
+    if (seekBar) seekBar.value = String(Math.round((resetTo / (videoEl.duration || 1)) * 1000));
+    // Seek AFTER a short delay — iOS needs one event loop tick to settle
+    setTimeout(() => {
+      videoEl.currentTime = resetTo;
+    }, 80);
   });
 
+  // ── Seeked → render frame when paused ────────────────────────────────────
   videoEl.addEventListener('seeked', () => {
-    // Force a single frame render when paused + seeked
     if (!state.playing && state.videoLoaded) {
       renderSingleFrame();
     }
